@@ -6,19 +6,19 @@ I’ve recently rekindled my interest in both assembly language programming and 
 
 ## Setup
 1. Hardware
-	a. Waiting for the shipment (and delivery) of the C64U.
-	b. So for the time being emulation via VICE on a macOS
+	- Waiting for the shipment (and delivery) of the C64U.
+	- So for the time being emulation via VICE on a macOS
 	
 2. Primary System
-	a. macOS M2
-	b. VICE. [VICE](https://vice-emu.sourceforge.io)
-	c. ACME Assembler. [ACME](https://sourceforge.net/projects/acme-crossass/)
-	d. BBEdit. (macOS App Store)
+	- macOS M2
+	- VICE. [VICE](https://vice-emu.sourceforge.io)
+	- ACME Assembler. [ACME](https://sourceforge.net/projects/acme-crossass/)
+	- BBEdit. (macOS App Store)
 	
 3. Technical Sources
-	Reading, experimenting with trial and error.
-	a. Internet Archive. [ARCHIVE](https://archive.org)
-	b. Forums, etc.
+	- Reading, experimenting with trial and error.
+	- Internet Archive. [ARCHIVE](https://archive.org)
+	- Forums, etc.
 	
 ## Notes
 - None to speak of at this stage.
