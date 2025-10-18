@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BBEditDocumentType</key>
+	<string>CodelessLanguageModule</string>
+	
+	<key>BBLMColorsSyntax</key>
+	<true/>
+	
+	<key>BBLMIsCaseSensitive</key>
+	<false/>
+	
+	<key>BBLMKeywordList</key>
+	<array>
+		<!-- 6502 / 6510 Official Opcodes -->
+        <string>ADC</string>
+    	<string>AND</string>
+    	<string>ASL</string>
+    	<string>BCC</string>
+    	<string>BCS</string>
+    	<string>BEQ</string>
+    	<string>BIT</string>
+    	<string>BMI</string>
+    	<string>BNE</string>
+    	<string>BPL</string>
+    	<string>BRA</string>
+    	<string>BRK</string>
+    	<string>BVC</string>
+    	<string>BVS</string>
+    	<string>CLC</string>
+    	<string>CLD</string>
+    	<string>CLI</string>
+    	<string>CLV</string>
+    	<string>CMP</string>
+    	<string>CPX</string>
+    	<string>CPY</string>
+    	<string>DEC</string>
+    	<string>DEX</string>
+    	<string>DEY</string>
+    	<string>EOR</string>
+    	<string>INC</string>
+    	<string>INX</string>
+    	<string>INY</string>
+    	<string>JMP</string>
+    	<string>JSR</string>
+    	<string>LDA</string>
+    	<string>LDX</string>
+    	<string>LDY</string>
+    	<string>LSR</string>
+    	<string>NOP</string>
+    	<string>ORA</string>
+    	<string>PHA</string>
+    	<string>PHP</string>
+    	<string>PHX</string>
+    	<string>PHY</string>
+    	<string>PLA</string>
+    	<string>PLP</string>
+    	<string>PLX</string>
+    	<string>PLY</string>
+    	<string>ROL</string>
+    	<string>ROR</string>
+    	<string>RTI</string>
+    	<string>RTS</string>
+    	<string>SBC</string>
+    	<string>SEC</string>
+    	<string>SED</string>
+    	<string>SEI</string>
+    	<string>STA</string>
+    	<string>STX</string>
+    	<string>STY</string>
+    	<string>STZ</string>
+    	<string>TAX</string>
+    	<string>TAY</string>
+    	<string>TRB</string>
+    	<string>TSB</string>
+    	<string>TSX</string>
+    	<string>TXA</string>
+    	<string>TXS</string>
+    	<string>TYA</string>
+    	
+    	<!-- 65816 Extensions -->
+		<string>BBS</string>
+		<string>BBR</string>
+		<string>RMB</string>
+		<string>SMB</string>
+		<string>JMP (abs,X)</string>
+		
+		<!-- 65816 Extensions -->
+		<string>PEA</string>
+		<string>PEI</string>
+		<string>PER</string>
+		<string>REP</string>
+		<string>SEP</string>
+		<string>STP</string>
+		<string>WAI</string>
+		
+		<!-- Undocumented / Illegal 6510 Opcodes -->
+		<string>ANC</string>
+		<string>ANE</string>
+		<string>ARR</string>
+		<string>ASR</string>
+		<string>DCP</string>
+		<string>ISC</string>
+		<string>LAS</string>
+		<string>LAX</string>
+		<string>LXA</string>
+		<string>RLA</string>
+		<string>RRA</string>
+		<string>SAX</string>
+		<string>SBX</string>
+		<string>SHA</string>
+		<string>SHX</string>
+		<string>SHY</string>
+		<string>SLO</string>
+		<string>SRE</string>
+		<string>TAS</string>
+		
+		<!-- ACME Pseudo-Ops -->
+		<string>!byte</string>
+		<string>!word</string>
+		<string>!text</string>
+		<string>!pet</string>
+		<string>!scr</string>
+		<string>!to</string>
+		<string>!symbollist</string>
+		<string>!zone</string>
+		<string>!set</string>
+		<string>!if</string>
+		<string>!endif</string>
+		<string>!for</string>
+		<string>!endfor</string>
+		<string>!warn</string>
+		<string>!error</string>
+    </array>
+    
+	<key>BBLMLanguageCode</key>
+	<string>ACME</string>
+	
+	<key>BBLMLanguageDisplayName</key>
+	<string>ACME Assembler (C64)</string>
+	
+	<key>BBLMScansFunctions</key>
+	<false/>
+	
+	<key>BBLMSuffixMap</key>
+	<array>
+	    <dict>
+	        <key>BBLMLanguageSuffix</key>
+	        <string>.a</string>
+	    </dict>
+	    <dict>
+	        <key>BBLMLanguageSuffix</key>
+	        <string>.asm</string>
+	    </dict>
+	    <dict>
+	        <key>BBLMLanguageSuffix</key>
+	        <string>.s</string>
+	    </dict>
+	</array>
+	
+	<key>BBLMCommentStart</key>
+	<string>;</string>
+	
+	<key>BBLMCommentEnd</key>
+	<string></string>
+	
+	<key>BBLMCaseSensitive</key>
+	<false/>
+	
+	<key>Language Features</key>
+	<dict>
+	    <!-- Valid identifier characters for labels, variables, and pseudo-ops -->
+	    <key>Identifier and Keyword Characters</key>
+	    <string>0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_.</string>
+	
+	    <!-- No function or procedure constructs in assembly -->
+	    <key>Prefix for Functions</key>
+		<string>^([A-Za-z_.][A-Za-z0-9_.]*):</string>
+	    <key>Prefix for Procedures</key>
+	    <string></string>
+	
+	    <!-- No parameter lists in assembly -->
+	    <key>Open Parameter Lists</key>
+	    <string></string>
+	    <key>Close Parameter Lists</key>
+	    <string></string>
+	
+	    <!-- No prototype or block syntax -->
+	    <key>Terminator for Prototypes 1</key>
+	    <string></string>
+	    <key>Terminator for Prototypes 2</key>
+	    <string></string>
+	    <key>Open Statement Blocks</key>
+	    <string></string>
+	    <key>Close Statement Blocks</key>
+	    <string></string>
+	
+	    <!-- Comment syntax -->
+	    <key>Open Block Comments</key>
+	    <string></string>
+	    <key>Close Block Comments</key>
+	    <string></string>
+	    <key>Open Line Comments</key>
+	    <string>;</string>
+	
+	    <!-- String syntax -->
+	    <key>Open Strings 1</key>
+	    <string>"</string>
+	    <key>Close Strings 1</key>
+	    <string>"</string>
+	    <key>Escape Char in Strings 1</key>
+	    <string></string>
+	    <key>End-of-line Ends Strings 1</key>
+	    <false/>
+	
+	    <!-- Secondary string type (PETSCII / binary text) -->
+	    <key>Open Strings 2</key>
+	    <string>'</string>
+	    <key>Close Strings 2</key>
+	    <string>'</string>
+	    <key>Escape Char in Strings 2</key>
+	    <string></string>
+	    <key>End-of-line Ends Strings 2</key>
+	    <false/>
+	</dict>
+</dict>
+</plist>
