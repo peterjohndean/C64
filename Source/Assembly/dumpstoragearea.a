@@ -1,0 +1,327 @@
+; ------------------------------------------------------------
+;  BASIC Variable/Array Storage Area
+;  ------------------------------------------------------------
+;  Dumps the BASIC variable/array names and type.
+;	- VARTAB to ARYTAB (Each entry is 7 bytes)
+;	- ARYTAB to STREND (Each entry varys in length)
+;
+;  - Destroys A,X,Y & FREKZP
+;  - Outputs: iteration index + var name (var type)
+; ------------------------------------------------------------
+!zone DUMPTABLES {
+; Declarations - Force Page-0/Zero
+!address .ZPVARTAB = <VARTAB
+!address .ZPARYTAB = <ARYTAB
+!address .ZPSTREND = <STREND
+
+; Localised variables
+!address .Index	= <FREKZP+2	; Force Page-0/Zero
+!address .Ptr1	= <FREKZP	; Force Page-0/Zero
+!address .Ptr2 	!word 0
+!address .Ptr3	!word 0		; Temporary 16-bit value.
+
+!address .Bool	!byte 0		; 0 = VARTAB, else ARYTAB
+
+!address .HDR1  	!pet "basic variable storage", 13, 0
+!address .HDR2  	!pet "basic array storage",13 , 0
+
+!address .STRfloat	!pet " (float)", 0
+!address .STRstring	!pet " (string)", 0
+!address .STRint	!pet " (int)", 0
+!address .STRfn		!pet " (fn)", 0
+
+DumpBASICVariableTable:
+	; 
+	jsr IsVarTab
+	beq .ProcessAryTab
+	
+    ; Initialise
+    lda #1
+    sta .Index
+    
+    lda #0
+    sta .Bool
+    
+    ; VARTAB
+	lda #<.HDR1
+    ldx #>.HDR1
+    jsr PrintCString
+    
+    ; VARTAB (Start) to ARYTAB (End)
+    lda VARTAB
+    sta .Ptr1
+    lda VARTAB + 1
+    sta .Ptr1 + 1
+    
+    lda ARYTAB
+    sta .Ptr2
+    lda ARYTAB + 1
+    sta .Ptr2 + 1
+    jsr DumpTable
+    jsr Newline
+    
+    ;jmp .done
+    
+.ProcessAryTab:
+	jsr IsAryTab
+	beq .BranchtoFarToDone
+	
+    ; Initialise
+    lda #1
+    sta .Index
+    
+    lda #1
+    sta .Bool
+    
+    ; ARYTAB
+	lda #<.HDR2
+    ldx #>.HDR2
+    jsr PrintCString
+    
+    ; ARYTAB (Start) to STREND (End)
+    lda ARYTAB
+    sta .Ptr1
+    lda ARYTAB + 1
+    sta .Ptr1 + 1
+    
+    lda STREND
+    sta .Ptr2
+    lda STREND + 1
+    sta .Ptr2 + 1
+    jsr DumpTable
+
+.BranchtoFarToDone:  
+    jmp .done
+
+; Dump table
+DumpTable:
+.loop:
+    ; Compare .Ptr1 < .Ptr2 → continue while less than .Ptr2
+    lda .Ptr1 + 1	; MSB
+    cmp .Ptr2 + 1
+    bcc .cont
+    bne .done
+    lda .Ptr1		; LSB
+    cmp .Ptr2
+    bcc .cont
+    beq .done
+    bcs .done
+
+.cont:
+	lda .Index
+	jsr PrintHex
+	lda #"."
+    jsr CHROUT
+	lda #" "
+    jsr CHROUT
+    
+    ; Display:
+    ; Variable index, Variable name, Variable type
+    ; xx. nn (type)
+    ldy #0
+    lda (.Ptr1),y
+    and #$7f
+    jsr CHROUT          ; print first letter
+    iny
+    lda (.Ptr1),y
+    ;cmp #$00
+    and #$7f
+    beq .printSpace
+    and #$7f
+    jsr CHROUT          ; print second letter if not null
+    
+    jmp TypeDetect
+    
+.printSpace:
+	lda #" "
+    jsr CHROUT
+    
+    jmp TypeDetect
+    
+.next:
+	
+	inc .Index
+    jsr Newline
+
+	; Handle Variables & Arrays differently
+	lda .Bool
+	;cmp #$00
+	bne .ARYTAB
+	
+.VARTAB:
+    jsr .add7
+    jmp .loop
+    
+.ARYTAB:
+	jsr .addtoPtr1
+    jmp .loop
+
+.done:
+    rts
+    
+; ------------------------------------------------------------
+;  BASIC variable type
+; ------------------------------------------------------------ 
+; LSB		MSB		BASIC Variable Type
+; & $80		& $80
+; 0			0		Float
+; 0			1		String
+; 1			0		Function
+; 1			1		Integer	
+; ------------------------------------------------------------ 
+TypeDetect:
+	; Preserve
+    lda .Ptr1
+    pha
+    lda .Ptr1+1
+    pha
+
+	; --- LSB test bit 7 ---
+    ldy #0
+    lda (.Ptr1),y
+    and #$80
+    bne .IsLSBSet		; Branch if non-zero
+    beq .IsLSBClear		; Branch if zero
+
+.IsLSBClear:
+	; --- MSB test bit 7 ---
+	ldy #1
+    lda (.Ptr1),y
+    and #$80
+    beq .IsFloat		; Branch if zero
+    jmp .IsString		; Else non-zero, so jump
+	
+.IsLSBSet:
+	; --- MSB test bit 7 ---
+    ldy #1
+    lda (.Ptr1),y
+    and #$80
+    beq .IsFunction		; Branch if zero
+	jmp .IsInteger		; Can just fallthrough, here for clarity.
+	
+.IsInteger:				; --- both bits set → Integer ---
+    lda #<.STRint
+    ldx #>.STRint
+    jsr PrintCString
+	jmp .TypeDetectEnd
+	
+.IsFloat:
+	lda #<.STRfloat
+    ldx #>.STRfloat
+    jsr PrintCString
+    jmp .TypeDetectEnd
+
+.IsString:
+	lda #<.STRstring
+    ldx #>.STRstring
+    jsr PrintCString
+    jmp .TypeDetectEnd
+    
+.IsFunction:
+	lda #<.STRfn
+    ldx #>.STRfn
+    jsr PrintCString
+    jmp .TypeDetectEnd
+
+.TypeDetectEnd:
+	; Restore
+	pla
+    sta .Ptr1+1
+    pla
+    sta .Ptr1
+    jmp .next
+    
+; ------------------------------------------------------------
+;  Add 8-bit (7) to the 16-bit value located at .Ptr1
+; ------------------------------------------------------------
+.add7:
+    clc				; Clear carry before add
+    lda .Ptr1
+    adc #7			; Add 7 to LSB
+    sta .Ptr1
+    bcc .skip		; Branch if carry is clear
+    inc .Ptr1 + 1	; Adjust carry for MSB
+.skip:
+    rts
+    
+; ------------------------------------------------------------
+; Adds the 16-bit value pointed to by (.Ptr1) to .Ptr1 itself
+; ------------------------------------------------------------
+; On entry:
+;   .Ptr1 = pointer (e.g. $1234)
+;   ($1234) = 16-bit value to add (e.g. $000A)
+; On exit:
+;   .Ptr1 = .Ptr1 + ($1234)
+; ------------------------------------------------------------
+.addtoPtr1:
+    ; Dereference .Ptr1
+    ldy #2			; index to 16-bit size
+    lda (.Ptr1),y	; lsb
+    sta .Ptr3
+    iny
+    lda (.Ptr1),y	; msb
+    sta .Ptr3+1
+
+    ; Add .Ptr3 to .Ptr1
+    clc
+    lda .Ptr1		; lsb
+    adc .Ptr3
+    sta .Ptr1
+    
+    lda .Ptr1+1		; msb
+    adc .Ptr3+1
+    sta .Ptr1+1
+    rts
+    
+; ------------------------------------------------------------
+; IsVarTab
+; ------------------------------------------------------------
+; Compares the 16-bit values pointed to by VARTAB and ARYTAB.
+; Sets the Zero flag if both values are equal.
+; ------------------------------------------------------------
+; Inputs:
+;   VARTAB  - pointer to variable table (ZP)
+;   ARYTAB  - pointer to array table (ZP)
+;
+; Outputs:
+;   Z = 1 if equal, 0 if not equal
+;   A, Y modified
+; ------------------------------------------------------------
+IsVarTab:
+    ldy #0					; lsb
+    lda (.ZPVARTAB),y
+    cmp (.ZPARYTAB),y
+    bne .IsVarTabNotEqual
+    iny						; msb
+    lda (.ZPVARTAB),y
+    cmp (.ZPARYTAB),y
+.IsVarTabNotEqual:
+    rts
+
+; ------------------------------------------------------------
+; IsAryTab
+; ------------------------------------------------------------
+; Compares the 16-bit values pointed to by ARYTAB and STREND.
+; Sets the Zero flag if both values are equal.
+; ------------------------------------------------------------
+; Inputs:
+;   ARYTAB  - pointer to variable table (ZP)
+;   STREND  - pointer to array table (ZP)
+;
+; Outputs:
+;   Z = 1 if equal, 0 if not equal
+;   A, Y modified
+; ------------------------------------------------------------
+IsAryTab:
+    ldy #0					; lsb
+    lda (.ZPARYTAB),y
+    cmp (.ZPSTREND),y
+    bne .IsAryTabNotEqual
+    iny						; msb
+    lda (.ZPARYTAB),y
+    cmp (.ZPSTREND),y
+.IsAryTabNotEqual:
+    rts
+}
+
+    
