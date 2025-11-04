@@ -21,4 +21,5 @@ I’ve recently rekindled my interest in both assembly language programming and 
 	- Forums, etc.
 	
 ## Notes
-- None to speak of at this stage.
+- Wow! forgot how much effort it takes to perform basic tasks in assembly language.
+- Been spolit for decades with high-level languages.
