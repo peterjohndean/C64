@@ -20,6 +20,9 @@ I’ve recently rekindled my interest in both assembly language programming and 
 	- Internet Archive. [ARCHIVE](https://archive.org)
 	- Forums, etc.
 	
+4. Projects
+	- (In-Progress) Project 01: Learn to use ACME, 6510 by means of dumping the BASIC storage areas.
+	
 ## Notes
 - Wow! forgot how much effort it takes to perform basic tasks in assembly language.
 - Been spolit for decades with high-level languages.

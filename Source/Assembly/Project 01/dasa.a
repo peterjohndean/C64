@@ -1,0 +1,38 @@
+;
+; Check if anything is in the storage area,
+; if so dump what it finds.
+;
+.DumpArrayStorageArea:
+	; Is BASIC array storage empty?
+	+CMP16 ARYTAB, STREND
+	bne .ProcessAryTab
+	rts
+	
+.ProcessAryTab:
+	; Initialise
+    lda #1
+    sta .Index
+    
+    lda #1
+    sta .Bool
+    
+    ; Header
+	lda #<.HDR2
+    ldx #>.HDR2
+    jsr PrintCString
+
+    ; Need to add size and address ranges
+    
+    ; ARYTAB (Start) to STREND (End)
+    lda ARYTAB
+    sta .Ptr1
+    lda ARYTAB + 1
+    sta .Ptr1 + 1
+    
+    lda STREND
+    sta .Ptr2
+    lda STREND + 1
+    sta .Ptr2 + 1
+    jsr DumpTable
+
+	rts

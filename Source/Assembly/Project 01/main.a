@@ -1,0 +1,158 @@
+; ------------------------------------------------------------
+;  Synosis:
+;	Learning C64 assembly language by revealing BASIC's storage
+;	area variables and arrays.
+; 
+; ------------------------------------------------------------
+
+
+!zone Target {
+	* = $0801				; Start of BASIC area for C64
+    !cpu 6510				; Target processor
+	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/64.prg", cbm          ; Output binary file (PRG format)
+    !symbollist "64s.a"     ; Output symbol list for debugging
+    
+	!src "kernel.inc"		; Kernel addresses
+	!src "tokens.inc"		; BASIC tokens
+	!src "macros.inc"		; Macros to make life a little easier
+
+StubStart:
+    !word StubEnd		; Pointer to next line (or end marker)
+    !word $0010			; BASIC line number (10)
+    !byte BASIC_TOKEN_REM
+    !pet " usage: sys "
+    ; --------------------------------------------------------
+    ;  Convert MLEP (e.g., $C000) to decimal ASCII digits
+    ;  Result: "49152" ASCI/PETSCII for $C000
+    ; --------------------------------------------------------
+    !byte '0' + MLEP / 10000			; e.g. 49152 / 10,000        = 4
+    !byte '0' + MLEP % 10000 / 1000		; e.g. 49152 % 10,000 / 1000 = 9
+    !byte '0' + MLEP % 1000  / 100		; e.g. 49152 %  1,000 /  100 = 1
+    !byte '0' + MLEP % 100   / 10		; e.g. 49152 %    100 /   10 = 5
+    !byte '0' + MLEP % 10				; e.g. 49152 %     10        = 2
+    !pet "[return]"
+    
+    ; End of BASIC line and program
+    !byte BASIC_EOL_MARKER
+    
+StubEnd:
+    !word BASIC_EOP_MARKER
+}
+
+!zone Main
+!address Ptr = <FREKZP	; Zero page to hold our c string pointer
+
+
+; ------------------------------------------------------------
+; Machine Language Entry point (called from BASIC: SYS 49152)
+; ------------------------------------------------------------
+MLEP:
+	; Clear screen
+	lda #147
+	jsr CHROUT
+	
+    ;
+    ;jsr CalcVariableTable
+	
+	jsr EntryPoint_DumpBASICStorageArea
+    
+	
+MLEP_END:
+	rts
+
+CalcVariableTable:
+	; Read VARTAB and ARYTAB into registers
+	; LSB
+	lda ARYTAB
+    sec				; To start a subtraction chain, you must first set the Carry flag with SEC.
+    				; This ensures the "no borrow" value (1) is included in the first calculation.
+    				; For an 8-bit calculation (A-B), the formula becomes A-B-not(1), which simplifies to A-B-0.
+    				; This gives you the correct starting result.
+    sbc VARTAB
+    sta Diff
+    
+    ; MSB
+    lda ARYTAB+1
+    sbc VARTAB+1
+    sta Diff+1
+    
+    ; Divide Diff (16-bit) by 7
+    ldx #0              ; result = 0
+    stx Count
+    stx Count+1
+
+DivideLoop:
+    lda Diff
+    ora Diff+1
+    beq DoneDivide      ; stop when diff = 0
+
+    lda Diff
+    sec
+    sbc #7
+    bcc SubHigh
+    sta Diff
+    bne IncCount
+SubHigh:
+    lda Diff+1
+    sbc #0
+    sta Diff+1
+    lda Diff
+    adc #0              ; fix carry
+    bcs IncCount
+    lda #0
+IncCount:
+    inc Count
+    bne DivideLoop
+    inc Count+1
+    jmp DivideLoop
+
+DoneDivide:
+	;
+    lda #"("
+    jsr CHROUT
+    lda Count + 1
+	jsr PrintByteToHex
+	lda Count
+	jsr PrintByteToHex
+	lda #")"
+    jsr CHROUT
+    
+    lda #"["
+    jsr CHROUT
+    lda VARTAB + 1
+    jsr PrintByteToHex
+    lda VARTAB
+    jsr PrintByteToHex
+    lda #"-"
+    jsr CHROUT
+    lda ARYTAB + 1
+    jsr PrintByteToHex
+    lda ARYTAB
+    jsr PrintByteToHex
+    lda #"]"
+    jsr CHROUT
+    
+	jsr Newline
+	
+	rts
+
+; ------------------------------------------------------------
+; Output a carriage return (newline)
+; ------------------------------------------------------------
+Newline:
+    lda #13           ; ASCII CR
+    jsr CHROUT
+    rts
+
+; ------------------------------------------------------------
+; Project source code
+; ------------------------------------------------------------
+!src "dsa.a"
+!src "printcstring.a"
+!src "printbytetohex.a"
+
+; ------------------------------------------------------------
+; Data
+; ------------------------------------------------------------
+Diff    !word 0	; Temporary value holder
+Count   !word 0	; Total variables in table

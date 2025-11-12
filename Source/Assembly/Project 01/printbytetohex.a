@@ -1,0 +1,30 @@
+; ------------------------------------------------------------
+; Print the byte in A as two hex ASCII characters to screen.
+; Input: A = byte to convert
+; Destroys: None
+; ------------------------------------------------------------
+!zone PRINTBYTETOHEX {
+PrintByteToHex:
+    pha               ; Preserve original A
+    lsr               ; Shift upper nibble into lower 4 bits
+    lsr
+    lsr
+    lsr
+    jsr NibbleToHex   ; Print high nibble
+    pla
+    and #$0F          ; Mask to get low nibble
+    jsr NibbleToHex   ; Print low nibble
+    rts
+
+; ------------------------------------------------------------
+; Convert nibble (0–15) in A to ASCII hex and print via CHROUT
+; ------------------------------------------------------------
+NibbleToHex:
+    ora #$30          ; Add ASCII '0'
+    cmp #$3A          ; If >= '9'+1
+    bcc .Done         ; ...then it's 0–9
+    adc #$06          ; else convert to A–F
+.Done:
+    jsr CHROUT
+    rts
+}

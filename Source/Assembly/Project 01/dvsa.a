@@ -1,0 +1,38 @@
+;
+; Check if anything is in the storage area,
+; if so dump what it finds.
+;
+.DumpVariableStorageArea:
+	; Is BASIC variable storage empty?
+	+CMP16 VARTAB, ARYTAB
+	bne .ProcessVarTab
+	rts
+	
+.ProcessVarTab:
+	; Initialise
+    lda #1
+    sta .Index
+    
+    lda #0
+    sta .Bool
+    
+    ; Header
+	lda #<.HDR1
+    ldx #>.HDR1
+    jsr PrintCString
+    
+    ; Need to add size and address ranges
+    
+    ; VARTAB (Start) to ARYTAB (End)
+    lda VARTAB
+    sta .Ptr1
+    lda VARTAB + 1
+    sta .Ptr1 + 1
+    
+    lda ARYTAB
+    sta .Ptr2
+    lda ARYTAB + 1
+    sta .Ptr2 + 1
+    jsr DumpTable
+    
+    rts
