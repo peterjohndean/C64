@@ -11,17 +11,11 @@
 !zone DUMPBASICSTORAGEAREA {
 
 ; Declarations
-!address .Index	= <FREKZP+2		; Force Page-0/Zero
-!address .Ptr1	= <FREKZP		; Force Page-0/Zero
-
-; Localised variables
-!address .Ptr2 	!word 0
-!address .Ptr3	!word 0			; Temporary 16-bit value.
-!address .Bool	!byte 0			; 0 = VARTAB, else ARYTAB
-
-; Storage Area
-!address .HDR1  	!pet "basic variable storage", 13, 0
-!address .HDR2  	!pet "basic array storage", 13 , 0
+!address Index	= <FREKZP+2		; Force Page-0/Zero
+!address Ptr1	= <FREKZP		; Force Page-0/Zero
+!address Ptr2 	!word 0
+!address Ptr3	!word 0			; Temporary 16-bit value.
+!address Bool	!byte 0			; 0 = VARTAB, else ARYTAB
 
 ; Variable Types
 !address .STRfloat	!pet " (float)", 0
@@ -31,9 +25,9 @@
 !address .STRTable	!word .STRfloat, .STRstring, .STRfn, .STRint	; Sequence is important!
 
 EntryPoint_DumpBASICStorageArea:
-	jsr .DumpVariableStorageArea
-    jsr Newline
-	jsr .DumpArrayStorageArea
+	jsr DumpVariableStorageArea
+    +NewLine
+	jsr DumpArrayStorageArea
 	
 ExitPoint_DumpBASICStorageArea:
 	rts
@@ -41,49 +35,49 @@ ExitPoint_DumpBASICStorageArea:
 ; Very simple dump variable name table
 DumpTable:
 .loop:
-	; Compare .Ptr1 < .Ptr2 → continue while less than .Ptr2
-	+CMP16 .Ptr1, .Ptr2
-	bcc .cont				; .Ptr1 < .Ptr2
+	; Compare Ptr1 < Ptr2 → continue while less than Ptr2
+	+CMP16 Ptr1, Ptr2
+	bcc .cont				; Ptr1 < Ptr2
 	jmp ExitPoint_DumpBASICStorageArea
 
 .cont:
-	lda .Index
+	lda Index
 	jsr PrintByteToHex
 	lda #"."
-    jsr CHROUT
+    jsr KERNEL_CHROUT
 	lda #" "
-    jsr CHROUT
+    jsr KERNEL_CHROUT
     
     ; Display:
     ; Variable index, Variable name, Variable type
     ; xx. nn (type)
     ldy #0
-    lda (.Ptr1),y
+    lda (Ptr1),y
     and #$7f
-    jsr CHROUT          ; print first letter
+    jsr KERNEL_CHROUT          ; print first letter
     iny
-    lda (.Ptr1),y
+    lda (Ptr1),y
     ;cmp #$00
     and #$7f
     beq .printSpace
     and #$7f
-    jsr CHROUT          ; print second letter if not null
+    jsr KERNEL_CHROUT          ; print second letter if not null
     
     jmp TypeDetect
     
 .printSpace:
 	lda #" "
-    jsr CHROUT
+    jsr KERNEL_CHROUT
     
     jmp TypeDetect
     
 .next:
 	
-	inc .Index
-    jsr Newline
+	inc Index
+    +NewLine
 
 	; Handle Variables & Arrays differently
-	lda .Bool
+	lda Bool
 	;cmp #$00
 	bne .ARYTAB
 	
@@ -98,7 +92,7 @@ DumpTable:
 ; ------------------------------------------------------------
 ;  BASIC storage variable type
 ; ------------------------------------------------------------ 
-; .Ptr1		.Ptr1+1
+; Ptr1		Ptr1+1
 ; LSB		MSB	
 ; & $80		& $80	Index	BASIC Variable Type
 ; 0			0		0 (00)	Float
@@ -109,11 +103,14 @@ DumpTable:
 TypeDetect:
     ; Calculate type index (0-3) and multiply by 2 for word table
     ldy #0
-    lda (.Ptr1),y
+    lda (Ptr1),y
     and #$80
     rol             ; Shift LSB bit 7 into carry
+    				; Reference:
+    				; - pg 3-85, 6502 Assembly Language Programming, 1979, Lance A. Leventhal
+    				; - pg64-65,pg259, 6502 Software Design, 1980, Leo J. Scanlon
     ldy #1  
-    lda (.Ptr1),y
+    lda (Ptr1),y
     and #$80
     rol             ; Shift MSB bit 7 into carry, previous carry into bit 0
     rol             ; Now A contains 0-3
@@ -122,9 +119,9 @@ TypeDetect:
     tay
     
     ; Preserve 0/Zero-Page
-    lda .Ptr1
+    lda Ptr1
     pha
-    lda .Ptr1+1
+    lda Ptr1+1
     pha
     
     ; Look up string pointer from table
@@ -134,52 +131,52 @@ TypeDetect:
     
     ; Restore 0/Zero-Page
 	pla
-    sta .Ptr1+1
+    sta Ptr1+1
     pla
-    sta .Ptr1
+    sta Ptr1
     
     jmp .next
     
 ; ------------------------------------------------------------
-;  Add 8-bit (7) to the 16-bit value located at .Ptr1
+;  Add 8-bit (7) to the 16-bit value located at Ptr1
 ; ------------------------------------------------------------
 .add7:
     clc				; Clear carry before add
-    lda .Ptr1
+    lda Ptr1
     adc #7			; Add 7 to LSB
-    sta .Ptr1
+    sta Ptr1
     bcc .skip		; Branch if carry is clear
-    inc .Ptr1 + 1	; Adjust carry for MSB
+    inc Ptr1 + 1	; Adjust carry for MSB
 .skip:
     rts
     
 ; ------------------------------------------------------------
-; Adds the 16-bit value pointed to by (.Ptr1) to .Ptr1 itself
+; Adds the 16-bit value pointed to by (Ptr1) to Ptr1 itself
 ; ------------------------------------------------------------
 ; On entry:
-;   .Ptr1 = pointer (e.g. $1234)
+;   Ptr1 = pointer (e.g. $1234)
 ;   ($1234) = 16-bit value to add (e.g. $000A)
 ; On exit:
-;   .Ptr1 = .Ptr1 + ($1234)
+;   Ptr1 = Ptr1 + ($1234)
 ; ------------------------------------------------------------
 .addtoPtr1:
-    ; Dereference .Ptr1
+    ; Dereference Ptr1
     ldy #2			; index to 16-bit value (size/length)
-    lda (.Ptr1),y	; lsb
-    sta .Ptr3
+    lda (Ptr1),y	; lsb
+    sta Ptr3
     iny
-    lda (.Ptr1),y	; msb
-    sta .Ptr3+1
+    lda (Ptr1),y	; msb
+    sta Ptr3+1
 
-    ; Add .Ptr3 to .Ptr1
+    ; Add Ptr3 to Ptr1
     clc
-    lda .Ptr1		; lsb
-    adc .Ptr3
-    sta .Ptr1
+    lda Ptr1		; lsb
+    adc Ptr3
+    sta Ptr1
     
-    lda .Ptr1+1		; msb
-    adc .Ptr3+1
-    sta .Ptr1+1
+    lda Ptr1+1		; msb
+    adc Ptr3+1
+    sta Ptr1+1
     rts
 
 ; ------------------------------------------------------------

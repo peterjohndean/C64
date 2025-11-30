@@ -2,7 +2,8 @@
 ; Check if anything is in the storage area,
 ; if so dump what it finds.
 ;
-.DumpArrayStorageArea:
+!zone DASA {
+DumpArrayStorageArea:
 	; Is BASIC array storage empty?
 	+CMP16 ARYTAB, STREND
 	bne .ProcessAryTab
@@ -11,28 +12,65 @@
 .ProcessAryTab:
 	; Initialise
     lda #1
-    sta .Index
+    sta Index
     
     lda #1
-    sta .Bool
+    sta Bool
     
     ; Header
-	lda #<.HDR2
-    ldx #>.HDR2
-    jsr PrintCString
+	lda #<.HDR1
+    ldy #>.HDR1
+    jsr BASIC_STROUT
 
-    ; Need to add size and address ranges
+    ; Size
+    ; (x)
+    lda #"("
+    jsr KERNEL_CHROUT
     
+    +SUB16 STREND, ARYTAB, Ptr3	; Ptr3 =  STREND - ARYTAB
+    +BASIC_GIVAYF Ptr3				; Convert Ptr3 to FAC1
+    jsr BASIC_FOUT					; Convert FAC1 to String
+    jsr BASIC_STROUT				; Print String.
+    
+    ; Location
+    ; [xxxx-yyyy]
+    lda #<.HDR2
+    ldy #>.HDR2
+    jsr BASIC_STROUT
+    
+    lda ARYTAB + 1
+    jsr PrintByteToHex
+    lda ARYTAB
+    jsr PrintByteToHex
+    
+    lda #"-"
+    jsr KERNEL_CHROUT
+    
+    lda STREND + 1
+    jsr PrintByteToHex
+    lda STREND
+    jsr PrintByteToHex
+    
+    lda #"]"
+    jsr KERNEL_CHROUT
+    
+	+NewLine
+	
     ; ARYTAB (Start) to STREND (End)
     lda ARYTAB
-    sta .Ptr1
+    sta Ptr1
     lda ARYTAB + 1
-    sta .Ptr1 + 1
+    sta Ptr1 + 1
     
     lda STREND
-    sta .Ptr2
+    sta Ptr2
     lda STREND + 1
-    sta .Ptr2 + 1
+    sta Ptr2 + 1
     jsr DumpTable
 
 	rts
+
+;
+!address .HDR1  !pet "basic array storage", 13, 0
+!address .HDR2	!pet ") [", 0
+}

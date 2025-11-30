@@ -3,28 +3,30 @@
 ; Input: A = byte to convert
 ; Destroys: None
 ; ------------------------------------------------------------
-!zone PRINTBYTETOHEX {
+!zone PRINTBYTEASASCIIHEX {
 PrintByteToHex:
-    pha               ; Preserve original A
-    lsr               ; Shift upper nibble into lower 4 bits
+    pha					; Preserve original A
+    lsr					; Shift upper nibble into lower 4 bits
     lsr
     lsr
     lsr
-    jsr NibbleToHex   ; Print high nibble
+    jsr .PrintNibble	; Print high nibble
     pla
-    and #$0F          ; Mask to get low nibble
-    jsr NibbleToHex   ; Print low nibble
-    rts
+    and #$0F			; Mask to get low nibble
+    ;jsr .PrintNibble	; Print low nibble
+    ;rts
 
 ; ------------------------------------------------------------
-; Convert nibble (0–15) in A to ASCII hex and print via CHROUT
+; Convert nibble (0–15) in A to ASCII hex and print via KERNEL_CHROUT
 ; ------------------------------------------------------------
-NibbleToHex:
-    ora #$30          ; Add ASCII '0'
-    cmp #$3A          ; If >= '9'+1
-    bcc .Done         ; ...then it's 0–9
-    adc #$06          ; else convert to A–F
-.Done:
-    jsr CHROUT
-    rts
+.PrintNibble:
+    ora #$30	; Add ASCII '0'
+    cmp #$3A 	; If >= '9'+1
+    bcc .Print	; ...then it's 0–9
+    adc #$06	; else convert to A–F
+    			; C=1 from CMP, so effectively adds 7
+.Print:
+    ;jsr KERNEL_CHROUT
+    ;rts
+    jmp KERNEL_CHROUT	; Kernel routine will rts
 }

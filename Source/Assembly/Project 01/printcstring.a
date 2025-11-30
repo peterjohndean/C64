@@ -15,7 +15,7 @@ PrintCString:
     ldy #0			; Index start (.Ptr) + y
     lda (.Ptr),y	; load next character from string
     beq .Done		; if zero byte, end of string
-    jsr CHROUT		; output character to screen
+    jsr KERNEL_CHROUT		; output character to screen
     inc .Ptr		; advance low byte
     bne .Loop       ; if no overflow, loop back
     inc .Ptr+1		; handle high-byte carry

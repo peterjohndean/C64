@@ -25,7 +25,10 @@ STREND	= $0031		; Pointer: End of BASIC Arrays storage ($0031-$0032)
 
 FAC1	= $0061		; Floating Point Accumulator #1 ($0061-$0066)
 FAC2	= $0069		; Floating Point Accumulator #2 ($0069-$006E)
+
 FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
+
+BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floating Point to ASCII Conversion
 
 ; --- BASIC 2.0 ROM Routines ---
 
@@ -38,33 +41,32 @@ FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
 ;$E1D4: This routine gets the file name, the device number and the secondary address from the Basic text. It gives an error if any of the above are wrong. It is used in preparation for loading, saving or verifying a program, as in MSAVE/MLOAD/ MVERIFY.
 
 ; Example:
+; References:
+;	- pg 26, BEST MACHINE CODE ROUTINES FOR THE COMMODORE 64, 1984, Mark Greenshields
+;	- pg 391, Compute's Machine Language Routines for the Commodore 64/128, 1987, Todd D. Heimarck and Patrick Parrish
 ; BASIC text;
+;	SYS 49152,SQR(9),(1 + 3*7)
 ; 	SYS 1234, 0123
 ; ML;
 ;	JSR CHKCOM	; Skip passed ','
 ;	JSR FRMNUM	; Read 0123 and store in FAC1
 ;	JSR GETADR	; Convert FAC1 → Integer (LINNUM)
 
-FRMNUM  = $AD8A   ; Read next expression (variable, number, etc.) into the FAC.
-CHKCOM	= $AEFD	  ; Check if the next character is a comma and skip it. Otherwise print SYNTAX ERROR and return to Basic.
-GIVAYF  = $B391   ; Convert FAC1 → signed integer (A/Y)
-GETADR	= $B7F7   ; Convert FAC1 → unsigned integer (LINNUM $14/$15). If the number is too big then print illegal quantity error and return to Basic.
+BASIC_STROUT	= $AB1E		; Prints the null-terminated string (Y/A aka MSB/LSB).
+BASIC_FRMNUM	= $AD8A		; Read next expression (variable, number, etc.) into the FAC1.
+BASIC_FRMEVL	= $AD9E		; Read and evaluate next expression into the FAC1
+BASIC_CHKCOM	= $AEFD		; Check if the next character is a comma and skip it. Otherwise print SYNTAX ERROR and return to Basic.
+BASIC_GIVAYF	= $B391   	; Convert signed integer (A/Y) → FAC1
+BASIC_GETADR	= $B7F7		; Convert FAC1 → unsigned integer (LINNUM $14/$15). If the number is too big then print illegal quantity error and return to Basic.
 
-MOVFM   = $BBA2   ; Move FAC1 → memory (store variable)
-MOVMF   = $BBA8   ; Move memory → FAC1 (load variable)
-MOVFA   = $BBD4   ; Copy FAC1 → FAC2
-MOVAF   = $BBD7   ; Copy FAC2 → FAC1
-ADDNUM  = $B867   ; FAC1 = FAC1 + FAC2
-SUBNUM  = $B850   ; FAC1 = FAC1 - FAC2
-MULT    = $BA28   ; FAC1 = FAC1 × FAC2
-DIV     = $BA7C   ; FAC1 = FAC1 ÷ FAC2
-SQR     = $BF71   ; FAC1 = √FAC1
-LOG     = $BFED   ; FAC1 = ln(FAC1)
-EXP     = $BF7B   ; FAC1 = e^FAC1
-LINPRT	= $BDCD	  ; Output a Number in ASCII Decimal Digits
-FOUT    = $BDDD   ; FAC1 → ASCII string (for print)
-INLIN   = $A560   ; Input line into BASIC buffer
-INTFAC  = $BCF3   ; Convert FAC1 → integer (in-place)
+BASIC_MOVAF		= $BC0C		; Copy FAC1 → FAC2
+BASIC_DIV		= $BB12		; Division: FAC1 = FAC2 ÷ FAC1
+
+
+;BASIC_LINPRT	= $BDCD	  ; Output a Number in ASCII Decimal Digits
+BASIC_FOUT		= $BDDD   ; FAC1 → ASCII string (for print) A/Y holding the pointer to null terminated string.
+;BASIC_INLIN		= $A560   ; Input line into BASIC buffer
+;BASIC_INTFAC	= $BCF3   ; Convert FAC1 → integer (in-place)
 
 ; --- KERNAL ROM Routines ---
 CINT     = $FF81   ; Initialize screen and I/O defaults
@@ -85,7 +87,7 @@ CHKIN    = $FFC6   ; Set input device
 CHKOUT   = $FFC9   ; Set output device
 CLRCHN   = $FFCC   ; Restore default channels
 CHRIN    = $FFCF   ; Input character
-CHROUT   = $FFD2   ; Output character
+KERNEL_CHROUT   = $FFD2   ; Output character
 LOAD     = $FFD5   ; Load data/program
 SAVE     = $FFD8   ; Save data/program
 SETTIM   = $FFDB   ; Set clock

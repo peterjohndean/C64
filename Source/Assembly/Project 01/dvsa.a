@@ -2,7 +2,8 @@
 ; Check if anything is in the storage area,
 ; if so dump what it finds.
 ;
-.DumpVariableStorageArea:
+!zone DVSA {
+DumpVariableStorageArea:
 	; Is BASIC variable storage empty?
 	+CMP16 VARTAB, ARYTAB
 	bne .ProcessVarTab
@@ -11,28 +12,62 @@
 .ProcessVarTab:
 	; Initialise
     lda #1
-    sta .Index
+    sta Index
     
     lda #0
-    sta .Bool
+    sta Bool
     
     ; Header
-	lda #<.HDR1
-    ldx #>.HDR1
-    jsr PrintCString
+    +BASIC_STROUT .HDR1
+	
+    ; (Size, Count)
+    +KERNEL_CHROUT '('
     
-    ; Need to add size and address ranges
+    ; Calculate bytes used
+    +SUB16 ARYTAB, VARTAB, Ptr3	; Ptr3 =  ARYTAB - VARTAB
+    +BASIC_GIVAYF Ptr3			; Convert Ptr3 to FAC1
+    jsr BASIC_FOUT				; Convert FAC1 to String
+    jsr BASIC_STROUT			; Print FAC1 String.
     
+    +KERNEL_CHROUT ','
+    
+    ; Calculate variables held
+    +BASIC_GIVAYF Ptr3			; (Reload) Convert Ptr3 to FAC1
+    jsr BASIC_MOVAF				; Copy FAC1 to FAC2
+    +BASIC_GIVAYF_IMM $0007		; FAC1 = 7
+    jsr BASIC_DIV				; FAC1 = FAC2 / FAC1
+    jsr BASIC_FOUT				; Convert FAC1 to String
+    jsr BASIC_STROUT			; Print String.
+    
+    ; Location
+    ; [xxxx-yyyy]
+    +BASIC_STROUT .HDR2
+    
+    +PRINT_HEXWORD VARTAB
+    
+    +KERNEL_CHROUT '-'
+    
+    +SUB16_IMM ARYTAB, $0001, Ptr3	; Ptr3 =  ARYTAB - 1
+    
+    +PRINT_HEXWORD Ptr3
+    
+    +KERNEL_CHROUT ']'
+    +KERNEL_CHROUT 13	; ASCII CR
+	
     ; VARTAB (Start) to ARYTAB (End)
     lda VARTAB
-    sta .Ptr1
+    sta Ptr1
     lda VARTAB + 1
-    sta .Ptr1 + 1
+    sta Ptr1 + 1
     
     lda ARYTAB
-    sta .Ptr2
+    sta Ptr2
     lda ARYTAB + 1
-    sta .Ptr2 + 1
+    sta Ptr2 + 1
     jsr DumpTable
     
     rts
+;
+!address .HDR1  !pet "basic variable storage", 13, 0
+!address .HDR2	!pet ") [", 0
+}
