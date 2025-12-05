@@ -126,6 +126,18 @@
     jsr KERNEL_CHROUT
 }
 
+!macro BASIC_LINPRT VarAddr {
+	lda VarAddr+1		; MSB
+    ldx VarAddr			; LSB
+    jsr BASIC_LINPRT	; UInt16
+}
+
+!macro BASIC_LINPRT_IMM Value {
+	ldx #>StrAddr		; MSB
+	lda #<StrAddr		; LSB
+    jsr BASIC_LINPRT	; UInt16
+}
+
 !macro PRINT_HEXBYTE VarAddr {
 	lda VarAddr
     jsr PrintByteToHex
@@ -138,7 +150,3 @@
     jsr PrintByteToHex
 }
 
-!macro NewLine {
-	lda #13           ; ASCII CR
-    jsr KERNEL_CHROUT
-}

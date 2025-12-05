@@ -41,9 +41,8 @@ StubEnd:
 }
 
 !zone Main
-!address Ptr = <FREKZP	; Zero page to hold our c string pointer
-
-
+!address Ptr = <MM_FREKZP	; Zero page to hold our c string pointer
+			
 ; ------------------------------------------------------------
 ; Machine Language Entry point (called from BASIC: SYS 49152)
 ;
@@ -54,50 +53,29 @@ StubEnd:
 ; ------------------------------------------------------------
 MLEP:
 	; Clear screen
-	lda #147
-	jsr KERNEL_CHROUT
-	
-	; TEST
-	
-    ;+BASIC_GIVAYF_IMM 14		; FAC1 = 14
-    ;jsr BASIC_FOUT				; Convert FAC1 to String. NB corrupts FAC1
-    ;jsr BASIC_STROUT			; Print String.
-    
-    ;+KERNEL_CHROUT ','
-    
-    ;+BASIC_GIVAYF_IMM 7		; FAC1 = 7
-    ;+BASIC_GIVAYF_IMM 14		; FAC1 = 14
-    ;jsr BASIC_MOVAF				; Copy FAC1 to FAC2
-    
-    ;+BASIC_GIVAYF_IMM 7		; FAC1 = 7
-    ;jsr BASIC_DIV				; FAC1 = FAC2 / FAC1
-    ;jsr BASIC_FOUT				; Convert FAC1 to String
-    ;jsr BASIC_STROUT			; Print String.
-    ;rts
-	
-    ;
-    ;jsr CalcVariableTable
+	+KERNEL_CHROUT 147
 	
 	jsr EntryPoint_DumpBASICStorageArea
     
-	
 MLEP_END:
 	rts
 
+;
+; NO USED
 CalcVariableTable:
-	; Read VARTAB and ARYTAB into registers
+	; Read MM_VARTAB and MM_ARYTAB into registers
 	; LSB
-	lda ARYTAB
+	lda MM_ARYTAB
     sec				; To start a subtraction chain, you must first set the Carry flag with SEC.
     				; This ensures the "no borrow" value (1) is included in the first calculation.
     				; For an 8-bit calculation (A-B), the formula becomes A-B-not(1), which simplifies to A-B-0.
     				; This gives you the correct starting result.
-    sbc VARTAB
+    sbc MM_VARTAB
     sta Diff
     
     ; MSB
-    lda ARYTAB+1
-    sbc VARTAB+1
+    lda MM_ARYTAB+1
+    sbc MM_VARTAB+1
     sta Diff+1
     
     ; Divide Diff (16-bit) by 7
@@ -132,41 +110,21 @@ IncCount:
 
 DoneDivide:
 	;
-    lda #"("
-    jsr KERNEL_CHROUT
-    lda Count + 1
-	jsr PrintByteToHex
-	lda Count
-	jsr PrintByteToHex
-	lda #")"
-    jsr KERNEL_CHROUT
+    ; Output
+    +KERNEL_CHROUT '('
+    +PRINT_HEXWORD Count
+    +KERNEL_CHROUT ')'
     
-    lda #"["
-    jsr KERNEL_CHROUT
-    lda VARTAB + 1
-    jsr PrintByteToHex
-    lda VARTAB
-    jsr PrintByteToHex
-    lda #"-"
-    jsr KERNEL_CHROUT
-    lda ARYTAB + 1
-    jsr PrintByteToHex
-    lda ARYTAB
-    jsr PrintByteToHex
-    lda #"]"
-    jsr KERNEL_CHROUT
-    
-	+NewLine
+    ;
+    ; Output storage hex address as [Start-End]
+    +KERNEL_CHROUT '['
+    +PRINT_HEXWORD MM_VARTAB
+    +KERNEL_CHROUT '-'
+    +PRINT_HEXWORD MM_ARYTAB
+    +KERNEL_CHROUT ']'
+	jsr BASIC_GOCR				; Newline
 	
 	rts
-
-; ------------------------------------------------------------
-; Output a carriage return (newline)
-; ------------------------------------------------------------
-;Newline:
-;    lda #13           ; ASCII CR
-;    jsr KERNEL_CHROUT
-;    rts
 
 ; ------------------------------------------------------------
 ; Project source code

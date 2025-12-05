@@ -5,14 +5,14 @@
 ;	- VARTAB to ARYTAB (Each entry is 7 bytes)
 ;	- ARYTAB to STREND (Each entry varys in length)
 ;
-;  - Destroys A,X,Y & FREKZP
+;  - Destroys A,X,Y & MM_FREKZP
 ;  - Outputs: iteration index + var name (var type)
 ; ------------------------------------------------------------
 !zone DUMPBASICSTORAGEAREA {
 
 ; Declarations
-!address Index	= <FREKZP+2		; Force Page-0/Zero
-!address Ptr1	= <FREKZP		; Force Page-0/Zero
+!address Index	= <MM_FREKZP+2		; Force Page-0/Zero
+!address Ptr1	= <MM_FREKZP		; Force Page-0/Zero
 !address Ptr2 	!word 0
 !address Ptr3	!word 0			; Temporary 16-bit value.
 !address Bool	!byte 0			; 0 = VARTAB, else ARYTAB
@@ -26,7 +26,7 @@
 
 EntryPoint_DumpBASICStorageArea:
 	jsr DumpVariableStorageArea
-    +NewLine
+    jsr BASIC_GOCR					; Newline
 	jsr DumpArrayStorageArea
 	
 ExitPoint_DumpBASICStorageArea:
@@ -34,52 +34,63 @@ ExitPoint_DumpBASICStorageArea:
 	
 ; Very simple dump variable name table
 DumpTable:
+; Main loop
 .loop:
-	; Compare Ptr1 < Ptr2 → continue while less than Ptr2
 	+CMP16 Ptr1, Ptr2
-	bcc .cont				; Ptr1 < Ptr2
-	jmp ExitPoint_DumpBASICStorageArea
-
+	bcs ExitPoint_DumpBASICStorageArea	; Exit, if Ptr1 ≥ Ptr2
+	
 .cont:
-	lda Index
-	jsr PrintByteToHex
-	lda #"."
-    jsr KERNEL_CHROUT
-	lda #" "
-    jsr KERNEL_CHROUT
-    
     ; Display:
-    ; Variable index, Variable name, Variable type
+    ; Variable sequence index, Variable name, Variable type
     ; xx. nn (type)
-    ldy #0
+    +BASIC_LINPRT Index
+	+KERNEL_CHROUT '.'
+    +KERNEL_CHROUT ' '
+    
+    ;
+    ; Display:
+    ; Variable name (2 character max.)
+    ; e.g.
+    ;  A
+    ; AA
+    
+    ; Is there a 2nd character in the name?
+    ldy #1
+    lda (Ptr1),y
+    and #$7f			; Handle $80 as terminator
+    beq .No2ndChar		; Branch if 0 OR $80
+    
+    ; Output x2 character name
+    dey
     lda (Ptr1),y
     and #$7f
-    jsr KERNEL_CHROUT          ; print first letter
+    jsr KERNEL_CHROUT	; Output first character
     iny
     lda (Ptr1),y
-    ;cmp #$00
     and #$7f
-    beq .printSpace
+    jsr KERNEL_CHROUT	; Output second character
+    
+    jmp TypeDetect		; Now what type of variable is it?
+    
+.No2ndChar
+	; Output x1 character name
+	+KERNEL_CHROUT ' '	; Output leading space
+    dey
+    lda (Ptr1),y
     and #$7f
-    jsr KERNEL_CHROUT          ; print second letter if not null
+    jsr KERNEL_CHROUT	; Output first character
     
-    jmp TypeDetect
-    
-.printSpace:
-	lda #" "
-    jsr KERNEL_CHROUT
-    
-    jmp TypeDetect
+    jmp TypeDetect		; Now what type of variable is it?
     
 .next:
 	
-	inc Index
-    +NewLine
+	inc Index			; Increment variable sequence index
+    jsr BASIC_GOCR		; Newline
 
+	;
 	; Handle Variables & Arrays differently
 	lda Bool
-	;cmp #$00
-	bne .ARYTAB
+	bne .ARYTAB			; Bool == 0, fallthrough to .VARTAB, else branch to .ARYTAB
 	
 .VARTAB:
     jsr .add7
@@ -126,8 +137,11 @@ TypeDetect:
     
     ; Look up string pointer from table
     lda .STRTable,y		; lsb
-    ldx .STRTable+1,y	; msb
-    jsr PrintCString
+    pha
+    lda .STRTable+1,y	; msb
+    tay
+    pla
+    jsr BASIC_STROUT	; output type
     
     ; Restore 0/Zero-Page
 	pla

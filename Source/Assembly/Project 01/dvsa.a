@@ -5,7 +5,7 @@
 !zone DVSA {
 DumpVariableStorageArea:
 	; Is BASIC variable storage empty?
-	+CMP16 VARTAB, ARYTAB
+	+CMP16 MM_VARTAB, MM_ARYTAB
 	bne .ProcessVarTab
 	rts
 	
@@ -17,52 +17,49 @@ DumpVariableStorageArea:
     lda #0
     sta Bool
     
+    ;
     ; Header
     +BASIC_STROUT .HDR1
 	
+	;
     ; (Size, Count)
     +KERNEL_CHROUT '('
     
+    ;
     ; Calculate bytes used
-    +SUB16 ARYTAB, VARTAB, Ptr3	; Ptr3 =  ARYTAB - VARTAB
-    +BASIC_GIVAYF Ptr3			; Convert Ptr3 to FAC1
-    jsr BASIC_FOUT				; Convert FAC1 to String
-    jsr BASIC_STROUT			; Print FAC1 String.
-    
+    +SUB16 MM_ARYTAB, MM_VARTAB, Ptr3	; Ptr3 =  MM_ARYTAB - MM_VARTAB
+    +BASIC_LINPRT Ptr3					; Output Ptr3 value
     +KERNEL_CHROUT ','
     
+    ;
     ; Calculate variables held
-    +BASIC_GIVAYF Ptr3			; (Reload) Convert Ptr3 to FAC1
+    +BASIC_GIVAYF Ptr3			; Convert Ptr3 to FAC1
     jsr BASIC_MOVAF				; Copy FAC1 to FAC2
     +BASIC_GIVAYF_IMM $0007		; FAC1 = 7
     jsr BASIC_DIV				; FAC1 = FAC2 / FAC1
     jsr BASIC_FOUT				; Convert FAC1 to String
-    jsr BASIC_STROUT			; Print String.
+    jsr BASIC_STROUT			; Output FAC1 String.
     
-    ; Location
-    ; [xxxx-yyyy]
+    ;
+    ; Location [xxxx-yyyy]
     +BASIC_STROUT .HDR2
-    
-    +PRINT_HEXWORD VARTAB
-    
+    +PRINT_HEXWORD MM_VARTAB			; Address Start
     +KERNEL_CHROUT '-'
-    
-    +SUB16_IMM ARYTAB, $0001, Ptr3	; Ptr3 =  ARYTAB - 1
-    
-    +PRINT_HEXWORD Ptr3
-    
+    +SUB16_IMM MM_ARYTAB, $0001, Ptr3	; Adjust End Address: Ptr3 =  MM_ARYTAB - 1
+    +PRINT_HEXWORD Ptr3					; Address End
     +KERNEL_CHROUT ']'
-    +KERNEL_CHROUT 13	; ASCII CR
+    jsr BASIC_GOCR						; Newline
 	
-    ; VARTAB (Start) to ARYTAB (End)
-    lda VARTAB
+	;
+    ; Dump Table
+    lda MM_VARTAB
     sta Ptr1
-    lda VARTAB + 1
+    lda MM_VARTAB + 1
     sta Ptr1 + 1
     
-    lda ARYTAB
+    lda MM_ARYTAB
     sta Ptr2
-    lda ARYTAB + 1
+    lda MM_ARYTAB + 1
     sta Ptr2 + 1
     jsr DumpTable
     

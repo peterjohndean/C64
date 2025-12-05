@@ -13,7 +13,7 @@ Lessons:
 	- Compare 16-bit values
 	- Integer/Float mathematic routines.
 
-References:
+References (Books):
 	- 6502 Assembly Language Programming, 1979, Lance A. Leventhal
 	- 6502 Software Design, 1980, Leo J. Scanlon
 	- BEST MACHINE CODE ROUTINES FOR THE COMMODORE 64, 1984, Mark Greenshields
@@ -23,6 +23,11 @@ References:
 	- Compute's Machine Language Routines for the Commodore 64/128, 1987, Todd D. Heimarck and Patrick Parrish
 	- Strings in Assembly with Kernel Routines, https://www.youtube.com/watch?v=xPCMPGb6Qbg
 	
+References (Links):
+	- https://skoolkid.github.io/sk6502/c64rom/index.html
+	- https://www.pagetable.com/c64ref/c64disasm
+	- https://www.pagetable.com/c64ref/c64mem
+	- https://www.atarimagazines.com/compute/issue29/394_1_COMMODORE_64_MEMORY_MAP.php
 TODO:
 - load ml in wedge and auto-activate? Then return to BASIC
 - output to screen (default), disk or other

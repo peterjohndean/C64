@@ -5,7 +5,7 @@
 !zone DASA {
 DumpArrayStorageArea:
 	; Is BASIC array storage empty?
-	+CMP16 ARYTAB, STREND
+	+CMP16 MM_ARYTAB, MM_STREND
 	bne .ProcessAryTab
 	rts
 	
@@ -17,54 +17,39 @@ DumpArrayStorageArea:
     lda #1
     sta Bool
     
+    ;
     ; Header
-	lda #<.HDR1
-    ldy #>.HDR1
-    jsr BASIC_STROUT
-
-    ; Size
-    ; (x)
-    lda #"("
-    jsr KERNEL_CHROUT
+    +BASIC_STROUT .HDR1
     
-    +SUB16 STREND, ARYTAB, Ptr3	; Ptr3 =  STREND - ARYTAB
-    +BASIC_GIVAYF Ptr3				; Convert Ptr3 to FAC1
-    jsr BASIC_FOUT					; Convert FAC1 to String
-    jsr BASIC_STROUT				; Print String.
+    ;
+    ; (Size, Count)
+    +KERNEL_CHROUT '('
     
-    ; Location
-    ; [xxxx-yyyy]
-    lda #<.HDR2
-    ldy #>.HDR2
-    jsr BASIC_STROUT
+    ;
+    ; Calculate bytes used
+    +SUB16 MM_STREND, MM_ARYTAB, Ptr3	; Ptr3 =  MM_STREND - MM_ARYTAB
+    +BASIC_LINPRT Ptr3					; Output Ptr3 value
+    ;+KERNEL_CHROUT ','
     
-    lda ARYTAB + 1
-    jsr PrintByteToHex
-    lda ARYTAB
-    jsr PrintByteToHex
-    
-    lda #"-"
-    jsr KERNEL_CHROUT
-    
-    lda STREND + 1
-    jsr PrintByteToHex
-    lda STREND
-    jsr PrintByteToHex
-    
-    lda #"]"
-    jsr KERNEL_CHROUT
-    
-	+NewLine
+    ;
+    ; Location [xxxx-yyyy]
+    +BASIC_STROUT .HDR2
+    +PRINT_HEXWORD MM_ARYTAB			; Address Start
+    +KERNEL_CHROUT '-'
+    +PRINT_HEXWORD MM_STREND			; Address End
+    +KERNEL_CHROUT ']'
+    jsr BASIC_GOCR						; Newline
 	
-    ; ARYTAB (Start) to STREND (End)
-    lda ARYTAB
+    ;
+    ; Dump Table
+    lda MM_ARYTAB
     sta Ptr1
-    lda ARYTAB + 1
+    lda MM_ARYTAB + 1
     sta Ptr1 + 1
     
-    lda STREND
+    lda MM_STREND
     sta Ptr2
-    lda STREND + 1
+    lda MM_STREND + 1
     sta Ptr2 + 1
     jsr DumpTable
 
