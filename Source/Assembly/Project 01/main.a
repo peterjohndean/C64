@@ -4,8 +4,6 @@
 ;	area variables and arrays.
 ; 
 ; ------------------------------------------------------------
-
-
 !zone Target {
 	* = $0801				; Start of BASIC area for C64
 							
@@ -55,7 +53,7 @@ MLEP:
 	; Clear screen
 	+KERNEL_CHROUT 147
 	
-	jsr EntryPoint_DumpBASICStorageArea
+	jsr EntryPoint_DBSA
     
 MLEP_END:
 	rts
@@ -112,15 +110,15 @@ DoneDivide:
 	;
     ; Output
     +KERNEL_CHROUT '('
-    +PRINT_HEXWORD Count
+    +OUTPUT_HEXWORD Count
     +KERNEL_CHROUT ')'
     
     ;
     ; Output storage hex address as [Start-End]
     +KERNEL_CHROUT '['
-    +PRINT_HEXWORD MM_VARTAB
+    +OUTPUT_HEXWORD MM_VARTAB
     +KERNEL_CHROUT '-'
-    +PRINT_HEXWORD MM_ARYTAB
+    +OUTPUT_HEXWORD MM_ARYTAB
     +KERNEL_CHROUT ']'
 	jsr BASIC_GOCR				; Newline
 	

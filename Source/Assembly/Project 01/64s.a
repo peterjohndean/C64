@@ -5,10 +5,9 @@
 	BASIC_TOKEN_USR	= $b7	; unused
 !addr	MM_STREND+2	= $31
 	BASIC_TOKEN_GOTO	= $89	; unused
-!addr	PrintByteToHex	= $b2d	; ?
 	BASIC_EOP_MARKER+2	= $0
+!addr	ExitPoint_DBSA	= $8ee
 	BASIC_TOKEN_ASC	= $c6	; unused
-!addr	DumpArrayStorageArea	= $a78	; ?
 !addr	zpSubtrahend+2	= $2f
 	BASIC_TOKEN_WAIT	= $92	; unused
 !addr	Ptr2	= $8b8
@@ -26,6 +25,7 @@
 !addr	MM_BASZPT+2	= $ff	; unused
 	BASIC_TOKEN_LEFTS	= $c8	; unused
 	BASIC_EOL_MARKER	= $0
+!addr	DASA	= $a78	; ?
 	BASIC_TOKEN_LT	= $b3	; unused
 !addr	DumpTable	= $8ef
 	BASIC_TOKEN_MINUS	= $ab	; unused
@@ -46,7 +46,6 @@
 	BASIC_TOKEN_STRS	= $c4	; unused
 !addr	BASIC_LINPRT	= $bdcd
 	BASIC_TOKEN_TAB	= $a3	; unused
-!addr	EntryPoint_DumpBASICStorageArea	= $8e5	; ?
 	BASIC_TOKEN_RND	= $bb	; unused
 	BASIC_TOKEN_DEF	= $96	; unused
 !addr	MM_ARYTAB+2	= $2f
@@ -61,6 +60,7 @@
 !addr	DoneDivide	= $877	; ?
 	BASIC_TOKEN_LIST	= $9b	; unused
 	BASIC_TOKEN_ABS	= $b6	; unused
+!addr	OutputByteToHex	= $b2d	; ?
 	BASIC_TOKEN_INT	= $b5	; unused
 	BASIC_TOKEN_GET	= $a1	; unused
 	BASIC_TOKEN_COS	= $be	; unused
@@ -96,6 +96,7 @@
 !addr	StrAddr	= $b13	; ?
 !addr	MM_FREKZP+2	= $fb
 !addr	BASIC_STROUT	= $ab1e
+!addr	EntryPoint_DBSA	= $8e5	; ?
 !addr	MM_INDEX1+2	= $22
 	BASIC_TOKEN_NOT	= $a8	; unused
 !addr	MM_INDEX2+2	= $24	; unused
@@ -127,9 +128,8 @@
 	BASIC_TOKEN_PEEK	= $c2	; unused
 !addr	BASIC_FOUT	= $bddd
 	BASIC_TOKEN_LOAD	= $93	; unused
-!addr	DumpVariableStorageArea	= $9a4	; ?
+!addr	DVSA	= $9a4	; ?
 !addr	KERNEL_CHROUT	= $ffd2
 !addr	StubEnd	= $820	; ?
 !addr	IncCount	= $86c	; ?
-!addr	ExitPoint_DumpBASICStorageArea	= $8ee
 !addr	BASIC_DIV	= $bb12

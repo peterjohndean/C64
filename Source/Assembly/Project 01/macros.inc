@@ -118,7 +118,7 @@
 !macro BASIC_STROUT StrAddr {
 	lda #<StrAddr		; LSB
     ldy #>StrAddr		; MSB
-    jsr BASIC_STROUT	; Print zero/null terminated string
+    jsr BASIC_STROUT	; Output zero/null terminated string
 }
 
 !macro KERNEL_CHROUT Value {
@@ -138,15 +138,15 @@
     jsr BASIC_LINPRT	; UInt16
 }
 
-!macro PRINT_HEXBYTE VarAddr {
+!macro OUTPUT_HEXBYTE VarAddr {
 	lda VarAddr
-    jsr PrintByteToHex
+    jsr OutputByteToHex
 }
 
-!macro PRINT_HEXWORD VarAddr {
+!macro OUTPUT_HEXWORD VarAddr {
 	lda VarAddr+1		; MSB
-    jsr PrintByteToHex
+    jsr OutputByteToHex
     lda VarAddr			; LSB
-    jsr PrintByteToHex
+    jsr OutputByteToHex
 }
 

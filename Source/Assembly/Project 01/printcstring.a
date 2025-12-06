@@ -7,7 +7,6 @@
 ; Destroys:
 ;	A, Y, MM_INDEX1
 ; ------------------------------------------------------------
-
 !zone CUSTOM_STROUT {
 !address .index = <MM_INDEX1	; Reference pointer
 
@@ -21,7 +20,7 @@ CustomSTROUT:
 .Loop:
 	lda (.index),y		; next byte from string
     beq .Done       	; [EOS] end of string, if null-terminator
-    jsr KERNEL_CHROUT	; output character to channel
+    jsr KERNEL_CHROUT	; output byte to channel
     iny					; increment length
     bne .Loop			; if Y didn't wrap to 0, continue
     inc .index+1		; handle page crossing - advance high byte

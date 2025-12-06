@@ -24,12 +24,12 @@
 !address .STRfn		!pet " (fn)", 0
 !address .STRTable	!word .STRfloat, .STRstring, .STRfn, .STRint	; Sequence is important!
 
-EntryPoint_DumpBASICStorageArea:
-	jsr DumpVariableStorageArea
-    jsr BASIC_GOCR					; Newline
-	jsr DumpArrayStorageArea
+EntryPoint_DBSA
+	jsr DVSA			; Output variable storage area
+    jsr BASIC_GOCR		; Newline
+	jsr DASA			; Output array storage area
 	
-ExitPoint_DumpBASICStorageArea:
+ExitPoint_DBSA:
 	rts
 	
 ; Very simple dump variable name table
@@ -37,7 +37,7 @@ DumpTable:
 ; Main loop
 .loop:
 	+CMP16 Ptr1, Ptr2
-	bcs ExitPoint_DumpBASICStorageArea	; Exit, if Ptr1 ≥ Ptr2
+	bcs ExitPoint_DBSA	; Exit, if Ptr1 ≥ Ptr2
 	
 .cont:
     ; Display:

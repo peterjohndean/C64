@@ -83,14 +83,14 @@ al C:008f .BASIC_TOKEN_REM
 
 al C:0031 .VarAddr
 al C:0031 .MM_STREND
-al C:0b2d .PrintByteToHex
-al C:0a78 .DumpArrayStorageArea
+al C:08ee .ExitPoint_DBSA
 al C:002f .zpSubtrahend
 al C:08b8 .Ptr2
 al C:08ba .Ptr3
 al C:00fb .Ptr1
 al C:0b17 .CustomSTROUT
 al C:00ff .MM_BASZPT
+al C:0a78 .DASA
 al C:08ef .DumpTable
 al C:094d .TypeDetect
 al C:bc0c .BASIC_MOVAF
@@ -98,11 +98,11 @@ al C:085b .SubHigh
 al C:0822 .MLEP
 al C:08bc .Bool
 al C:bdcd .BASIC_LINPRT
-al C:08e5 .EntryPoint_DumpBASICStorageArea
 al C:002f .MM_ARYTAB
 al C:00fb .Ptr
 al C:082a .MLEP_END
 al C:0877 .DoneDivide
+al C:0b2d .OutputByteToHex
 al C:0b43 .Diff
 al C:00fd .Index
 al C:ad9e .BASIC_FRMEVL
@@ -115,6 +115,7 @@ al C:002d .MM_VARTAB
 al C:0b13 .StrAddr
 al C:00fb .MM_FREKZP
 al C:ab1e .BASIC_STROUT
+al C:08e5 .EntryPoint_DBSA
 al C:0022 .MM_INDEX1
 al C:0024 .MM_INDEX2
 al C:aad7 .BASIC_GOCR
@@ -129,9 +130,8 @@ al C:08ba .difference
 al C:0846 .DivideLoop
 al C:0022 .MM_INDEX
 al C:bddd .BASIC_FOUT
-al C:09a4 .DumpVariableStorageArea
+al C:09a4 .DVSA
 al C:ffd2 .KERNEL_CHROUT
 al C:0820 .StubEnd
 al C:086c .IncCount
-al C:08ee .ExitPoint_DumpBASICStorageArea
 al C:bb12 .BASIC_DIV

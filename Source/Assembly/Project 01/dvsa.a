@@ -3,13 +3,13 @@
 ; if so dump what it finds.
 ;
 !zone DVSA {
-DumpVariableStorageArea:
+DVSA:
 	; Is BASIC variable storage empty?
 	+CMP16 MM_VARTAB, MM_ARYTAB
-	bne .ProcessVarTab
+	bne .PVSA
 	rts
 	
-.ProcessVarTab:
+.PVSA:
 	; Initialise
     lda #1
     sta Index
@@ -43,10 +43,10 @@ DumpVariableStorageArea:
     ;
     ; Location [xxxx-yyyy]
     +BASIC_STROUT .HDR2
-    +PRINT_HEXWORD MM_VARTAB			; Address Start
+    +OUTPUT_HEXWORD MM_VARTAB			; Address Start
     +KERNEL_CHROUT '-'
     +SUB16_IMM MM_ARYTAB, $0001, Ptr3	; Adjust End Address: Ptr3 =  MM_ARYTAB - 1
-    +PRINT_HEXWORD Ptr3					; Address End
+    +OUTPUT_HEXWORD Ptr3					; Address End
     +KERNEL_CHROUT ']'
     jsr BASIC_GOCR						; Newline
 	

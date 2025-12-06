@@ -3,13 +3,13 @@
 ; if so dump what it finds.
 ;
 !zone DASA {
-DumpArrayStorageArea:
+DASA:
 	; Is BASIC array storage empty?
 	+CMP16 MM_ARYTAB, MM_STREND
-	bne .ProcessAryTab
+	bne .PASA
 	rts
 	
-.ProcessAryTab:
+.PASA:
 	; Initialise
     lda #1
     sta Index
@@ -34,9 +34,9 @@ DumpArrayStorageArea:
     ;
     ; Location [xxxx-yyyy]
     +BASIC_STROUT .HDR2
-    +PRINT_HEXWORD MM_ARYTAB			; Address Start
+    +OUTPUT_HEXWORD MM_ARYTAB			; Address Start
     +KERNEL_CHROUT '-'
-    +PRINT_HEXWORD MM_STREND			; Address End
+    +OUTPUT_HEXWORD MM_STREND			; Address End
     +KERNEL_CHROUT ']'
     jsr BASIC_GOCR						; Newline
 	

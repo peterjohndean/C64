@@ -1,32 +1,30 @@
 ; ------------------------------------------------------------
-; Print the byte in A as two hex ASCII characters to screen.
-; Input: A = byte to convert
-; Destroys: None
+; Output the byte in A as two hex ASCII characters to channel.
+; Input:
+;	A = byte to convert and output
+; Destroys:
+;	A
 ; ------------------------------------------------------------
-!zone PRINTBYTEASASCIIHEX {
-PrintByteToHex:
+!zone OUTPUTBYTEASASCIIHEX {
+OutputByteToHex:
     pha					; Preserve original A
     lsr					; Shift upper nibble into lower 4 bits
     lsr
     lsr
     lsr
-    jsr .PrintNibble	; Print high nibble
+    jsr .OutputNibble	; Output high nibble
     pla
     and #$0F			; Mask to get low nibble
-    ;jsr .PrintNibble	; Print low nibble
-    ;rts
-
+    
 ; ------------------------------------------------------------
-; Convert nibble (0–15) in A to ASCII hex and print via KERNEL_CHROUT
+; Convert nibble in A to ASCII hex, output via KERNEL_CHROUT
 ; ------------------------------------------------------------
-.PrintNibble:
+.OutputNibble:
     ora #$30	; Add ASCII '0'
     cmp #$3A 	; If >= '9'+1
-    bcc .Print	; ...then it's 0–9
+    bcc .Output	; ...then it's 0–9
     adc #$06	; else convert to A–F
     			; C=1 from CMP, so effectively adds 7
-.Print:
-    ;jsr KERNEL_CHROUT
-    ;rts
-    jmp KERNEL_CHROUT	; Kernel routine will rts
+.Output:
+    jmp KERNEL_CHROUT	; Output nibble, the kernel routine will rts
 }
