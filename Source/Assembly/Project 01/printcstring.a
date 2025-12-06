@@ -1,31 +1,4 @@
 ; ------------------------------------------------------------
-; Prints a null-terminated (C-style) string to screen.
-; Input: A/X = pointer to string
-; Destroys: A, X, Y, FREKZP
-; ------------------------------------------------------------
-;!zone PrintCString {
-;!address .Ptr = <MM_FREKZP	; Page 0/Zero to hold our c string pointer
-;
-;PrintCString:
-	; A/X = pointer to zero-terminated string
-;    sta .Ptr		; store low byte of pointer
-;    stx .Ptr+1		; store high byte of pointer
-
-;.Loop:
-;    ldy #0			; Index start (.Ptr) + y
-;    lda (.Ptr),y	; load next character from string
-;    beq .Done		; if zero byte, end of string
-;    jsr KERNEL_CHROUT		; output character to screen
-;    inc .Ptr		; advance low byte
-;    bne .Loop       ; if no overflow, loop back
-;    inc .Ptr+1		; handle high-byte carry
-;    jmp .Loop		; continue reading
-
-;.Done:
-;    rts
-;}
-
-; ------------------------------------------------------------
 ; Description:
 ;	Prints a null-terminated (C-style) string to current channel.
 ; 	Handles strings greater than 256 bytes too :)
