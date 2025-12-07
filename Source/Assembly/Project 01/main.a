@@ -2,45 +2,6 @@
 ;  Synosis:
 ;	Learning C64 assembly language by revealing BASIC's storage
 ;	area variables and arrays.
-; 
-; ------------------------------------------------------------
-!zone Target {
-	* = $0801				; Start of BASIC area for C64
-							
-    !cpu 6510				; Target processor
-	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/64.prg", cbm          ; Output binary file (PRG format)
-    !symbollist "64s.a"     ; Output symbol list for debugging
-    
-	!src "kernel.inc"		; Kernel addresses
-	!src "tokens.inc"		; BASIC tokens
-	!src "macros.inc"		; Macros to make life a little easier
-
-StubStart:
-    !word StubEnd		; Pointer to next line (or end marker)
-    !word $0010			; BASIC line number (10)
-    !byte BASIC_TOKEN_REM
-    !pet " usage: sys "
-    ; --------------------------------------------------------
-    ;  Convert MLEP (e.g., $C000) to decimal ASCII digits
-    ;  Result: "49152" ASCI/PETSCII for $C000
-    ; --------------------------------------------------------
-    !byte '0' + MLEP / 10000			; e.g. 49152 / 10,000        = 4
-    !byte '0' + MLEP % 10000 / 1000		; e.g. 49152 % 10,000 / 1000 = 9
-    !byte '0' + MLEP % 1000  / 100		; e.g. 49152 %  1,000 /  100 = 1
-    !byte '0' + MLEP % 100   / 10		; e.g. 49152 %    100 /   10 = 5
-    !byte '0' + MLEP % 10				; e.g. 49152 %     10        = 2
-    !pet "[return]"
-    
-    ; End of BASIC line and program
-    !byte BASIC_EOL_MARKER
-    
-StubEnd:
-    !word BASIC_EOP_MARKER
-}
-
-!zone Main
-!address Ptr = <MM_FREKZP	; Zero page to hold our c string pointer
-			
 ; ------------------------------------------------------------
 ; Machine Language Entry point (called from BASIC: SYS 49152)
 ;
@@ -49,6 +10,24 @@ StubEnd:
 ; $C000 – $CFFF, assuming the routines are smaler than 4K bytes long. This
 ; section of memory is not disturbed by BASIC.
 ; ------------------------------------------------------------
+
+!zone Target {
+
+	* = $C000
+						
+    !cpu 6510				; Target processor
+	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/64.prg", cbm          ; Output binary file (PRG format)
+    !symbollist "64s.a"     ; Output symbol list for debugging
+    
+	!src "kernel.inc"		; Kernel addresses
+	!src "tokens.inc"		; BASIC tokens
+	!src "macros.inc"		; Macros to make life a little easier
+}
+
+!zone Main
+!address Ptr = <MM_FREKZP	; Zero page to hold our c string pointer
+			
+
 MLEP:
 	; Clear screen
 	+KERNEL_CHROUT 147

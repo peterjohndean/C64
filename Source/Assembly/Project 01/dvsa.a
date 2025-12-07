@@ -46,7 +46,7 @@ DVSA:
     +OUTPUT_HEXWORD MM_VARTAB			; Address Start
     +KERNEL_CHROUT '-'
     +SUB16_IMM MM_ARYTAB, $0001, Ptr3	; Adjust End Address: Ptr3 =  MM_ARYTAB - 1
-    +OUTPUT_HEXWORD Ptr3					; Address End
+    +OUTPUT_HEXWORD Ptr3				; Address End
     +KERNEL_CHROUT ']'
     jsr BASIC_GOCR						; Newline
 	

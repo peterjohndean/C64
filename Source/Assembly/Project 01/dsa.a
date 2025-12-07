@@ -46,7 +46,7 @@ DumpTable:
     +BASIC_LINPRT Index
 	+KERNEL_CHROUT '.'
     +KERNEL_CHROUT ' '
-    
+
     ;
     ; Display:
     ; Variable name (2 character max.)
