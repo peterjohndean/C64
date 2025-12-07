@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BBEditDocumentType</key>
+	<string>CodelessLanguageModule</string>
+	<key>BBLMLanguageDisplayName</key>
+	<string>ACME Assembler (C64)</string>
+	<key>BBLMLanguageCode</key>
+	<string>ACME</string>
+	<key>BBLMSuffixMap</key>
+	<array>
+		<dict>
+			<key>BBLMLanguageSuffix</key>
+			<string>.a</string>
+		</dict>
+		<dict>
+			<key>BBLMLanguageSuffix</key>
+			<string>.asm</string>
+		</dict>
+		<dict>
+			<key>BBLMLanguageSuffix</key>
+			<string>.inc</string>
+		</dict>
+	</array>
+	<key>BBLMPreferredFilenameExtension</key>
+	<string>a</string>
+	<key>BBLMCommentLineDefault</key>
+	<string>;</string>
+	<key>BBLMIsCaseSensitive</key>
+	<false/>
+	<key>BBLMColorsSyntax</key>
+	<true/>
+	<key>BBLMScansFunctions</key>
+	<true/>
+	<key>BBLMKeywordList</key>
+	<array>
+		<string>adc</string>
+		<string>anc</string>
+		<string>and</string>
+		<string>ane</string>
+		<string>arr</string>
+		<string>asl</string>
+		<string>asr</string>
+		<string>bbr</string>
+		<string>bbs</string>
+		<string>bcc</string>
+		<string>bcs</string>
+		<string>beq</string>
+		<string>bit</string>
+		<string>bmi</string>
+		<string>bne</string>
+		<string>bpl</string>
+		<string>bra</string>
+		<string>brk</string>
+		<string>bvc</string>
+		<string>bvs</string>
+		<string>clc</string>
+		<string>cld</string>
+		<string>cli</string>
+		<string>clv</string>
+		<string>cmp</string>
+		<string>cpx</string>
+		<string>cpy</string>
+		<string>dcp</string>
+		<string>dec</string>
+		<string>dex</string>
+		<string>dey</string>
+		<string>eor</string>
+		<string>inc</string>
+		<string>inx</string>
+		<string>iny</string>
+		<string>isc</string>
+		<string>jmp</string>
+		<string>jsr</string>
+		<string>las</string>
+		<string>lax</string>
+		<string>lda</string>
+		<string>ldx</string>
+		<string>ldy</string>
+		<string>lsr</string>
+		<string>lxa</string>
+		<string>nop</string>
+		<string>ora</string>
+		<string>pea</string>
+		<string>pei</string>
+		<string>per</string>
+		<string>pha</string>
+		<string>php</string>
+		<string>phx</string>
+		<string>phy</string>
+		<string>pla</string>
+		<string>plp</string>
+		<string>plx</string>
+		<string>ply</string>
+		<string>rep</string>
+		<string>rla</string>
+		<string>rmb</string>
+		<string>rol</string>
+		<string>ror</string>
+		<string>rra</string>
+		<string>rti</string>
+		<string>rts</string>
+		<string>sax</string>
+		<string>sbc</string>
+		<string>sbx</string>
+		<string>sec</string>
+		<string>sed</string>
+		<string>sei</string>
+		<string>sep</string>
+		<string>sha</string>
+		<string>shx</string>
+		<string>shy</string>
+		<string>slo</string>
+		<string>smb</string>
+		<string>sre</string>
+		<string>sta</string>
+		<string>stp</string>
+		<string>stx</string>
+		<string>sty</string>
+		<string>stz</string>
+		<string>tas</string>
+		<string>tax</string>
+		<string>tay</string>
+		<string>trb</string>
+		<string>tsb</string>
+		<string>tsx</string>
+		<string>txa</string>
+		<string>txs</string>
+		<string>tya</string>
+		<string>wai</string>
+		<string>=</string>
+		<string>!addr</string>
+		<string>!address</string>
+		<string>!byte</string>
+		<string>!cpu</string>
+		<string>!endfor</string>
+		<string>!endif</string>
+		<string>!error</string>
+		<string>!for</string>
+		<string>!if</string>
+		<string>!macro</string>
+		<string>!pet</string>
+		<string>!scr</string>
+		<string>!set</string>
+		<string>!source</string>
+		<string>!src</string>
+		<string>!symbollist</string>
+		<string>!text</string>
+		<string>!to</string>
+		<string>!warn</string>
+		<string>!word</string>
+		<string>!zone</string>
+	</array>
+	<key>Language Features</key>
+	<dict>
+		<key>Identifier and Keyword Characters</key>
+		<string>A-Za-z0-9_.:@%$#!+-&lt;&gt;=;</string>
+		<key>Open Line Comments</key>
+		<string>;</string>
+		<key>Open Strings 1</key>
+		<string>&quot;</string>
+		<key>Close Strings 1</key>
+		<string>&quot;</string>
+		<key>Escape Char in Strings 1</key>
+		<string>\</string>
+		<key>End-of-line Ends Strings 1</key>
+		<true/>
+		<key>Open Strings 2</key>
+		<string>&apos;</string>
+		<key>Close Strings 2</key>
+		<string>&apos;</string>
+		<key>Escape Char in Strings 2</key>
+		<string></string>
+		<key>End-of-line Ends Strings 2</key>
+		<true/>
+		<key>Number Pattern</key>
+		<string>(?:\s#?[&lt;&gt;]?\d+|\s#?[&lt;&gt;]?(?:\$|#\$|0[xX]|#0[xX])[0-9A-Fa-f]+)</string>
+		<key>String Pattern</key>
+		<string>(&quot;(\\&quot;|[^&quot;\r]|\\\r)*&quot;)|(&apos;(\\&apos;|[^&apos;\r]|\\\r)*&apos;)</string>
+		<key>Comment Pattern</key>
+		<string>;.*$</string>
+	</dict>
+</dict>
+</plist>
