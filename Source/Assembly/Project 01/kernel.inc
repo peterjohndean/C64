@@ -27,11 +27,25 @@ MM_INDEX1	= $0022		; 1st Utility Pointer ($0022-$0023)
 MM_INDEX2	= $0024		; 2nd Utility Pointer ($0024-$0025)
 
 MM_VARTAB	= $002D		; Pointer: Start of BASIC Variables ($002D-$002E)
+; Variable Name			x2 bytes
+; Value					x5 bytes for floats
+;						x2 bytes for integers
+;						x3 bytes for strings (len, lsb, msb)
+;						x4 bytes for functions FN A(X) (lsb, msb), X of FN(X) (lsb, msb)
 MM_ARYTAB	= $002F		; Pointer: Start of BASIC Arrays ($002F-$0030)
+; Array Name 			x2 bytes
+; Offset to Next Array 	x2 bytes
+; Array Dimensions		x1 byte (1 for A(x), 2 for A(x,y), etc)
+; Default=Dim(10)+1		(x2 bytes) x Array Dim. i.e x2 for 1, x2x2 for 2, x2x2x2 for 3
+; Value					x5 bytes for floats
+;						x2 bytes for integers
+;						x3 bytes for strings (len, lsb, msb)
+
 MM_STREND	= $0031		; Pointer: End of BASIC Arrays storage ($0031-$0032)
 
 MM_FAC1		= $0061		; Floating Point Accumulator #1 ($0061-$0066)
 MM_FAC2		= $0069		; Floating Point Accumulator #2 ($0069-$006E)
+MM_FACOV	= $0070		; Floating Point Accumulator #1 (Low Order Mantissa Byte of For Rounding)
 
 MM_FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
 MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floating Point to ASCII Conversion
@@ -51,26 +65,47 @@ MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floati
 ;	- pg 26, BEST MACHINE CODE ROUTINES FOR THE COMMODORE 64, 1984, Mark Greenshields
 ;	- pg 391, Compute's Machine Language Routines for the Commodore 64/128, 1987, Todd D. Heimarck and Patrick Parrish
 ; BASIC text;
-;	SYS 49152,SQR(9),(1 + 3*7)
-; 	SYS 1234, 0123
-; ML;
+; ML - SYS 49152,SQR(9),(1 + 3*7)
+;	JSR CHKCOM	; Skip passed ','
+;	JSR FRMEVL	; Read SQR(9) and store in FAC1
+;	JSR GETADR	; Convert FAC1 → Integer (A/Y & LINNUM)
+;	JSR CHKCOM	; Skip passed ','
+;	JSR FRMEVL	; Read (1 + 3*7) and store in FAC1
+;	JSR GETADR	; Convert FAC1 → Integer (A/Y & LINNUM)
+;
+; ML - SYS 1234, 0123
 ;	JSR CHKCOM	; Skip passed ','
 ;	JSR FRMNUM	; Read 0123 and store in FAC1
-;	JSR GETADR	; Convert FAC1 → Integer (LINNUM)
+;	JSR GETADR	; Convert FAC1 → Integer (A/Y & LINNUM)
+;
 
-BASIC_GOCR		= $AAD7		; Prints CR/LF
-BASIC_STROUT	= $AB1E		; Prints the null-terminated string (Register Y/A aka MSB/LSB).
+BASIC_GOCR		= $AAD7		; Output CR/LF
+BASIC_STROUT	= $AB1E		; Output the null-terminated string (Register Y/A aka MSB/LSB).
+
 BASIC_FRMNUM	= $AD8A		; Read next expression (variable, number, etc.) into the FAC1.
 BASIC_FRMEVL	= $AD9E		; Read and evaluate next expression into the FAC1
 BASIC_CHKCOM	= $AEFD		; Check if the next character is a comma and skip it. Otherwise print SYNTAX ERROR and return to Basic.
-BASIC_GIVAYF	= $B391   	; Convert signed integer (Register A/Y) → FAC1
-;BASIC_GETADR	= $B7F7		; Convert FAC1 → unsigned integer (LINNUM $14/$15). If the number is too big then print illegal quantity error and return to Basic.
 
-BASIC_MOVAF		= $BC0C		; Copy FAC1 → FAC2
-BASIC_DIV		= $BB12		; FAC1 = FAC2 ÷ FAC1
+BASIC_GIVAYF	= $B391   	; Convert INT16 (Register A/Y) → FAC1
+BASIC_GETADR	= $B7F7		; Convert FAC1 → UINT16 (Register A/Y, and stores it to LINNUM $14/$15).
+							; If the number is too big then print illegal quantity error and return to Basic.
 
-BASIC_LINPRT	= $BDCD		; Print unsigned integer (Register A/X) as a Number in ASCII Decimal Digits
-BASIC_FOUT		= $BDDD		; Convert FAC1 → ASCII string (for print) Register A/Y holding the pointer to null terminated string.
+BASIC_FDIV		= $BB0F		; Unpack Memory (A/Y) to FAC2, FAC1 = FAC2 ÷ FAC1
+BASIC_FDIVT		= $BB12		; FAC1 = FAC2 ÷ FAC1
+
+BASIC_MOVFM		= $BBD4		; Copy FAC1 → Memory (X/Y)
+BASIC_MOVMF		= $BBA2		; Copy Memory (Y/A) → FAC1
+
+BASIC_MOVFA		= $BBFC		; Copy FAC2 → FAC1
+BASIC_MOVAF		= $BC0C		; Copy FAC1 (with Rounding Byte) → FAC2
+BASIC_MOVEF		= $BC0F		; Copy FAC1 (without Rounding Byte) → FAC2
+
+BASIC_ABS		= $BC58		; ABS(FAC1)
+
+BASIC_CLRFAC1	= $BCE9		; Clear FAC1 with value in A
+
+BASIC_LINPRT	= $BDCD		; Output UINT16 (Register A/X) as a Number in ASCII Decimal Digits
+BASIC_FOUT		= $BDDD		; Convert FAC1 → String, Register A/Y holding the pointer to null terminated string.
 							; NB. Uses FAC1, thus changes the FAC1 value.
 ;BASIC_INLIN		= $A560   ; Input line into BASIC buffer
 ;BASIC_INTFAC	= $BCF3   ; Convert FAC1 → integer (in-place)

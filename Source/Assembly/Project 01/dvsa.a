@@ -3,6 +3,15 @@
 ; if so dump what it finds.
 ;
 !zone DVSA {
+;; Floating-point constants in C64 format
+;!address Float0:	!byte $00, $00, $00, $00, $00	; 0.0
+;!address Float1:    !byte $81,$00,$00,$00,$00  ; 1.0
+;!address Float2:    !byte $82,$00,$00,$00,$00  ; 2.0  
+;!address Float7:	!byte $83, $60, $00, $00, $00	; 7.0
+;!address Float10:	!byte $84, $20,$00, $00,$00	; 10.0
+;!address Float63:	!byte $86, $7c, $00, $00, $00   ; 63.0
+;!address FloatTmp:	!byte $00, $00, $00, $00, $00
+
 DVSA:
 	; Is BASIC variable storage empty?
 	+CMP16 MM_VARTAB, MM_ARYTAB
@@ -22,36 +31,54 @@ DVSA:
     +BASIC_STROUT .HDR1
 	
 	;
-    ; (Size, Count)
-    +KERNEL_CHROUT '('
-    
-    ;
-    ; Calculate bytes used
-    +SUB16 MM_ARYTAB, MM_VARTAB, Ptr3	; Ptr3 =  MM_ARYTAB - MM_VARTAB
-    +BASIC_LINPRT Ptr3					; Output Ptr3 value
-    +KERNEL_CHROUT ','
-    
-    ;
-    ; Calculate variables held
-    +BASIC_GIVAYF Ptr3			; Convert Ptr3 to FAC1
-    jsr BASIC_MOVAF				; Copy FAC1 to FAC2
-    +BASIC_GIVAYF_IMM $0007		; FAC1 = 7
-    jsr BASIC_DIV				; FAC1 = FAC2 / FAC1
-    jsr BASIC_FOUT				; Convert FAC1 to String
-    jsr BASIC_STROUT			; Output FAC1 String.
-    
-    ;
     ; Location [xxxx-yyyy]
-    +BASIC_STROUT .HDR2
+    +KERNEL_CHROUT '['
     +OUTPUT_HEXWORD MM_VARTAB			; Address Start
     +KERNEL_CHROUT '-'
     +SUB16_IMM MM_ARYTAB, $0001, Ptr3	; Adjust End Address: Ptr3 =  MM_ARYTAB - 1
     +OUTPUT_HEXWORD Ptr3				; Address End
-    +KERNEL_CHROUT ']'
-    jsr BASIC_GOCR						; Newline
+    +BASIC_STROUT .HDR2
 	
+    ;
+    ; Calculate Size (bytes used)
+    +SUB16 MM_ARYTAB, MM_VARTAB, Ptr3	; Ptr3 =  MM_ARYTAB - MM_VARTAB
+
+    ;
+    ; Calculate Count (number of variables)
+	+BASIC_GIVAYF Ptr3			; Convert Ptr3 to FAC1
+	jsr BASIC_MOVEF				; Copy FAC1 to FAC2
+   	+BASIC_GIVAYF_IMM $0007		; FAC1 = 7
+   	;+BASIC_GIVAYF_IMM $FFF9		; FAC1 = -7
+   	jsr BASIC_FDIVT				; FAC1 = FAC2 / FAC1
+   	jsr BASIC_ABS				; Quirkiness with floating points going negative!
+   	
+	;jsr BASIC_FOUT
+	;jsr BASIC_STROUT
+	
+    ;
+    ; Output (Count, Size)
+    jsr BASIC_GETADR			; FAC1 → UINT (A/Y) → MM_LINNUM
+    +BASIC_LINPRT MM_LINNUM		; Output MM_LINNUM value
+    
+	+KERNEL_CHROUT ','
+    +KERNEL_CHROUT ' '
+    +BASIC_LINPRT Ptr3			; Output Ptr3 value
+    +KERNEL_CHROUT 'B'
+    +KERNEL_CHROUT ')'
+    
+    jsr BASIC_GOCR				; Newline
+    
 	;
     ; Dump Table
+    ;
+    ; pseudocode
+    ; while (Ptr1 < Ptr2) {
+    ;	get name
+    ;	get type
+    ;	output index. name (type)
+    ;	Ptr1 = Ptr1 + 7 (fixed)
+    ; }
+    ;
     lda MM_VARTAB
     sta Ptr1
     lda MM_VARTAB + 1
@@ -66,5 +93,5 @@ DVSA:
     rts
 ;
 !address .HDR1  !pet "basic variable storage", 13, 0
-!address .HDR2	!pet ") [", 0
+!address .HDR2	!pet "] (", 0
 }

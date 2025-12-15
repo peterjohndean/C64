@@ -13,7 +13,7 @@
 
 !zone Target {
 
-	* = $C000
+	* = $C000				; SYS49152
 						
     !cpu 6510				; Target processor
 	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/64.prg", cbm          ; Output binary file (PRG format)
@@ -29,7 +29,7 @@
 			
 
 MLEP:
-	; Clear screen
+	; Clear screen, do we need this or can it be handled a different way?
 	+KERNEL_CHROUT 147
 	
 	jsr EntryPoint_DBSA

@@ -28,8 +28,9 @@ References (Links):
 	- https://www.pagetable.com/c64ref/c64disasm
 	- https://www.pagetable.com/c64ref/c64mem
 	- https://www.atarimagazines.com/compute/issue29/394_1_COMMODORE_64_MEMORY_MAP.php
+	
 TODO:
-- load ml in wedge and auto-activate? Then return to BASIC
+- load ml in wedge and key auto-activate? Then return to BASIC
 - output to screen (default), disk or other
 - list reference sources
 - what was learned during the creation of project 01

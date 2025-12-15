@@ -103,10 +103,10 @@
     sta difference+1
 }
 
-!macro BASIC_GIVAYF VarAddr {
-	lda VarAddr+1		; MSB
-    ldy VarAddr			; LSB
-    jsr BASIC_GIVAYF	; Int16 to FAC1
+!macro BASIC_GIVAYF VariableAddress {
+	ldy VariableAddress		; LSB
+    lda VariableAddress+1	; MSB
+    jsr BASIC_GIVAYF		; Int16 to FAC1
 }
 
 !macro BASIC_GIVAYF_IMM Value {
@@ -126,10 +126,10 @@
     jsr KERNEL_CHROUT
 }
 
-!macro BASIC_LINPRT VarAddr {
-	lda VarAddr+1		; MSB
-    ldx VarAddr			; LSB
-    jsr BASIC_LINPRT	; UInt16
+!macro BASIC_LINPRT VariableAddress {
+	ldx VariableAddress		; LSB
+    lda VariableAddress+1	; MSB
+    jsr BASIC_LINPRT		; UInt16
 }
 
 !macro BASIC_LINPRT_IMM Value {
@@ -138,15 +138,20 @@
     jsr BASIC_LINPRT	; UInt16
 }
 
-!macro OUTPUT_HEXBYTE VarAddr {
-	lda VarAddr
+!macro OUTPUT_HEXBYTE VariableAddress {
+	lda VariableAddress
     jsr OutputByteToHex
 }
 
-!macro OUTPUT_HEXWORD VarAddr {
-	lda VarAddr+1		; MSB
+!macro OUTPUT_HEXWORD VariableAddress {
+	lda VariableAddress+1		; MSB
     jsr OutputByteToHex
-    lda VarAddr			; LSB
+    lda VariableAddress			; LSB
     jsr OutputByteToHex
 }
 
+;!macro BASIC_CLRFAC1 {
+;	lda #$00
+;	jsr BASIC_CLRFAC1
+;	sta MM_FAC1+5
+;}
