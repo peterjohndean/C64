@@ -21,9 +21,11 @@ References (Books):
 	- COMMODORE 64 - PROGRAMMER'S REFERENCE GUIDE
 	- COMPUTE!s Mapping The Commodore 64, Sheldon Leemon
 	- Compute's Machine Language Routines for the Commodore 64/128, 1987, Todd D. Heimarck and Patrick Parrish
+	- Machine Language for the Commodore 64, 128 and Other Commodore Computers Revised and Expanded Edition, 1986, Jim Butterfield
 	- Strings in Assembly with Kernel Routines, https://www.youtube.com/watch?v=xPCMPGb6Qbg
 	
 References (Links):
+	- https://www.c64-wiki.com/wiki/Floating_point_arithmetic
 	- https://skoolkid.github.io/sk6502/c64rom/index.html
 	- https://www.pagetable.com/c64ref/c64disasm
 	- https://www.pagetable.com/c64ref/c64mem

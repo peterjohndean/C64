@@ -13,15 +13,18 @@
 
 !zone Target {
 
-	* = $C000				; SYS49152
+; Objective: To be called from BASIC prompt or from within a BASIC program.
+; Usage:	SYS49152 or SYS12*4096
+;
+	* = $C000				; SYS49152 or SYS12*4096
 						
     !cpu 6510				; Target processor
-	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/64.prg", cbm          ; Output binary file (PRG format)
-    !symbollist "64s.a"     ; Output symbol list for debugging
+	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/ml", cbm          ; Output binary file (PRG format)
+    !symbollist "symbols.txt"     ; Output symbol list for debugging
     
-	!src "kernel.inc"		; Kernel addresses
-	!src "tokens.inc"		; BASIC tokens
-	!src "macros.inc"		; Macros to make life a little easier
+	!src "../Common/kernel.inc"		; Kernel addresses
+	!src "../Common/tokens.inc"		; BASIC tokens
+	!src "../Common/macros.inc"		; Macros to make life a little easier
 }
 
 !zone Main
@@ -30,7 +33,7 @@
 
 MLEP:
 	; Clear screen, do we need this or can it be handled a different way?
-	+KERNEL_CHROUT 147
+	;+KERNEL_CHROUT_IMM 147
 	
 	jsr EntryPoint_DBSA
     
@@ -88,17 +91,17 @@ IncCount:
 DoneDivide:
 	;
     ; Output
-    +KERNEL_CHROUT '('
+    +KERNEL_CHROUT_IMM '('
     +OUTPUT_HEXWORD Count
-    +KERNEL_CHROUT ')'
+    +KERNEL_CHROUT_IMM ')'
     
     ;
     ; Output storage hex address as [Start-End]
-    +KERNEL_CHROUT '['
+    +KERNEL_CHROUT_IMM '['
     +OUTPUT_HEXWORD MM_VARTAB
-    +KERNEL_CHROUT '-'
+    +KERNEL_CHROUT_IMM '-'
     +OUTPUT_HEXWORD MM_ARYTAB
-    +KERNEL_CHROUT ']'
+    +KERNEL_CHROUT_IMM ']'
 	jsr BASIC_GOCR				; Newline
 	
 	rts
@@ -107,8 +110,8 @@ DoneDivide:
 ; Project source code
 ; ------------------------------------------------------------
 !src "dsa.a"
-!src "printcstring.a"
-!src "printbytetohex.a"
+!src "../Common/printcstring.a"
+!src "../Common/printbytetohex.a"
 
 ; ------------------------------------------------------------
 ; Data

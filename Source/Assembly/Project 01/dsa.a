@@ -4,63 +4,32 @@
 ;  Dumps the BASIC variable/array names and type.
 ;	- VARTAB to ARYTAB (Each entry is 7 bytes)
 ;	- ARYTAB to STREND (Each entry varys in length)
-;
-;  - Destroys A,X,Y & MM_FREKZP
-;  - Outputs: iteration index + var name (var type)
 ; ------------------------------------------------------------
-;PSEUDO-ishCODE
-;Initialise, if first time called.
-;De/Activation Key
-;Check for Variables in VARTAB
-;If yes, Process VARTAB
-;Check for Arrays in ARYTAB
-;If yes, Process ARYTAB
-;Return to BASIC
-;
-;Process VARTAB
-;Initialise Process
-;- Ptr1 = VARTAB (Start)
-;- Ptr2 = ARYTAB (End)
-;
-;Main Loop:
-;Extract Variable Details
-;- VarInx  = VarIdx + 1
-;- VarAddr = Ptr1
-;- VarName = Fetch +VarName Ptr1 VarName
-;- VarType = Fetch +VarType VarName VarType
-;
-;Output Variable Details
-;- Output VarIdx + '.' + ' '
-;- Output '[' + VarAddr + ']' + ' '
-;- Output VarName
-;- Output VarType
-;	- floating point ' '
-;	- integer '%'
-;	- string '$'
-;	- function '@'
-;
-;Next Variable
-;	- Ptr1 = Ptr1 + 7
-;	- Exit, if Ptr1 ≥ Ptr2
-;	- Repeat Main Loop
 
 !zone DUMPBASICSTORAGEAREA {
 ;
-; Variable Information
+; Workspace
+; Variable/Array Information
 !address VarIndx	!word 0				; Variable index
 !address VarAddr	!word 0				; Variable address
 !address VarName	!byte ' ', ' ', 0	; Variable name, null-terminated.
 !address VarType	!byte ' ', 0		; Variable type, null-terminated.
 !address VarDim		!byte 0				; Variable DIM. i.e. A(x) → 1, A(x,y) → 2, A(x,y,z) → 3
 !address VarDimRsv	!word 0				; Variable DIM reserved, default is 10 +1
+!address PFTmp:		!byte $00, $00, $00, $00, $00	; Temporary Packed Float
+
 ;
-; Variable Types
+; Constants
+; C64 Packed Floating-point
+!address PF07:	!byte $83, $60, $00, $00, $00	; Value = 7.0
+
+; Variable/Array Types
 !address .STRfloat	!pet " (float)", 0
 !address .STRstring	!pet " (string)", 0
 !address .STRint	!pet " (int)", 0
 !address .STRfn		!pet " (fn)", 0
 !address .STRTable	!word .STRfloat, .STRstring, .STRfn, .STRint	; Sequence is important!
-!address .CHRTable	!byte ' ', '$', '@', '%'						; Sequence is important!
+!address .CHRTable	!byte ' ', '$', ' ', '%'						; Sequence is important!
 
 ; Declarations
 !address Index	= <MM_FREKZP+2		; Force Page-0/Zero
@@ -73,7 +42,7 @@
 
 EntryPoint_DBSA
 	jsr DVSA			; Output variable storage area
-    jsr BASIC_GOCR		; Newline
+    jsr BASIC_GOCR		; Output Newline
 	jsr DASA			; Output array storage area
 	
 ExitPoint_DBSA:
@@ -90,17 +59,17 @@ DumpTable:
     ; Display:
     ; Variable index, address, name, type
     ; xx. nn (type)
-    +BASIC_LINPRT Index
-	+KERNEL_CHROUT '.'
-	+KERNEL_CHROUT ' '
+    +BASIC_LINPRT_MEM Index
+	+KERNEL_CHROUT_IMM '.'
+	+KERNEL_CHROUT_IMM ' '
 
 	;
 	; Variable Address
 	; [xxxx]
-	+KERNEL_CHROUT '['
+	+KERNEL_CHROUT_IMM '['
 	+OUTPUT_HEXWORD Ptr1	; Variable Storage Address
-    +KERNEL_CHROUT ']'
-    +KERNEL_CHROUT ' '
+    +KERNEL_CHROUT_IMM ']'
+    +KERNEL_CHROUT_IMM ' '
     
     ;
     ; Display:
@@ -130,7 +99,7 @@ DumpTable:
     
 .No2ndChar
 	; Output x1 character name
-	+KERNEL_CHROUT ' '	; Output leading space
+	+KERNEL_CHROUT_IMM ' '	; Output leading space
     dey
     lda (Ptr1),y
     and #$7f
@@ -195,7 +164,7 @@ TypeDetect:
     
     ;
 ;    +OUTPUT_HEXBYTE Type
-;    +KERNEL_CHROUT '/'
+;    +KERNEL_CHROUT_IMM '/'
     
     ; Look up string pointer from table
     lda .STRTable,y		; lsb
@@ -242,8 +211,9 @@ VariableTypeID:
 
     lda .CHRTable,x		; Load the single character
     sta VarType
-    jsr KERNEL_CHROUT	; Output type
-    rts
+    jmp KERNEL_CHROUT	; Output type
+;    jsr KERNEL_CHROUT	; Output type
+;    rts
     
 ; ------------------------------------------------------------
 ;  Add 8-bit (7) to the 16-bit value located at Ptr1

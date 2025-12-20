@@ -19,25 +19,25 @@ DASA:
     
     ;
     ; Header
-    +BASIC_STROUT .HDR1
+    +BASIC_STROUT_IMM .HDR1
     
     ;
     ; (Size, Count)
-    +KERNEL_CHROUT '('
+    +KERNEL_CHROUT_IMM '('
     
     ;
     ; Calculate bytes used
     +SUB16 MM_STREND, MM_ARYTAB, Ptr3	; Ptr3 =  MM_STREND - MM_ARYTAB
-    +BASIC_LINPRT Ptr3					; Output Ptr3 value
-    ;+KERNEL_CHROUT ','
+    +BASIC_LINPRT_MEM Ptr3				; Output Ptr3 value
+    ;+KERNEL_CHROUT_IMM ','
     
     ;
     ; Location [xxxx-yyyy]
-    +BASIC_STROUT .HDR2
+    +BASIC_STROUT_IMM .HDR2
     +OUTPUT_HEXWORD MM_ARYTAB			; Address Start
-    +KERNEL_CHROUT '-'
+    +KERNEL_CHROUT_IMM '-'
     +OUTPUT_HEXWORD MM_STREND			; Address End
-    +KERNEL_CHROUT ']'
+    +KERNEL_CHROUT_IMM ']'
     jsr BASIC_GOCR						; Newline
 	
     ;

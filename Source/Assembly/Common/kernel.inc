@@ -45,7 +45,7 @@ MM_STREND	= $0031		; Pointer: End of BASIC Arrays storage ($0031-$0032)
 
 MM_FAC1		= $0061		; Floating Point Accumulator #1 ($0061-$0066)
 MM_FAC2		= $0069		; Floating Point Accumulator #2 ($0069-$006E)
-MM_FACOV	= $0070		; Floating Point Accumulator #1 (Low Order Mantissa Byte of For Rounding)
+;MM_FACOV	= $0070		; Floating Point Accumulator #1 (Low Order Mantissa Byte of For Rounding)
 
 MM_FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
 MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floating Point to ASCII Conversion
@@ -78,6 +78,7 @@ MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floati
 ;	JSR FRMNUM	; Read 0123 and store in FAC1
 ;	JSR GETADR	; Convert FAC1 → Integer (A/Y & LINNUM)
 ;
+; C64 floating point use the routines that require a MEM → FAC2, then */-+, avoids FAC1/2 corruption
 
 BASIC_GOCR		= $AAD7		; Output CR/LF
 BASIC_STROUT	= $AB1E		; Output the null-terminated string (Register Y/A aka MSB/LSB).
@@ -90,11 +91,15 @@ BASIC_GIVAYF	= $B391   	; Convert INT16 (Register A/Y) → FAC1
 BASIC_GETADR	= $B7F7		; Convert FAC1 → UINT16 (Register A/Y, and stores it to LINNUM $14/$15).
 							; If the number is too big then print illegal quantity error and return to Basic.
 
-BASIC_FDIV		= $BB0F		; Unpack Memory (A/Y) to FAC2, FAC1 = FAC2 ÷ FAC1
-BASIC_FDIVT		= $BB12		; FAC1 = FAC2 ÷ FAC1
+BASIC_CONUPK	= $BA8C		; Unpack Memory (Y/A) to FAC2
 
-BASIC_MOVFM		= $BBD4		; Copy FAC1 → Memory (X/Y)
-BASIC_MOVMF		= $BBA2		; Copy Memory (Y/A) → FAC1
+BASIC_FDIV		= $BB0F		; Unpack Memory (Y/A) to FAC2, FAC1 = FAC2 ÷ FAC1
+
+BASIC_FADDT		= $B86A		; FAC1 = FAC2 + FAC1, must use BASIC_CONUPK
+BASIC_FDIVT		= $BB12		; FAC1 = FAC2 ÷ FAC1, must use BASIC_CONUPK
+
+BASIC_MOVFM		= $BBD4		; Pack FAC1 → Memory (Y/X). Memory contains a 5-Byte C64 float
+BASIC_MOVMF		= $BBA2		; Unpack Memory (Y/A) → FAC1. Memory contains a 5-Byte C64 float
 
 BASIC_MOVFA		= $BBFC		; Copy FAC2 → FAC1
 BASIC_MOVAF		= $BC0C		; Copy FAC1 (with Rounding Byte) → FAC2

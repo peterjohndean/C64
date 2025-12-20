@@ -3,7 +3,7 @@
 ; if so dump what it finds.
 ;
 !zone DVSA {
-;; Floating-point constants in C64 format
+; Packed Floating-point constants in C64 format
 ;!address Float0:	!byte $00, $00, $00, $00, $00	; 0.0
 ;!address Float1:    !byte $81,$00,$00,$00,$00  ; 1.0
 ;!address Float2:    !byte $82,$00,$00,$00,$00  ; 2.0  
@@ -28,16 +28,16 @@ DVSA:
     
     ;
     ; Header
-    +BASIC_STROUT .HDR1
+    +BASIC_STROUT_IMM .HDR1
 	
 	;
     ; Location [xxxx-yyyy]
-    +KERNEL_CHROUT '['
+    +KERNEL_CHROUT_IMM '['
     +OUTPUT_HEXWORD MM_VARTAB			; Address Start
-    +KERNEL_CHROUT '-'
+    +KERNEL_CHROUT_IMM '-'
     +SUB16_IMM MM_ARYTAB, $0001, Ptr3	; Adjust End Address: Ptr3 =  MM_ARYTAB - 1
     +OUTPUT_HEXWORD Ptr3				; Address End
-    +BASIC_STROUT .HDR2
+    +BASIC_STROUT_IMM .HDR2
 	
     ;
     ; Calculate Size (bytes used)
@@ -45,26 +45,38 @@ DVSA:
 
     ;
     ; Calculate Count (number of variables)
-	+BASIC_GIVAYF Ptr3			; Convert Ptr3 to FAC1
-	jsr BASIC_MOVEF				; Copy FAC1 to FAC2
-   	+BASIC_GIVAYF_IMM $0007		; FAC1 = 7
-   	;+BASIC_GIVAYF_IMM $FFF9		; FAC1 = -7
-   	jsr BASIC_FDIVT				; FAC1 = FAC2 / FAC1
-   	jsr BASIC_ABS				; Quirkiness with floating points going negative!
-   	
+;    +BASIC_GIVAYF_MEM Ptr3		; Ptr3 → FAC1
+;	+BASIC_MOVFM_IMM PFTmp	; FAC1 → Memory
+;;	+BASIC_GIVAYF_IMM $0007		; FAC1 = 7
+;;	+BASIC_GIVAYF_IMM $FFF9		; FAC1 = -7
+;	+BASIC_MOVMF_IMM PF07	; Memory → FAC1, aka FAC1 = 7
+;	+BASIC_CONUPK_IMM PFTmp	; Memory → FAC2, aka FAC2 = Ptr3
+;	jsr BASIC_FDIVT				; FAC1 = FAC2 / FAC1
+;	jsr BASIC_FOUT
+;	jsr BASIC_STROUT
+;	+KERNEL_CHROUT_IMM ','
+	
+	; OR,
+	; Preferred Method, as FAC2 generally used as a temporary memory.
+	+BASIC_GIVAYF_MEM Ptr3		; Ptr3 to FAC1
+	+BASIC_MOVFM_IMM PFTmp	; FAC1 → Memory
+	;+BASIC_GIVAYF_IMM $0007		; FAC1 = 7
+	+BASIC_MOVMF_IMM PF07	; Memory → FAC1
+	+BASIC_FDIV_IMM	PFTmp	; Memory → FAC2, FAC1 = FAC2 ÷ FAC1
 	;jsr BASIC_FOUT
 	;jsr BASIC_STROUT
+	;+KERNEL_CHROUT_IMM ','
 	
     ;
     ; Output (Count, Size)
     jsr BASIC_GETADR			; FAC1 → UINT (A/Y) → MM_LINNUM
-    +BASIC_LINPRT MM_LINNUM		; Output MM_LINNUM value
+    +BASIC_LINPRT_MEM MM_LINNUM	; Output MM_LINNUM value
     
-	+KERNEL_CHROUT ','
-    +KERNEL_CHROUT ' '
-    +BASIC_LINPRT Ptr3			; Output Ptr3 value
-    +KERNEL_CHROUT 'B'
-    +KERNEL_CHROUT ')'
+	+KERNEL_CHROUT_IMM ','
+    +KERNEL_CHROUT_IMM ' '
+    +BASIC_LINPRT_MEM Ptr3		; Output Ptr3 value
+    +KERNEL_CHROUT_IMM 'B'
+    +KERNEL_CHROUT_IMM ')'
     
     jsr BASIC_GOCR				; Newline
     
