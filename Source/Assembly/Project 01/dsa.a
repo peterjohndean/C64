@@ -11,35 +11,31 @@
 ; Workspace
 ; Variable/Array Information
 !address VarIndx	!word 0				; Variable index
-!address VarAddr	!word 0				; Variable address
+!address VarAddr	= <MM_FREKZP		; Variable address
 !address VarName	!byte ' ', ' ', 0	; Variable name, null-terminated.
-!address VarType	!byte ' ', 0		; Variable type, null-terminated.
-!address VarDim		!byte 0				; Variable DIM. i.e. A(x) → 1, A(x,y) → 2, A(x,y,z) → 3
-!address VarDimRsv	!word 0				; Variable DIM reserved, default is 10 +1
+;!address VarType	!byte ' ', 0		; Variable type, null-terminated.
+;!address VarDim		!byte 0				; Variable DIM. i.e. A(x) → 1, A(x,y) → 2, A(x,y,z) → 3
+;!address VarDimRsv	!word 0				; Variable DIM reserved, default is 10 +1
 !address PFTmp:		!byte $00, $00, $00, $00, $00	; Temporary Packed Float
-
 ;
-; Constants
-; C64 Packed Floating-point
-!address PF07:	!byte $83, $60, $00, $00, $00	; Value = 7.0
-
-; Variable/Array Types
-!address .STRfloat	!pet " (float)", 0
-!address .STRstring	!pet " (string)", 0
-!address .STRint	!pet " (int)", 0
-!address .STRfn		!pet " (fn)", 0
-!address .STRTable	!word .STRfloat, .STRstring, .STRfn, .STRint	; Sequence is important!
-!address .CHRTable	!byte ' ', '$', ' ', '%'						; Sequence is important!
-
-; Declarations
-!address Index	= <MM_FREKZP+2		; Force Page-0/Zero
-!address Ptr1	= <MM_FREKZP		; Force Page-0/Zero
 !address Ptr2 	!word 0
 !address Ptr3	!word 0			; Temporary 16-bit value.
 !address Bool	!byte 0			; 0 = VARTAB, else ARYTAB
 !address Type	!byte 0			; Default type = float
 
+;
+; Constants
+; C64 Packed Floating-point
+!address PF07:	!byte $83, $60, $00, $00, $00	; Value = 7.0
+;
+; Variable/Array Types
+!address .STRfloat	!pet "  (float)", 0
+!address .STRstring	!pet "$ (string)", 0
+!address .STRint	!pet "% (integer)", 0
+!address .STRfn		!pet "  (function)", 0
+!address .STRTable	!word .STRfloat, .STRstring, .STRfn, .STRint	; Sequence is important!
 
+;
 EntryPoint_DBSA
 	jsr DVSA			; Output variable storage area
     jsr BASIC_GOCR		; Output Newline
@@ -52,68 +48,57 @@ ExitPoint_DBSA:
 DumpTable:
 ; Main loop
 .loop:
-	+CMP16 Ptr1, Ptr2
-	bcs ExitPoint_DBSA	; Exit, if Ptr1 ≥ Ptr2
+	+CMP16 VarAddr, Ptr2
+	bcs ExitPoint_DBSA	; Exit, if VarAddr ≥ Ptr2
 	
 .cont:
-    ; Display:
-    ; Variable index, address, name, type
-    ; xx. nn (type)
-    +BASIC_LINPRT_MEM Index
-	+KERNEL_CHROUT_IMM '.'
-	+KERNEL_CHROUT_IMM ' '
-
-	;
-	; Variable Address
-	; [xxxx]
-	+KERNEL_CHROUT_IMM '['
-	+OUTPUT_HEXWORD Ptr1	; Variable Storage Address
-    +KERNEL_CHROUT_IMM ']'
-    +KERNEL_CHROUT_IMM ' '
-    
-    ;
-    ; Display:
-    ; Variable name (2 character max.)
-    ; e.g.
-    ;  A
-    ; AA
-    
-    ; Is there a 2nd character in the name?
+    ; Is two character name?
     ldy #1
-    lda (Ptr1),y
+    lda (VarAddr),y
     and #$7f			; Handle $80 as terminator
     beq .No2ndChar		; Branch if 0 OR $80
     
-    ; Output x2 character name
+    ; Handle two character name
     dey
-    lda (Ptr1),y
+    lda (VarAddr),y
     and #$7f
-    jsr KERNEL_CHROUT	; Output first character
+    sta VarName
     iny
-    lda (Ptr1),y
+    lda (VarAddr),y
     and #$7f
-    jsr KERNEL_CHROUT	; Output second character
-    
-    jsr VariableTypeID
-    jmp TypeDetect		; Now what type of variable is it?
+    sta VarName+1
+
+    jmp .next
     
 .No2ndChar
-	; Output x1 character name
-	+KERNEL_CHROUT_IMM ' '	; Output leading space
+	; Handle single character name
+	lda #' '
+	sta VarName
     dey
-    lda (Ptr1),y
+    lda (VarAddr),y
     and #$7f
-    jsr KERNEL_CHROUT	; Output first character
-    
-    jsr VariableTypeID
-    jmp TypeDetect		; Now what type of variable is it?
+    sta VarName+1
     
 .next:
+	; Output variable index
+    +BASIC_LINPRT_MEM VarIndx
+	+KERNEL_CHROUT_IMM '.'
+	+KERNEL_CHROUT_IMM ' '
+
+	; Output variable address
+	+KERNEL_CHROUT_IMM '['
+	+OUTPUT_HEXWORD VarAddr
+    +KERNEL_CHROUT_IMM ']'
+    +KERNEL_CHROUT_IMM ' '
+    
+    ; Output variable name
+	+BASIC_STROUT_IMM VarName
 	
-	inc Index			; Increment variable sequence index
+	jsr TypeDetect				; Now what type of variable is it?
+	
+	inc VarIndx			; Increment variable sequence index
     jsr BASIC_GOCR		; Newline
 
-	;
 	; Handle Variables & Arrays differently
 	lda Bool
 	bne .ARYTAB			; Bool == 0, fallthrough to .VARTAB, else branch to .ARYTAB
@@ -123,31 +108,31 @@ DumpTable:
     jmp .loop
     
 .ARYTAB:
-	jsr .addtoPtr1
+	jsr .addtoVarAddr
     jmp .loop
     
 ; ------------------------------------------------------------
 ;  BASIC storage variable type
 ; ------------------------------------------------------------ 
-; Ptr1		Ptr1+1
+; VarAddr		VarAddr+1
 ; LSB		MSB	
-; & $80		& $80	Index	BASIC Variable Type
-; 0			0		0 (00)	Float
-; 0			1		1 (01)	String
-; 1			0		2 (10)	Function
-; 1			1		3 (11)	Integer	
+; & $80		& $80	Index	ID	BASIC Variable Type
+; 0			0		0 (00)		Float
+; 0			1		1 (01)	$	String
+; 1			0		2 (10)		Function
+; 1			1		3 (11)	%	Integer	
 ; ------------------------------------------------------------
 TypeDetect:
-    ; Calculate type index (0-3) and multiply by 2 for word table
+    ; Calculate type index (0-3) and multiply by 2 for word/vector table
     ldy #0
-    lda (Ptr1),y
+    lda (VarAddr),y
     and #$80
     rol             ; Shift LSB bit 7 into carry
     				; Reference:
     				; - pg 3-85, 6502 Assembly Language Programming, 1979, Lance A. Leventhal
     				; - pg64-65,pg259, 6502 Software Design, 1980, Leo J. Scanlon
     ldy #1  
-    lda (Ptr1),y
+    lda (VarAddr),y
     and #$80
     rol             ; Shift MSB bit 7 into carry, previous carry into bit 0
     rol             ; Now A contains 0-3
@@ -157,16 +142,12 @@ TypeDetect:
     tay
     
     ; Preserve 0/Zero-Page
-    lda Ptr1
+    lda VarAddr
     pha
-    lda Ptr1+1
+    lda VarAddr+1
     pha
     
-    ;
-;    +OUTPUT_HEXBYTE Type
-;    +KERNEL_CHROUT_IMM '/'
-    
-    ; Look up string pointer from table
+    ; Look up string pointer from vector table
     lda .STRTable,y		; lsb
     pha
     lda .STRTable+1,y	; msb
@@ -176,85 +157,53 @@ TypeDetect:
     
     ; Restore 0/Zero-Page
 	pla
-    sta Ptr1+1
+    sta VarAddr+1
     pla
-    sta Ptr1
+    sta VarAddr
     
-    jmp .next
-
-; ------------------------------------------------------------
-;  BASIC storage variable type
-; ------------------------------------------------------------ 
-; Ptr1		Ptr1+1
-; LSB		MSB				BASIC Variable Type
-; & $80		& $80	Index	Character	String
-; 0			0		0 (00)				Float
-; 0			1		1 (01)		$		String
-; 1			0		2 (10)		@		Function
-; 1			1		3 (11)		%		Integer
-; ------------------------------------------------------------
-VariableTypeID:
-	ldy #0
-    lda (Ptr1),y        ; Load LSB of variable name
-    and #$80			; Only Bit 7 required
-    asl                 ; Shift Bit 7 into Carry (0=Float/String, 1=Func/Int) & 0 into Bit 0
-
-    ldy #1
-    lda (Ptr1),y        ; Load MSB of variable name
-    and #$80
-    rol                 ; Shift Carry into Bit 0, MSB Bit 7 into Carry
-    rol                 ; Shift that new Carry into Bit 0
-    
-    ; Accumulator now holds the 2-bit index (0-3) in the lowest bits
-    and #$03            ; Mask out any garbage in upper bits
-    tax                 ; Move index to X for lookup
-
-    lda .CHRTable,x		; Load the single character
-    sta VarType
-    jmp KERNEL_CHROUT	; Output type
-;    jsr KERNEL_CHROUT	; Output type
-;    rts
+    rts
+;    jmp .next
     
 ; ------------------------------------------------------------
-;  Add 8-bit (7) to the 16-bit value located at Ptr1
+;  Add 8-bit (7) to the 16-bit value located at VarAddr
 ; ------------------------------------------------------------
 .add7:
     clc				; Clear carry before add
-    lda Ptr1
+    lda VarAddr
     adc #7			; Add 7 to LSB
-    sta Ptr1
+    sta VarAddr
     bcc .skip		; Branch if carry is clear
-    inc Ptr1 + 1	; Adjust carry for MSB
+    inc VarAddr + 1	; Adjust carry for MSB
 .skip:
     rts
     
 ; ------------------------------------------------------------
-; Adds the 16-bit value pointed to by (Ptr1) to Ptr1 itself
+; Adds the 16-bit value pointed to by (VarAddr) to VarAddr itself
 ; ------------------------------------------------------------
 ; On entry:
-;   Ptr1 = pointer (e.g. $1234)
+;   VarAddr = pointer (e.g. $1234)
 ;   ($1234) = 16-bit value to add (e.g. $000A)
 ; On exit:
-;   Ptr1 = Ptr1 + ($1234)
+;   VarAddr = VarAddr + ($1234)
 ; ------------------------------------------------------------
-.addtoPtr1:
-    ; Dereference Ptr1
+.addtoVarAddr:
+    ; Dereference VarAddr
     ldy #2			; index to 16-bit value (size/length)
-    lda (Ptr1),y	; lsb
+    lda (VarAddr),y	; lsb
     sta Ptr3
     iny
-    lda (Ptr1),y	; msb
+    lda (VarAddr),y	; msb
     sta Ptr3+1
 
-    ; Add Ptr3 to Ptr1
+    ; Add Ptr3 to VarAddr
     clc
-    lda Ptr1		; lsb
+    lda VarAddr		; lsb
     adc Ptr3
-    sta Ptr1
+    sta VarAddr
     
-    lda Ptr1+1		; msb
+    lda VarAddr+1	; msb
     adc Ptr3+1
-    sta Ptr1+1
+    sta VarAddr+1
     rts
 
 ; ------------------------------------------------------------

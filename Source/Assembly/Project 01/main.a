@@ -13,9 +13,6 @@
 
 !zone Target {
 
-; Objective: To be called from BASIC prompt or from within a BASIC program.
-; Usage:	SYS49152 or SYS12*4096
-;
 	* = $C000				; SYS49152 or SYS12*4096
 						
     !cpu 6510				; Target processor
@@ -32,78 +29,10 @@
 			
 
 MLEP:
-	; Clear screen, do we need this or can it be handled a different way?
-	;+KERNEL_CHROUT_IMM 147
 	
 	jsr EntryPoint_DBSA
     
 MLEP_END:
-	rts
-
-;
-; NO USED
-CalcVariableTable:
-	; Read MM_VARTAB and MM_ARYTAB into registers
-	; LSB
-	lda MM_ARYTAB
-    sec				; To start a subtraction chain, you must first set the Carry flag with SEC.
-    				; This ensures the "no borrow" value (1) is included in the first calculation.
-    				; For an 8-bit calculation (A-B), the formula becomes A-B-not(1), which simplifies to A-B-0.
-    				; This gives you the correct starting result.
-    sbc MM_VARTAB
-    sta Diff
-    
-    ; MSB
-    lda MM_ARYTAB+1
-    sbc MM_VARTAB+1
-    sta Diff+1
-    
-    ; Divide Diff (16-bit) by 7
-    ldx #0              ; result = 0
-    stx Count
-    stx Count+1
-
-DivideLoop:
-    lda Diff
-    ora Diff+1
-    beq DoneDivide      ; stop when diff = 0
-
-    lda Diff
-    sec
-    sbc #7
-    bcc SubHigh
-    sta Diff
-    bne IncCount
-SubHigh:
-    lda Diff+1
-    sbc #0
-    sta Diff+1
-    lda Diff
-    adc #0              ; fix carry
-    bcs IncCount
-    lda #0
-IncCount:
-    inc Count
-    bne DivideLoop
-    inc Count+1
-    jmp DivideLoop
-
-DoneDivide:
-	;
-    ; Output
-    +KERNEL_CHROUT_IMM '('
-    +OUTPUT_HEXWORD Count
-    +KERNEL_CHROUT_IMM ')'
-    
-    ;
-    ; Output storage hex address as [Start-End]
-    +KERNEL_CHROUT_IMM '['
-    +OUTPUT_HEXWORD MM_VARTAB
-    +KERNEL_CHROUT_IMM '-'
-    +OUTPUT_HEXWORD MM_ARYTAB
-    +KERNEL_CHROUT_IMM ']'
-	jsr BASIC_GOCR				; Newline
-	
 	rts
 
 ; ------------------------------------------------------------
@@ -112,9 +41,3 @@ DoneDivide:
 !src "dsa.a"
 !src "../Common/printcstring.a"
 !src "../Common/printbytetohex.a"
-
-; ------------------------------------------------------------
-; Data
-; ------------------------------------------------------------
-Diff    !word 0	; Temporary value holder
-Count   !word 0	; Total variables in table

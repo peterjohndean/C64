@@ -22,6 +22,11 @@ I’ve recently rekindled my interest in both assembly language programming and 
 	
 4. Projects
 	- (In-Progress) Project 01: Learn to use ACME, 6510 by means of dumping the BASIC storage areas.
+
+a. Project01
+	![Output](Source/Assembly/Project 01/output.png)
+	![Output](Source/Assembly/Project 01/output.txt)
+
 	
 ## Notes
 - Wow! forgot how much effort it takes to perform basic tasks in assembly language.

@@ -3,6 +3,12 @@
 ; if so dump what it finds.
 ;
 !zone DASA {
+; Constants
+!address .HDR1  !pet "basic array storage", 13, 0
+!address .HDR2	!pet "] (", 0
+!address .Tmp16	!word 0			; Temporary 16-bit value.
+!address .Idx16 !word 0
+
 DASA:
 	; Is BASIC array storage empty?
 	+CMP16 MM_ARYTAB, MM_STREND
@@ -12,50 +18,82 @@ DASA:
 .PASA:
 	; Initialise
     lda #1
-    sta Index
+    sta VarIndx
     
     lda #1
     sta Bool
     
-    ;
     ; Header
     +BASIC_STROUT_IMM .HDR1
     
-    ;
-    ; (Size, Count)
-    +KERNEL_CHROUT_IMM '('
-    
-    ;
-    ; Calculate bytes used
-    +SUB16 MM_STREND, MM_ARYTAB, Ptr3	; Ptr3 =  MM_STREND - MM_ARYTAB
-    +BASIC_LINPRT_MEM Ptr3				; Output Ptr3 value
-    ;+KERNEL_CHROUT_IMM ','
-    
-    ;
     ; Location [xxxx-yyyy]
-    +BASIC_STROUT_IMM .HDR2
-    +OUTPUT_HEXWORD MM_ARYTAB			; Address Start
+    +KERNEL_CHROUT_IMM '['
+    +OUTPUT_HEXWORD MM_ARYTAB	; Address Start
     +KERNEL_CHROUT_IMM '-'
-    +OUTPUT_HEXWORD MM_STREND			; Address End
-    +KERNEL_CHROUT_IMM ']'
-    jsr BASIC_GOCR						; Newline
+    +OUTPUT_HEXWORD MM_STREND	; Address End
+    +BASIC_STROUT_IMM .HDR2
+    
+    ; Calculate Count (number of variables)
+    jsr ArrayCount
+    +BASIC_LINPRT_MEM .Idx16
+    
+    ; Calculate Size (bytes used)
+    +SUB16 MM_STREND, MM_ARYTAB, Ptr3	; Ptr3 =  MM_STREND - MM_ARYTAB
+    
+    ; Output (Count, Size)
+    +KERNEL_CHROUT_IMM ','
+    +KERNEL_CHROUT_IMM ' '
+    +BASIC_LINPRT_MEM Ptr3		; Output Ptr3 value
+    +KERNEL_CHROUT_IMM 'B'
+    +KERNEL_CHROUT_IMM ')'
+    jsr BASIC_GOCR				; Newline
 	
-    ;
     ; Dump Table
     lda MM_ARYTAB
-    sta Ptr1
+    sta VarAddr
     lda MM_ARYTAB + 1
-    sta Ptr1 + 1
+    sta VarAddr + 1
     
     lda MM_STREND
     sta Ptr2
     lda MM_STREND + 1
     sta Ptr2 + 1
+    
     jsr DumpTable
+    rts
+    
+ArrayCount:
+	; Initialise count variables
+	lda MM_ARYTAB
+    sta VarAddr
+    lda MM_ARYTAB + 1
+    sta VarAddr + 1
+    lda #0
+    sta .Idx16
+    
+.loop:
+    inc .Idx16
+    
+	; Dereference VarAddr
+    ldy #2			; index to 16-bit value (size/length)
+    lda (VarAddr),y	; lsb
+    sta .Tmp16
+    iny
+    lda (VarAddr),y	; msb
+    sta .Tmp16+1
 
+    ; Add .Tmp16 to VarAddr
+    clc
+    lda VarAddr		; lsb
+    adc .Tmp16
+    sta VarAddr
+    
+    lda VarAddr+1	; msb
+    adc .Tmp16+1
+    sta VarAddr+1
+    
+    +CMP16 VarAddr, MM_STREND
+	bcc .loop					; Exit, if VarAddr ≥ MM_ARYTAB
+	
 	rts
-
-;
-!address .HDR1  !pet "basic array storage", 13, 0
-!address .HDR2	!pet ") [", 0
 }

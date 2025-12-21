@@ -3,6 +3,9 @@
 ; if so dump what it finds.
 ;
 !zone DVSA {
+; Constants
+!address .HDR1  !pet "basic variable storage", 13, 0
+!address .HDR2	!pet "] (", 0
 ; Packed Floating-point constants in C64 format
 ;!address Float0:	!byte $00, $00, $00, $00, $00	; 0.0
 ;!address Float1:    !byte $81,$00,$00,$00,$00  ; 1.0
@@ -21,16 +24,14 @@ DVSA:
 .PVSA:
 	; Initialise
     lda #1
-    sta Index
+    sta VarIndx
     
     lda #0
     sta Bool
     
-    ;
     ; Header
     +BASIC_STROUT_IMM .HDR1
 	
-	;
     ; Location [xxxx-yyyy]
     +KERNEL_CHROUT_IMM '['
     +OUTPUT_HEXWORD MM_VARTAB			; Address Start
@@ -39,7 +40,6 @@ DVSA:
     +OUTPUT_HEXWORD Ptr3				; Address End
     +BASIC_STROUT_IMM .HDR2
 	
-    ;
     ; Calculate Size (bytes used)
     +SUB16 MM_ARYTAB, MM_VARTAB, Ptr3	; Ptr3 =  MM_ARYTAB - MM_VARTAB
 
@@ -56,16 +56,11 @@ DVSA:
 ;	jsr BASIC_STROUT
 ;	+KERNEL_CHROUT_IMM ','
 	
-	; OR,
-	; Preferred Method, as FAC2 generally used as a temporary memory.
-	+BASIC_GIVAYF_MEM Ptr3		; Ptr3 to FAC1
+	; Calculate Count (number of variables)
+	+BASIC_GIVAYF_MEM Ptr3	; Ptr3 to FAC1
 	+BASIC_MOVFM_IMM PFTmp	; FAC1 → Memory
-	;+BASIC_GIVAYF_IMM $0007		; FAC1 = 7
 	+BASIC_MOVMF_IMM PF07	; Memory → FAC1
 	+BASIC_FDIV_IMM	PFTmp	; Memory → FAC2, FAC1 = FAC2 ÷ FAC1
-	;jsr BASIC_FOUT
-	;jsr BASIC_STROUT
-	;+KERNEL_CHROUT_IMM ','
 	
     ;
     ; Output (Count, Size)
@@ -77,33 +72,29 @@ DVSA:
     +BASIC_LINPRT_MEM Ptr3		; Output Ptr3 value
     +KERNEL_CHROUT_IMM 'B'
     +KERNEL_CHROUT_IMM ')'
-    
     jsr BASIC_GOCR				; Newline
     
 	;
     ; Dump Table
     ;
     ; pseudocode
-    ; while (Ptr1 < Ptr2) {
+    ; while (VarAddr < Ptr2) {
     ;	get name
     ;	get type
     ;	output index. name (type)
-    ;	Ptr1 = Ptr1 + 7 (fixed)
+    ;	VarAddr = VarAddr + 7 (fixed)
     ; }
     ;
     lda MM_VARTAB
-    sta Ptr1
+    sta VarAddr
     lda MM_VARTAB + 1
-    sta Ptr1 + 1
+    sta VarAddr + 1
     
     lda MM_ARYTAB
     sta Ptr2
     lda MM_ARYTAB + 1
     sta Ptr2 + 1
-    jsr DumpTable
     
+    jsr DumpTable
     rts
-;
-!address .HDR1  !pet "basic variable storage", 13, 0
-!address .HDR2	!pet "] (", 0
 }
