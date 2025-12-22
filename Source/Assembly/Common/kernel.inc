@@ -50,6 +50,9 @@ MM_FAC2		= $0069		; Floating Point Accumulator #2 ($0069-$006E)
 MM_FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
 MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floating Point to ASCII Conversion
 
+MM_TAPE1	= $00B2		; Basic 0/Zero-Page Vector for the 16-bit start address of the tape buffer (192 bytes), which defaults to $033C. ($00B2-$00B3)
+MM_TAPE1BUF	= $033C		; Default tape buffer address.
+
 ; --- BASIC 2.0 ROM Routines ---
 ; A000-BFFF	40960-49151	ROM : Basic
 
@@ -78,7 +81,6 @@ MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floati
 ;	JSR FRMNUM	; Read 0123 and store in FAC1
 ;	JSR GETADR	; Convert FAC1 → Integer (A/Y & LINNUM)
 ;
-; C64 floating point use the routines that require a MEM → FAC2, then */-+, avoids FAC1/2 corruption
 
 BASIC_GOCR		= $AAD7		; Output CR/LF
 BASIC_STROUT	= $AB1E		; Output the null-terminated string (Register Y/A aka MSB/LSB).
