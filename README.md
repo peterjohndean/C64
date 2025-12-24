@@ -23,6 +23,8 @@ I’ve recently rekindled my interest in both assembly language programming and 
 4. Projects
 	- Project 01: Learn to use ACME, 6510 by means of dumping the BASIC storage areas.
 		-	![Output](Source/Assembly/Project%2001/output.png)
+		
+	- Project 02: Learning C64 6510 mathematics routines.
 
 	
 ## Notes

@@ -33,4 +33,4 @@ MLEP_END:
 !src "mathematics.asm"
 ;!src "../Common/printbytetobinary.asm"
 ;!src "../Common/printcstring.a"
-;!src "../Common/printbytetohex.a"
+!src "../Common/printbytetohex.a"

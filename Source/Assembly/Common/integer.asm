@@ -139,15 +139,17 @@ INT16_DIVMOD:
 ;--- Helper: Two's Complement (Negate) ---
 ; To negate: Flip all bits and add 1
 .i16_dm_negate_dividend:
-    lda MATH_DIVIDEND
-    eor #$FF
-    clc
-    adc #1
-    sta MATH_DIVIDEND
-    lda MATH_DIVIDEND+1
-    eor #$FF
-    adc #0
-    sta MATH_DIVIDEND+1
+    lda MATH_DIVIDEND		; eg. Load LSB (%00000001)
+    eor #$FF				; eg. Flip all bits! (%11111110)
+    clc						; Clear carry for the addition
+    adc #1					; Add 1 (%11111111)
+    sta MATH_DIVIDEND		; Store back ($FF)
+    lda MATH_DIVIDEND+1		; eg. Load MSB (%00000000)
+    eor #$FF				; Flip all bits! (%11111111)
+    adc #0					; Add 0 PLUS the Carry flag from before
+    						; Notice we didn't use clc here. We want to add the Carry bit that might have "spilled over" from the LSB addition.
+							; If the Low Byte was $FF and we added 1, it becomes $00 and sets the Carry. The High Byte then gets flipped and adds that 1.
+    sta MATH_DIVIDEND+1		; Store back ($FF)
     rts
 
 .i16_dm_negate_divisor:
