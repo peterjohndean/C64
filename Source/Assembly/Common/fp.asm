@@ -5,22 +5,28 @@
 ; MM_FAC1
 ; MM_FAC2
 ;----------------------------------------------------------
-;   INT8FLOAT, for  8-bit signed to float
-;  INT16FLOAT, for 16-bit signed to float
-; FLOAT2INT16, for float to 16-bit signed integer
+;    INT8FLOAT, for INT8 (A) to FAC1
+;   UINT8FLOAT, for UINT8 (A) to FAC1
+;   INT16FLOAT, for INT16 (A/Y) to FAC1
+;  UINT16FLOAT, for UINT16 (A/Y) to FAC1
+;  FLOAT2INT16, for FAC1 to INT16 (A/Y)
+; FLOAT2UINT16, for FAC1 to UINT16 (A/Y)
 ;==========================================================
 !zone FLOATINGPOINT {
-; eg.
-; ldy #<$007E		; LSB
-; lda #>$0000		; MSB
-;
 !address {
+.FACX_MAN1	= .FAC1_MAN1	;$01
+.FACX_MAN2	= .FAC1_MAN2	;$02
+.FACX_MAN3	= .FAC1_MAN3	;$03
+.FACX_MAN4	= .FAC1_MAN4	;$04
+;
 .FAC1_EXP	= MM_FAC1	; $61
 .FAC1_MAN1	= MM_FAC1+1	; $62
 .FAC1_MAN2	= MM_FAC1+2	; $63
 .FAC1_MAN3	= MM_FAC1+3	; $64
 .FAC1_MAN4	= MM_FAC1+4	; $65
 .FAC1_SIGN	= MM_FAC1+5	; $66
+.FAC1_OFLOW	= MM_BITS	; $68
+.FAC1_ROUND	= MM_FACOV	; $70
 }
 
 ;==========================================================
@@ -34,37 +40,67 @@ INT16FLOAT:
 		sta .FAC1_MAN1	;save fac1 mantissa 1
 		sty .FAC1_MAN2	;save fac1 mantissa 2
 		ldx #$90		;set exponent=2^16 (integer) aka $90 - $80 = $10 or 16-bits
-		jmp bc44		;set exp = x, clear fac1 m3 and m4, normalise and return
+		jmp .bc44		;set exp = x, clear fac1 m3 and m4, normalise and return
+		
+;==========================================================
+; UINT16 to FAC1
+; Parameters:
+;	A (MSB)/Y (LSB)
+; Returns:
+;	Nothing, updates FAC1
+;==========================================================
+UINT16FLOAT:
+		sta .FAC1_MAN1	;save fac1 mantissa 1
+		sty .FAC1_MAN2	;save fac1 mantissa 2
+		ldx #$90		;set exponent=2^16 (integer) aka $90 - $80 = $10 or 16-bits
+		sec				;set carry flag to indicate positive number (unsigned)
+		jmp .bc49		;set exp = x, clear fac1 m3 and m4, normalise and return
 
 ;==========================================================
 ; INT8 to FAC1
 ; Parameters:
 ;	A
 ; Returns:
-;	Nothing, pdates FAC1
+;	Nothing, updates FAC1
 ;==========================================================
 INT8FLOAT:
 		sta .FAC1_MAN1	; save fac1 mantissa 1
 		lda #$00		; clear a
 		sta .FAC1_MAN2	; clear fac1 mantissa 2
 		ldx #$88		; set exponent=2^8 (integer) aka $88 - $80 = $08 or 8-bits
-
+		jmp .bc44
+		
+;==========================================================
+; UINT8 to FAC1
+; Parameters:
+;	A
+; Returns:
+;	Nothing, updates FAC1
+;==========================================================
+UINT8FLOAT:
+		sta .FAC1_MAN1	; save fac1 mantissa 1
+		lda #$00		; clear a
+		sta .FAC1_MAN2	; clear fac1 mantissa 2
+		ldx #$88		; set exponent=2^8 (integer) aka $88 - $80 = $08 or 8-bits
+		sec				;set carry flag to indicate positive number (unsigned)
+		jmp .bc49
+		
 ;this entry point is used by the routine at b391.
 ;set exponent = x, clear fac1 3 and 4 and normalise
-bc44:	lda .FAC1_MAN1	; get fac1 mantissa 1
+.bc44:	lda .FAC1_MAN1	; get fac1 mantissa 1
 		eor #$ff		; complement it
 		rol				; sign bit into carry
 
 ;this entry point is used by the routine at bdcd.
 ;set exponent = x, clear mantissa 4 and 3 and normalise fac1
-bc49:	lda #$00		; clear a
+.bc49:	lda #$00		; clear a
 		sta .FAC1_MAN4	; clear fac1 mantissa 4
 		sta .FAC1_MAN3	; clear fac1 mantissa 3
 
 ;this entry point is used by the routine at af28.
 ;set exponent = x and normalise fac1
 bc4f:	stx .FAC1_EXP	; set fac1 exponent
-		sta $70			; clear fac1 rounding byte
+		sta .FAC1_ROUND			; clear fac1 rounding byte
 		sta .FAC1_SIGN	; clear fac1 sign (b7)
 		jmp b8d2		; do abs and normalise fac1
 
@@ -90,10 +126,10 @@ b8db:	ldx .FAC1_MAN1	; get fac1 mantissa 1
 		ldx .FAC1_MAN4	; get fac1 mantissa 4
 		stx .FAC1_MAN3	; save fac1 mantissa 3
 		
-		ldx $70			; get fac1 rounding byte
+		ldx .FAC1_ROUND	; get fac1 rounding byte
 		stx .FAC1_MAN4	; save fac1 mantissa 4
 		
-		sty $70			; clear fac1 rounding byte
+		sty .FAC1_ROUND	; clear fac1 rounding byte
 		adc #$08		; add x to exponent offset
 		cmp #$20		; compare with $20, max offset, all bits would be = 0
 		bne b8db		; loop if not max
@@ -111,7 +147,7 @@ b8fb:	sta .FAC1_SIGN	; save fac1 sign (b7)
 		rts
 
 b91d:	adc #$01		; add 1 to exponent offset
-		asl $70			; shift fac1 rounding byte
+		asl .FAC1_ROUND			; shift fac1 rounding byte
 		rol .FAC1_MAN4	; shift fac1 mantissa 4
 		rol .FAC1_MAN3	; shift fac1 mantissa 3
 		rol .FAC1_MAN2	; shift fac1 mantissa 2
@@ -138,7 +174,7 @@ b938:	inc .FAC1_EXP	; increment fac1 exponent
 		ror .FAC1_MAN2	; shift fac1 mantissa 2
 		ror .FAC1_MAN3	; shift fac1 mantissa 3
 		ror .FAC1_MAN4	; shift fac1 mantissa 4
-		ror $70			; shift fac1 rounding byte
+		ror .FAC1_ROUND	; shift fac1 rounding byte
 b946:	rts
 
 ;b947: negate fac1
@@ -166,10 +202,10 @@ b947:	lda .FAC1_SIGN	; get fac1 sign (b7)
 		eor #$ff		; complement it
 		sta .FAC1_MAN4	; save fac1 mantissa 4
 		
-		lda $70			; get fac1 rounding byte
+		lda .FAC1_ROUND	; get fac1 rounding byte
 		eor #$ff		; complement it
-		sta $70			; save fac1 rounding byte
-		inc $70			; increment fac1 rounding byte
+		sta .FAC1_ROUND	; save fac1 rounding byte
+		inc .FAC1_ROUND	; increment fac1 rounding byte
 		
 		bne b97d		; exit if no overflow
 
@@ -190,8 +226,9 @@ b97d:	rts
 
 ;b97e: do overflow error then warm start
 ;used by the routines at b8fe, bad4 and bd91.
+; need to return without controlled crash!
 .b97e:	ldx #$0f		; error $0f, overflow error
-		jmp $a437		; do error #x then warm start
+		jmp (MM_BIVT)	; do error #x then warm start
 
 ;==========================================================
 ; FAC1 to INT16
@@ -199,96 +236,126 @@ b97d:	rts
 ;	None
 ; Returns:
 ;	Int16 in A (MSB)/Y (LSB)
+; Range:
+;	-32768 to 32767
 ;==========================================================		
 FLOAT2INT16:
 		jsr .bc9b		; convert FAC1 floating to fixed
-		lda .FAC1_MAN3			; get FAC1 mantissa 3
-		ldy .FAC1_MAN4			; get FAC1 mantissa 4
+		lda .FAC1_MAN3	; get FAC1 mantissa 3
+		ldy .FAC1_MAN4	; get FAC1 mantissa 4
+		rts
+
+;==========================================================
+; FAC1 to UINT16
+; Parameters:
+;	None
+; Returns:
+;	UInt16 in A (MSB)/Y (LSB)
+; Range:
+;	0 to 65535
+;==========================================================
+FLOAT2UINT16:
+		jsr .bc9b		; convert FAC1 floating to fixed
+		bit .FAC1_SIGN	; test sign bit
+		bmi .skipneg	; branch if negative (bit 7 set)
+		lda .FAC1_MAN3	; get FAC1 mantissa 3
+		ldy .FAC1_MAN4	; get FAC1 mantissa 4
+		rts
+		
+.skipneg:
+		lda #$00		; return 0 for negative values
+		tay				; also set Y to 0
 		rts
 		
 ;BC9B: convert FAC1 floating to fixed
 ;Used by the routines at A9A5, B1B2, B7F7, BCCC and BDDD.
-.bc9b:	lda .FAC1_EXP		; get fac1 exponent
-		beq .bce9	; if zero go clear fac1 and return
-		sec			; set carry for subtract
-		sbc #$a0	; subtract maximum integer range exponent
-		bit .FAC1_SIGN		; test fac1 sign (b7)
-		bpl .bcaf	; branch if fac1 +ve
+.bc9b:	lda .FAC1_EXP	; get fac1 exponent
+		beq .bce9		; if zero go clear fac1 and return
+		sec				; set carry for subtract
+		sbc #$a0		; subtract maximum integer range exponent
+		bit .FAC1_SIGN	; test fac1 sign (b7)
+		bpl .bcaf		; branch if fac1 +ve
 
-					; fac1 was -ve
-		tax			; copy subtracted exponent
-		lda #$ff	; overflow for -ve number
-		sta $68		; set fac1 overflow byte
-		jsr .b94d	; twos complement fac1 mantissa
-		txa			; restore subtracted exponent
-.bcaf:	ldx #$61	; set index to fac1
-		cmp #$f9	; compare exponent result
-		bpl .bcbb	; if < 8 shifts shift fac1 a times right and return
-		jsr .b999	; shift fac1 a times right (> 8 shifts)
-		sty $68		; clear fac1 overflow byte
+						; fac1 was -ve
+		tax				; copy subtracted exponent
+		lda #$ff		; overflow for -ve number
+		sta .FAC1_OFLOW	; set fac1 overflow byte
+		jsr .b94d		; twos complement fac1 mantissa
+		txa				; restore subtracted exponent
+		
+.bcaf:	ldx #<MM_FAC1	; set index to fac1 (#$61)
+		cmp #$f9		; compare exponent result
+		bpl .bcbb		; if < 8 shifts shift fac1 a times right and return
+		jsr .b999		; shift fac1 a times right (> 8 shifts)
+		sty .FAC1_OFLOW	; clear fac1 overflow byte
 
 ; this entry point is used by the routine at bc5b.
 .bcba:	rts	
 
 ;bcbb: shift fac1 a times right
 ;used by the routine at bc9b.
-.bcbb:	tay			; copy shift count
-		lda .FAC1_SIGN		; get fac1 sign (b7)
+.bcbb:	tay				; copy shift count
+		lda .FAC1_SIGN	; get fac1 sign (b7)
 		and #%10000000	; mask sign bit only (x000 0000)
-		lsr .FAC1_MAN1		; shift fac1 mantissa 1
-		ora .FAC1_MAN1		; or sign in b7 fac1 mantissa 1
-		sta .FAC1_MAN1		; save fac1 mantissa 1
-		jsr .b9b0	; shift fac1 y times right
-		sty $68		; clear fac1 overflow byte
+		lsr .FAC1_MAN1	; shift fac1 mantissa 1
+		ora .FAC1_MAN1	; or sign in b7 fac1 mantissa 1
+		sta .FAC1_MAN1	; save fac1 mantissa 1
+		jsr .b9b0		; shift fac1 y times right
+		sty .FAC1_OFLOW	; clear fac1 overflow byte
 		rts
 
 ;B983: shift FCAtemp << A+8 times
 ;Used by the routine at BA28.
-.b983:	ldx #$25	; set the offset to factemp
-.b985:	ldy $04,x	; get facx mantissa 4
-		sty $70		; save as fac1 rounding byte
-		ldy $03,x	; get facx mantissa 3
-		sty $04,x	; save facx mantissa 4
-		ldy $02,x	; get facx mantissa 2
-		sty $03,x	; save facx mantissa 3
-		ldy $01,x	; get facx mantissa 1
-		sty $02,x	; save facx mantissa 2
-		ldy $68		; get fac1 overflow byte
-		sty $01,x	; save facx mantissa 1
+;.b983:	ldx #<MM_RES-1		; ($25) set the offset to factemp
+		;ldx MM_RES-1		; ($25) set the offset to factemp
+.b985:	ldy .FACX_MAN4;,x	; get facx mantissa 4
+		sty .FAC1_ROUND		; save as fac1 rounding byte
+		
+		ldy .FACX_MAN3;,x	; get facx mantissa 3
+		sty .FACX_MAN4;,x	; save facx mantissa 4
+		
+		ldy .FACX_MAN2;,x	; get facx mantissa 2
+		sty .FACX_MAN3;,x	; save facx mantissa 3
+		
+		ldy .FACX_MAN1;,x	; get facx mantissa 1
+		sty .FACX_MAN2;,x	; save facx mantissa 2
+		
+		ldy .FAC1_OFLOW		; get fac1 overflow byte
+		sty .FACX_MAN1;,x	; save facx mantissa 1
 
 ;this entry point is used by the routines at b862 and bc9b.
 ;shift facx -a times right (> 8 shifts)
-.b999:	adc #$08	; add 8 to shift count
-		bmi .b985	; go do 8 shift if still -ve
-		beq .b985	; go do 8 shift if zero
-		sbc #$08	; else subtract 8 again
-		tay			; save count to y
-		lda $70		; get fac1 rounding byte
+.b999:	adc #$08		; add 8 to shift count
+		bmi .b985		; go do 8 shift if still -ve
+		beq .b985		; go do 8 shift if zero
+		sbc #$08		; else subtract 8 again
+		tay				; save count to y
+		lda .FAC1_ROUND	; get fac1 rounding byte
 		bcs .b9ba	
-.b9a6:	asl $01,x	; shift facx mantissa 1
-		bcc .b9ac	; branch if +ve
-		inc $01,x	; this sets b7 eventually
-.b9ac:	ror $01,x	; shift facx mantissa 1 (correct for asl)
-		ror $01,x	; shift facx mantissa 1 (put carry in b7)
+.b9a6:	asl .FACX_MAN1;,x	; shift facx mantissa 1
+		bcc .b9ac			; branch if +ve
+		inc .FACX_MAN1;,x	; this sets b7 eventually
+.b9ac:	ror .FACX_MAN1;,x	; shift facx mantissa 1 (correct for asl)
+		ror .FACX_MAN1;,x	; shift facx mantissa 1 (put carry in b7)
 
 ;this entry point is used by the routines at b86a and bcbb.
 ;shift facx y times right
-.b9b0:	ror $02,x	; shift facx mantissa 2
-		ror $03,x	; shift facx mantissa 3
-		ror $04,x	; shift facx mantissa 4
-		ror 		; shift facx rounding byte
-		iny			; increment exponent diff
-		bne .b9a6	; branch if range adjust not complete
-.b9ba:	clc			; just clear it
+.b9b0:	ror .FACX_MAN2;,x	; shift facx mantissa 2
+		ror .FACX_MAN3;,x	; shift facx mantissa 3
+		ror .FACX_MAN4;,x	; shift facx mantissa 4
+		ror 				; shift facx rounding byte
+		iny					; increment exponent diff
+		bne .b9a6			; branch if range adjust not complete
+.b9ba:	clc					; just clear it
 		rts	
 
 ; bce9: clear fac1
 ; used by the routine at bc9b.
-.bce9:	sta .FAC1_MAN1		; clear fac1 mantissa 1
-		sta .FAC1_MAN2		; clear fac1 mantissa 2
-		sta .FAC1_MAN3		; clear fac1 mantissa 3
-		sta .FAC1_MAN4		; clear fac1 mantissa 4
-		tay			; clear y
+.bce9:	sta .FAC1_MAN1	; clear fac1 mantissa 1
+		sta .FAC1_MAN2	; clear fac1 mantissa 2
+		sta .FAC1_MAN3	; clear fac1 mantissa 3
+		sta .FAC1_MAN4	; clear fac1 mantissa 4
+		tay				; clear y
 
 ; this entry point is used by the routine at bccc.
 .bcf2:	rts

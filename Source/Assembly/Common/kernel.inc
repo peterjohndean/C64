@@ -26,6 +26,8 @@ MM_INDEX	= $0022		; Utility Pointer Area ($0022-$0025)
 MM_INDEX1	= $0022		; 1st Utility Pointer ($0022-$0023)
 MM_INDEX2	= $0024		; 2nd Utility Pointer ($0024-$0025)
 
+MM_RES		= $0026		; Floating Point Multiplication Work Area ($0026-$002A)
+
 MM_VARTAB	= $002D		; Pointer: Start of BASIC Variables ($002D-$002E)
 ; Variable Name			x2 bytes
 ; Value					x5 bytes for floats
@@ -44,13 +46,15 @@ MM_ARYTAB	= $002F		; Pointer: Start of BASIC Arrays ($002F-$0030)
 MM_STREND	= $0031		; Pointer: End of BASIC Arrays storage ($0031-$0032)
 
 MM_FAC1		= $0061		; Floating Point Accumulator #1 ($0061-$0066)
+MM_BITS		= $0068		; Floating Point Accumulator #1 (Overflow Digit,  the overflow byte is used in an intermediate step of conversion from an integer or text string to a floating point number.)
 MM_FAC2		= $0069		; Floating Point Accumulator #2 ($0069-$006E)
-;MM_FACOV	= $0070		; Floating Point Accumulator #1 (Low Order Mantissa Byte of For Rounding)
+MM_FACOV	= $0070		; Floating Point Accumulator #1 (Low Order Mantissa Byte of For Rounding)
 
 MM_FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
 MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floating Point to ASCII Conversion
 
 MM_TAPE1	= $00B2		; Basic 0/Zero-Page Vector for the 16-bit start address of the tape buffer (192 bytes), which defaults to $033C. ($00B2-$00B3)
+MM_BIVT		= $0300		; Basic Indirect Vector Table ($0300-$030B), $0300-$0301 points to Error Message handler.
 MM_TAPE1BUF	= $033C		; Default tape buffer address.
 
 ; --- BASIC 2.0 ROM Routines ---

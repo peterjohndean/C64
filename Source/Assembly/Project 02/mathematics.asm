@@ -40,8 +40,13 @@ EntryPoint:
 	; Get passed value
 	jsr BASIC_CHKCOM	; Skip passed ','
 	jsr BASIC_FRMEVL	; Ugh, FAC1
-	jsr FLOAT2INT16		; Double-Ugh, FAC1 to INT16 in A/Y
-	jsr INT16FLOAT		; Now, our INT to FAC1
+	jsr FLOAT2UINT16	; Double-Ugh, FAC1 to U/INT16 in A/Y
+;	pha
+	tya
+;	tax
+;	pla
+;	jsr BASIC_LINPRT
+	jsr UINT8FLOAT		; Now, our INT to FAC1
 	
 	; Output FAC1
 	+KERNEL_CHROUT_IMM 'U'
