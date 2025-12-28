@@ -3,14 +3,16 @@
 ;----------------------------------------------------------
 ; MEMORY MAP:
 ; MM_FAC1
-; MM_FAC2
 ;----------------------------------------------------------
-;    INT8FLOAT, for INT8 (A) to FAC1
-;   UINT8FLOAT, for UINT8 (A) to FAC1
-;   INT16FLOAT, for INT16 (A/Y) to FAC1
-;  UINT16FLOAT, for UINT16 (A/Y) to FAC1
-;  FLOAT2INT16, for FAC1 to INT16 (A/Y)
-; FLOAT2UINT16, for FAC1 to UINT16 (A/Y)
+;   INT8TOFLOAT, for INT8 (A) to FAC1
+;  UINT8TOFLOAT, for UINT8 (A) to FAC1
+;  INT16TOFLOAT, for INT16 (A/Y) to FAC1
+; UINT16TOFLOAT, for UINT16 (A/Y) to FAC1
+;
+;   FLOATTOINT8, for FAC1 to INT8 (A)
+;  FLOATTOUINT8, for FAC1 to UINT8 (A)
+;  FLOATTOINT16, for FAC1 to INT16 (A/Y)
+; FLOATTOUINT16, for FAC1 to UINT16 (A/Y)
 ;==========================================================
 !zone FLOATINGPOINT {
 !address {
@@ -36,7 +38,7 @@
 ; Returns:
 ;	Nothing, updates FAC1
 ;==========================================================
-INT16FLOAT:
+INT16TOFLOAT:
 		sta .FAC1_MAN1	;save fac1 mantissa 1
 		sty .FAC1_MAN2	;save fac1 mantissa 2
 		ldx #$90		;set exponent=2^16 (integer) aka $90 - $80 = $10 or 16-bits
@@ -49,7 +51,7 @@ INT16FLOAT:
 ; Returns:
 ;	Nothing, updates FAC1
 ;==========================================================
-UINT16FLOAT:
+UINT16TOFLOAT:
 		sta .FAC1_MAN1	;save fac1 mantissa 1
 		sty .FAC1_MAN2	;save fac1 mantissa 2
 		ldx #$90		;set exponent=2^16 (integer) aka $90 - $80 = $10 or 16-bits
@@ -63,7 +65,7 @@ UINT16FLOAT:
 ; Returns:
 ;	Nothing, updates FAC1
 ;==========================================================
-INT8FLOAT:
+INT8TOFLOAT:
 		sta .FAC1_MAN1	; save fac1 mantissa 1
 		lda #$00		; clear a
 		sta .FAC1_MAN2	; clear fac1 mantissa 2
@@ -77,7 +79,7 @@ INT8FLOAT:
 ; Returns:
 ;	Nothing, updates FAC1
 ;==========================================================
-UINT8FLOAT:
+UINT8TOFLOAT:
 		sta .FAC1_MAN1	; save fac1 mantissa 1
 		lda #$00		; clear a
 		sta .FAC1_MAN2	; clear fac1 mantissa 2
@@ -102,10 +104,10 @@ UINT8FLOAT:
 bc4f:	stx .FAC1_EXP	; set fac1 exponent
 		sta .FAC1_ROUND			; clear fac1 rounding byte
 		sta .FAC1_SIGN	; clear fac1 sign (b7)
-		jmp b8d2		; do abs and normalise fac1
+		jmp .b8d2		; do abs and normalise fac1
 
 ;used by the routines at bc3c and bccc.
-b8d2:	bcs b8d7		; branch if number is +ve
+.b8d2:	bcs b8d7		; branch if number is +ve
 		jsr b947		; negate fac1
 
 ;b8d7: normalise fac1
@@ -239,7 +241,7 @@ b97d:	rts
 ; Range:
 ;	-32768 to 32767
 ;==========================================================		
-FLOAT2INT16:
+FLOATTOINT16:
 		jsr .bc9b		; convert FAC1 floating to fixed
 		lda .FAC1_MAN3	; get FAC1 mantissa 3
 		ldy .FAC1_MAN4	; get FAC1 mantissa 4
@@ -254,7 +256,7 @@ FLOAT2INT16:
 ; Range:
 ;	0 to 65535
 ;==========================================================
-FLOAT2UINT16:
+FLOATTOUINT16:
 		jsr .bc9b		; convert FAC1 floating to fixed
 		bit .FAC1_SIGN	; test sign bit
 		bmi .skipneg	; branch if negative (bit 7 set)
@@ -267,10 +269,43 @@ FLOAT2UINT16:
 		tay				; also set Y to 0
 		rts
 		
+;==========================================================
+; FAC1 to INT8
+; Parameters:
+;	None
+; Returns:
+;	Int8 in A (Y is also affected)
+; Range:
+;	-128 to 127 (clamped/overflow may occur)
+;==========================================================
+FLOATTOINT8:
+		jsr .bc9b		; convert FAC1 floating to fixed
+		lda .FAC1_MAN4	; get low byte for 8-bit result
+		rts
+
+;==========================================================
+; FAC1 to UINT8  
+; Parameters:
+;	None
+; Returns:
+;	UInt8 in A (Y is also affected)
+; Range:
+;	0 to 255 (clamped/overflow may occur)
+;==========================================================
+FLOATTOUINT8:
+		jsr .bc9b		; convert FAC1 floating to fixed
+		bit .FAC1_SIGN	; test sign bit
+		bmi .negative_uint8	; branch if negative
+		lda .FAC1_MAN4	; get low byte for 8-bit result
+		rts
+.negative_uint8:
+		lda #$00		; return 0 for negative values
+		rts
+		
 ;BC9B: convert FAC1 floating to fixed
 ;Used by the routines at A9A5, B1B2, B7F7, BCCC and BDDD.
 .bc9b:	lda .FAC1_EXP	; get fac1 exponent
-		beq .bce9		; if zero go clear fac1 and return
+		beq .FAC1_MAN_CLEAR		; if zero go clear fac1 and return
 		sec				; set carry for subtract
 		sbc #$a0		; subtract maximum integer range exponent
 		bit .FAC1_SIGN	; test fac1 sign (b7)
@@ -351,7 +386,8 @@ FLOAT2UINT16:
 
 ; bce9: clear fac1
 ; used by the routine at bc9b.
-.bce9:	sta .FAC1_MAN1	; clear fac1 mantissa 1
+.FAC1_MAN_CLEAR:
+._bce9:	sta .FAC1_MAN1	; clear fac1 mantissa 1
 		sta .FAC1_MAN2	; clear fac1 mantissa 2
 		sta .FAC1_MAN3	; clear fac1 mantissa 3
 		sta .FAC1_MAN4	; clear fac1 mantissa 4

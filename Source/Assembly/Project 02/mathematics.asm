@@ -7,16 +7,17 @@
 !zone MATHEMATICS {
 
 !address {
-;
-; Global Integer References
-MATH_DIVIDEND	= MM_TAPE1BUF	; [$033C-$033D]
-MATH_DIVISOR	= MM_TAPE1BUF+2	; [$033E-$033F]
-MATH_REMAINDER	= MM_TAPE1BUF+4	; [$0340-$0341]
-MATH_SIGN		= MM_TAPE1BUF+6	; [$0342]
+;;
+;; Global Integer References
+;MATH_DIVIDEND	= MM_TAPE1BUF	; [$033C-$033D]
+;MATH_DIVISOR	= MM_TAPE1BUF+2	; [$033E-$033F]
+;MATH_REMAINDER	= MM_TAPE1BUF+4	; [$0340-$0341]
+;MATH_SIGN		= MM_TAPE1BUF+6	; [$0342]
 
 ;
 ; Workspace
-PF_TMP: !byte $00, $00, $00, $00, $00
+FP_ORG: !byte $00, $00, $00, $00, $00;	Holds the original SYS value
+FP_NEW: !byte $00, $00, $00, $00, $00;	Holds the newly Float to Int to Float value
 
 ;
 ; Constants
@@ -38,17 +39,63 @@ EntryPoint:
 ;	jsr TESTS_FOR_FLOATS
 	
 	; Get passed value
-	jsr BASIC_CHKCOM	; Skip passed ','
-	jsr BASIC_FRMEVL	; Ugh, FAC1
-	jsr FLOAT2UINT16	; Double-Ugh, FAC1 to U/INT16 in A/Y
-;	pha
-	tya
-;	tax
-;	pla
-;	jsr BASIC_LINPRT
-	jsr UINT8FLOAT		; Now, our INT to FAC1
+	;
+	; TODO: Investigate how X=USR(V) works. The BASIC can print before and after values
+	; Actualy I need to keep SYS because I want to pass 2 values.
+	; SYS49152,Test,Value
+	jsr BASIC_CHKCOM		; Skip passed ','
+	jsr BASIC_FRMEVL		; Ugh, FAC1
+	+BASIC_MOVFM_IMM FP_ORG	; Save SYS value
 	
-	; Output FAC1
+	; Output Unpacked FAC1
+	;+KERNEL_CHROUT_IMM 'U'
+;	+KERNEL_CHROUT_IMM '['
+;	+OUTPUT_HEXBYTE MM_FAC1
+;	+KERNEL_CHROUT_IMM ']'
+;	+KERNEL_CHROUT_IMM ' '
+;	+OUTPUT_HEXBYTE MM_FAC1+1
+;	+KERNEL_CHROUT_IMM ' '
+;	+OUTPUT_HEXBYTE MM_FAC1+2
+;	+KERNEL_CHROUT_IMM ' '
+;	+OUTPUT_HEXBYTE MM_FAC1+3
+;	+KERNEL_CHROUT_IMM ' '
+;	+OUTPUT_HEXBYTE MM_FAC1+4
+;	+KERNEL_CHROUT_IMM ' '
+;	+OUTPUT_HEXBYTE MM_FAC1+5
+;;	+KERNEL_CHROUT_IMM ','
+;	jsr BASIC_GOCR
+	
+	; Float to Int to Float again
+	jsr FLOATTOINT8		; Custom: FAC1 to U/INT
+	;+BASIC_MOVMF_IMM FP_ORG
+	;jsr F2INT16
+	;pha	;A
+;	tya
+;	pha	;Y
+;	
+;	jsr OutputByteToHex
+;	
+;	pla
+;	tay ;Y
+;	pla ;A
+;	
+;	tax
+;	pha	;A
+;	tya
+;	pha	;Y
+;	txa
+;	
+;	jsr OutputByteToHex
+;	jsr BASIC_GOCR
+;	
+;	pla
+;	tay ;Y
+;	pla ;A
+	
+	jsr INT8TOFLOAT		; Custom: U/INT to FAC1
+	+BASIC_MOVFM_IMM FP_NEW	; Save new
+	
+	; Output Unpacked FAC1
 	+KERNEL_CHROUT_IMM 'U'
 	+KERNEL_CHROUT_IMM '['
 	+OUTPUT_HEXBYTE MM_FAC1
@@ -67,30 +114,39 @@ EntryPoint:
 	jsr BASIC_GOCR
 	
 	; Save FAC1
-	+BASIC_MOVFM_IMM PF_TMP
+	;+BASIC_MOVFM_IMM FP_NEW
 	
 	; Output Packed floating point
 	+KERNEL_CHROUT_IMM 'P'
 	+KERNEL_CHROUT_IMM '['
-	+OUTPUT_HEXBYTE PF_TMP
+	+OUTPUT_HEXBYTE FP_NEW
 	+KERNEL_CHROUT_IMM ']'
 	+KERNEL_CHROUT_IMM ' '
-	+OUTPUT_HEXBYTE PF_TMP+1
+	+OUTPUT_HEXBYTE FP_NEW+1
 	+KERNEL_CHROUT_IMM ' '
-	+OUTPUT_HEXBYTE PF_TMP+2
+	+OUTPUT_HEXBYTE FP_NEW+2
 	+KERNEL_CHROUT_IMM ' '
-	+OUTPUT_HEXBYTE PF_TMP+3
+	+OUTPUT_HEXBYTE FP_NEW+3
 	+KERNEL_CHROUT_IMM ' '
-	+OUTPUT_HEXBYTE PF_TMP+4
+	+OUTPUT_HEXBYTE FP_NEW+4
 	+KERNEL_CHROUT_IMM ' '
 	+KERNEL_CHROUT_IMM '-'
 	+KERNEL_CHROUT_IMM '-'
 	
+	; Output FAC1 new
 	+KERNEL_CHROUT_IMM ' '
 ;	+BASIC_STROUT_IMM Spacer
-	+BASIC_MOVMF_IMM PF_TMP
+	+BASIC_MOVMF_IMM FP_ORG
 	jsr BASIC_FOUT
     jsr BASIC_STROUT
+    
+    ; Output FAC1 original
+    +KERNEL_CHROUT_IMM ' '
+    +KERNEL_CHROUT_IMM '('
+    +BASIC_MOVMF_IMM FP_NEW
+	jsr BASIC_FOUT
+    jsr BASIC_STROUT
+    +KERNEL_CHROUT_IMM ')'
 	jsr BASIC_GOCR
 	
 ExitPoint:

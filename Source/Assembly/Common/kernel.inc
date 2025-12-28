@@ -20,7 +20,10 @@
 ; Ref: pg310, 316, COMMODORE 64 - PROGRAMMER'S REFERENCE GUIDE
 ; Ref: Appendix B, COMPUTE!s Mapping The Commodore 64, Sheldon Leemon
 ; ------------------------------------------------------------
-MM_LINNUM	= $0014		; Pointer: Temporary 16-bit integer value ($0014-$0015)
+MM_ADRAY1	= $0003		; Jump Vector: Convert FAC to Integer in (A/Y) (Default: $B1AA).
+MM_ADRAY2	= $0005		; Jump Vector: Convert Integer in (A/Y) to Floating point in (FAC) (Default: $B391).
+
+MM_LINNUM	= $0014		; Temporary INT16 value ($0014-$0015)
 
 MM_INDEX	= $0022		; Utility Pointer Area ($0022-$0025)
 MM_INDEX1	= $0022		; 1st Utility Pointer ($0022-$0023)

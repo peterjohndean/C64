@@ -10,6 +10,14 @@
 ;  INT16_DIVMOD, for 16-bit   signed division & modulo
 ;==========================================================
 !zone INTEGERS {
+!address {
+;
+; Global Integer References
+MATH_DIVIDEND	= MM_TAPE1BUF	; [$033C-$033D]
+MATH_DIVISOR	= MM_TAPE1BUF+2	; [$033E-$033F]
+MATH_REMAINDER	= MM_TAPE1BUF+4	; [$0340-$0341]
+MATH_SIGN		= MM_TAPE1BUF+6	; [$0342]
+}
 
 ;==========================================================
 ; FAST MODULO 8 (2 to the power of 3)
