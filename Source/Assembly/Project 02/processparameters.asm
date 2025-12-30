@@ -6,10 +6,10 @@ FetchOptionParameters:
 	asl					; A = A * 2
 	tax
 	lda .Vectors,x		; lsb
-	sta JumpVector
-	lda .Vectors+1,x		; msb
-	sta JumpVector+1
-	jmp (JumpVector)    ; jump to selected case, rts is expected at each Vector
+	sta ZPVector
+	lda .Vectors+1,x	; msb
+	sta ZPVector+1
+	jmp (ZPVector)    	; jump to selected case, rts is expected at each Vector
 
 .default:
 	+BASIC_STROUT_IMM Help

@@ -22,23 +22,17 @@
 
 ; Machine language entry point
 MLEP:
+
 	; Parameter #1
 	jsr BASIC_CHKCOM	; Skip passed ','
 	jsr BASIC_FRMEVL	; Ugh, FAC1
 	jsr FLOATTOUINT8	; Convert FAC1 to UInt8
 	sta ParameterOption
 	
-	; SYSxxxxx,Option,...
-	; Option:
-	; 0,Value - Output Float Unpacked to ASCII Hex.
-	; 1,Value - Output Float   Packed to ASCII Hex.
-	; 2,Value,Variable% - Float to Int8
-	; 3,Value,Variable% - Float to Int16
-	; 4,Value,Variable - Float to UInt8
-	; 5,Value,Variable - Float to UInt16
+	; Fetch remaining parameters
 	jsr FetchOptionParameters
 	
-	;
+	; Process the chosen option
 	jsr ProcessOption
 	
     
@@ -67,14 +61,15 @@ MAX_OPTIONS = 4-1		; Maximum Options. eg. 2 available options, thus 0..1, so 2-1
 ; Constants
 Help:	!pet "help",13
 		!pet "usage:",13
-		!pet "sys 49152, option, value",13,13
-		!pet "value:",13
-		!pet " number to be tested",13,13
+		!pet "sys49152,0,1",13
+		!pet "sys49152,1,1",13
+		!pet "sys49152,2,1,v%",13
+		!pet "sys49152,3,1,v%",13,13
 		!pet "option:",13
-		!pet " 0, int8 conversions",13
-		!pet " 1, int16 conversions",13
-		!pet " 2, uint8 conversions",13
-		!pet " 3, uint16 conversions",13,13,0
+		!pet " 0, unpacked float to ascii hex",13
+		!pet " 1,   packed float to ascii hex",13
+		!pet " 2, float to int8 to var%",13
+		!pet " 3, float to int16 to var%",13,13,0
 		
 ;Header: !pet "[ee] m4 m3 m2 m1 sg  [ee] m4 m3 m2 m1", 13, 0
 ;Spacer: !pet "....", 0
@@ -90,7 +85,7 @@ ParameterOption:	!byte $00						; Parameter test option
 ParameterValue1:	!byte $00, $00, $00, $00, $00	; Parameter value
 ParameterVarPtr1:	!word $0000						; Parameter variable location
 CustomValue:		!byte $00, $00, $00, $00, $00	; Conversion value
-JumpVector = <MM_FREKZP								; Temporary vector, used by various routines
+ZPVector = <MM_FREKZP								; Temporary vector, used by various routines
 }
 
 ; ------------------------------------------------------------

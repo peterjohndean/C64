@@ -34,9 +34,10 @@ MM_RES		= $0026		; Floating Point Multiplication Work Area ($0026-$002A)
 MM_VARTAB	= $002D		; Pointer: Start of BASIC Variables ($002D-$002E)
 ; Variable Name			x2 bytes
 ; Value					x5 bytes for floats
-;						x2 bytes for integers
+;						x2 bytes for integers (msb, lsb)
 ;						x3 bytes for strings (len, lsb, msb)
 ;						x4 bytes for functions FN A(X) (lsb, msb), X of FN(X) (lsb, msb)
+
 MM_ARYTAB	= $002F		; Pointer: Start of BASIC Arrays ($002F-$0030)
 ; Array Name 			x2 bytes
 ; Offset to Next Array 	x2 bytes
@@ -60,6 +61,8 @@ MM_TXTPTR	= $007A		; Pointer: Current Byte of BASIC Text [$007A-$007B]
 
 MM_FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
 MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floating Point to ASCII Conversion
+
+;MM_BUF		= $0200		; BASIC Line Editor Input Buffer ($0200-$0258)
 
 MM_TAPE1	= $00B2		; Basic 0/Zero-Page Vector for the 16-bit start address of the tape buffer (192 bytes), which defaults to $033C. ($00B2-$00B3)
 MM_BIVT		= $0300		; Basic Indirect Vector Table ($0300-$030B), $0300-$0301 points to Error Message handler.
