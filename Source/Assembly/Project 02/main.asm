@@ -11,26 +11,96 @@
 	* = $C000				; SYS49152 or SYS12*4096
 						
     !cpu 6510				; Target processor
-	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/ml", cbm          ; Output binary file (PRG format)
+	!to "/Volumes/ExternalSSD_iTunes/C64/Virtual Disk/testmr.ml", cbm
     !symbollist "symbols.txt"     ; Output symbol list for debugging
     
 	!src "../Common/kernel.inc"		; Kernel addresses
 	!src "../Common/macros.inc"		; Macros to make life a little easier
 }
 
-;!zone Main
+!zone Main {
 
+; Machine language entry point
 MLEP:
+	; Parameter #1
+	jsr BASIC_CHKCOM	; Skip passed ','
+	jsr BASIC_FRMEVL	; Ugh, FAC1
+	jsr FLOATTOUINT8	; Convert FAC1 to UInt8
+	sta ParameterOption
 	
-	jsr EntryPoint
+	; SYSxxxxx,Option,...
+	; Option:
+	; 0,Value - Output Float Unpacked to ASCII Hex.
+	; 1,Value - Output Float   Packed to ASCII Hex.
+	; 2,Value,Variable% - Float to Int8
+	; 3,Value,Variable% - Float to Int16
+	; 4,Value,Variable - Float to UInt8
+	; 5,Value,Variable - Float to UInt16
+	jsr FetchOptionParameters
+	
+	;
+	jsr ProcessOption
+	
     
+; Machine language exit point
 MLEP_END:
 	rts
+}
+
+; Constants
+MAX_OPTIONS = 4-1		; Maximum Options. eg. 2 available options, thus 0..1, so 2-1 = 0..1
+
+!address {
+;;
+;; Global Integer References
+;MATH_DIVIDEND	= MM_TAPE1BUF	; [$033C-$033D]
+;MATH_DIVISOR	= MM_TAPE1BUF+2	; [$033E-$033F]
+;MATH_REMAINDER	= MM_TAPE1BUF+4	; [$0340-$0341]
+;MATH_SIGN		= MM_TAPE1BUF+6	; [$0342]
+
+;
+; Workspace
+;FP_VALUE: !byte $00, $00, $00, $00, $00;	Holds the original SYS value
+;FP_NEW: !byte $00, $00, $00, $00, $00;	Holds the newly Float to Int to Float value
+
+;
+; Constants
+Help:	!pet "help",13
+		!pet "usage:",13
+		!pet "sys 49152, option, value",13,13
+		!pet "value:",13
+		!pet " number to be tested",13,13
+		!pet "option:",13
+		!pet " 0, int8 conversions",13
+		!pet " 1, int16 conversions",13
+		!pet " 2, uint8 conversions",13
+		!pet " 3, uint16 conversions",13,13,0
+		
+;Header: !pet "[ee] m4 m3 m2 m1 sg  [ee] m4 m3 m2 m1", 13, 0
+;Spacer: !pet "....", 0
+;PF_N0002:	!byte $82,$80,$00,$00,$00	; -2.0
+;PF_P0000:	!byte $00,$00,$00,$00,$00	;  0.0
+;PF_P0001:	!byte $81,$00,$00,$00,$00	;  1.0
+;PF_P0002:	!byte $82,$00,$00,$00,$00	;  2.0  
+;PF_P0007:	!byte $83,$60,$00,$00,$00	;  7.0
+;PF_P0010:	!byte $84,$20,$00,$00,$00	; 10.0
+;PF_P0063:	!byte $86,$7c,$00,$00,$00	; 63.0
+
+ParameterOption:	!byte $00						; Parameter test option
+ParameterValue1:	!byte $00, $00, $00, $00, $00	; Parameter value
+ParameterVarPtr1:	!word $0000						; Parameter variable location
+CustomValue:		!byte $00, $00, $00, $00, $00	; Conversion value
+JumpVector = <MM_FREKZP								; Temporary vector, used by various routines
+}
 
 ; ------------------------------------------------------------
 ; Project source code
 ; ------------------------------------------------------------
-!src "mathematics.asm"
+!src "../Common/fp.asm"
+!src "../Common/integer.asm"
+!src "floattohex.asm"
+!src "processparameters.asm"
+!src "processoptions.asm"
 ;!src "../Common/printbytetobinary.asm"
 ;!src "../Common/printcstring.a"
 !src "../Common/printbytetohex.a"

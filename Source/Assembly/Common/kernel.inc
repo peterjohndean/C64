@@ -48,10 +48,15 @@ MM_ARYTAB	= $002F		; Pointer: Start of BASIC Arrays ($002F-$0030)
 
 MM_STREND	= $0031		; Pointer: End of BASIC Arrays storage ($0031-$0032)
 
+MM_VARNAM	= $0045		; Current BASIC Variable Name ($0045-$0046)
+MM_VARPNT	= $0047		; Pointer to the Current BASIC Variable Value ($0047-$0048)
+
 MM_FAC1		= $0061		; Floating Point Accumulator #1 ($0061-$0066)
 MM_BITS		= $0068		; Floating Point Accumulator #1 (Overflow Digit,  the overflow byte is used in an intermediate step of conversion from an integer or text string to a floating point number.)
 MM_FAC2		= $0069		; Floating Point Accumulator #2 ($0069-$006E)
 MM_FACOV	= $0070		; Floating Point Accumulator #1 (Low Order Mantissa Byte of For Rounding)
+
+MM_TXTPTR	= $007A		; Pointer: Current Byte of BASIC Text [$007A-$007B]
 
 MM_FREKZP	= $00FB		; Free 0/Zero-Page Space for User Programs ($00FB-$00FE)
 MM_BASZPT	= $00FF		; Basic 0/Zero-Page Space for BASIC Temporary Data for Floating Point to ASCII Conversion
@@ -99,6 +104,11 @@ BASIC_CHKCOM	= $AEFD		; Check if the next character is a comma and skip it. Othe
 BASIC_GIVAYF	= $B391   	; Convert INT16 (Register A/Y) → FAC1
 BASIC_GETADR	= $B7F7		; Convert FAC1 → UINT16 (Register A/Y, and stores it to LINNUM $14/$15).
 							; If the number is too big then print illegal quantity error and return to Basic.
+
+BASIC_PTRGET	= $B08B		; Return Variable Pointer (Register Y/A) & VARPNT
+							; Scans variable name at TXTPTR, and searches the
+							; VARTAB and ARYTAB for the name.
+							; If not found, create variable of appropriate type.
 
 BASIC_CONUPK	= $BA8C		; Unpack Memory (Y/A) to FAC2
 

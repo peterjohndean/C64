@@ -22,6 +22,12 @@
     jsr BASIC_GIVAYF	; INT16 to FAC1
 }
 
+!macro BASIC_MOVFM_MEM REF2AY {
+	ldx REF2AY		; LSB
+	ldy REF2AY+1	; MSB
+   	jsr BASIC_MOVFM	; FAC1 → Memory (Y/X)
+}
+
 !macro BASIC_MOVFM_IMM REF2YX {
 	ldx #<REF2YX	; LSB
     ldy #>REF2YX	; MSB
