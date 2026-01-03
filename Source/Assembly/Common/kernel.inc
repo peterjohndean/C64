@@ -134,7 +134,7 @@ BASIC_CLRFAC1	= $BCE9		; Clear FAC1 with value in A
 BASIC_LINPRT	= $BDCD		; Output UINT16 (Register A/X) as a Number in ASCII Decimal Digits
 BASIC_FOUT		= $BDDD		; Convert FAC1 → String, Register A/Y holding the pointer to null terminated string.
 							; NB. Uses FAC1, thus changes the FAC1 value.
-;BASIC_INLIN		= $A560   ; Input line into BASIC buffer
+;BASIC_INLIN	= $A560   ; Input line into BASIC buffer
 ;BASIC_INTFAC	= $BCF3   ; Convert FAC1 → integer (in-place)
 
 ; --- KERNAL ROM Routines ---

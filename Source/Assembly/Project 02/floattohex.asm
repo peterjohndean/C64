@@ -31,18 +31,8 @@ OutputFloatUnpackedToHex:
 	sty ZPVector+1
 	
 	; Output Packed floating point
-	+KERNEL_CHROUT_IMM 'U'
-	+KERNEL_CHROUT_IMM '['
-	
-	ldy #0					; Index at 0
-	lda (ZPVector),y		; (ZPVector) + Y
-	jsr OutputByteToHex
-	
-	+KERNEL_CHROUT_IMM ']'
-	
-	ldy #1					; Index at 1
+	ldy #0					; Index = 0
 .loop:
-	+KERNEL_CHROUT_IMM ' '	; leading space before each subsequent byte
 	lda (ZPVector),y		; (ZPVector) + Y
 	jsr OutputByteToHex
 	iny
@@ -50,4 +40,30 @@ OutputFloatUnpackedToHex:
 	bne .loop
 	
 	rts
+}
+
+!zone FLOATUNPACKEDTOHEXBASICSTRING {
+!ifdef ZPVector2 {
+FloatUnpackedToHexBASICString:
+	ldy #0					; Index at 0
+.loop:
+	tya
+	pha						; Preserve Y
+	lda (ZPVector2),y		; (ZPVector2) + Y
+	
+	tax
+	tya
+	asl						; Adjust index, Y = Y * 2
+	tay
+	txa
+	jsr ByteToHexBASICString
+	pla
+	tay						; Restore Y
+	
+	iny
+	cpy #6					; (0..5) EXP M1 M2 M3 M4 SIGN
+	bne .loop
+	
+	rts
+}
 }

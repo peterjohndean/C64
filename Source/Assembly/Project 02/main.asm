@@ -25,12 +25,12 @@ MLEP:
 
 	; Parameter #1
 	jsr BASIC_CHKCOM	; Skip passed ','
-	jsr BASIC_FRMEVL	; Ugh, FAC1
+	jsr BASIC_FRMEVL	; Convert to Float (FAC1)
 	jsr FLOATTOUINT8	; Convert FAC1 to UInt8
 	sta ParameterOption
 	
 	; Fetch remaining parameters
-	jsr FetchOptionParameters
+	jsr ProcessParameters
 	
 	; Process the chosen option
 	jsr ProcessOption
@@ -41,7 +41,9 @@ MLEP_END:
 	rts
 }
 
-; Constants
+;
+; SETTINGS
+;
 MAX_OPTIONS = 4-1		; Maximum Options. eg. 2 available options, thus 0..1, so 2-1 = 0..1
 
 !address {
@@ -53,39 +55,32 @@ MAX_OPTIONS = 4-1		; Maximum Options. eg. 2 available options, thus 0..1, so 2-1
 ;MATH_SIGN		= MM_TAPE1BUF+6	; [$0342]
 
 ;
-; Workspace
-;FP_VALUE: !byte $00, $00, $00, $00, $00;	Holds the original SYS value
-;FP_NEW: !byte $00, $00, $00, $00, $00;	Holds the newly Float to Int to Float value
-
+; MEMORY CONSTANTS
 ;
-; Constants
-Help:	!pet "help",13
+Help:	
 		!pet "usage:",13
-		!pet "sys49152,0,1",13
-		!pet "sys49152,1,1",13
-		!pet "sys49152,2,1,v%",13
-		!pet "sys49152,3,1,v%",13,13
-		!pet "option:",13
-		!pet " 0, unpacked float to ascii hex",13
-		!pet " 1,   packed float to ascii hex",13
-		!pet " 2, float to int8 to var%",13
-		!pet " 3, float to int16 to var%",13,13,0
+		!pet "sys49152, followed by;",13
+		!pet "option,value,string$",13
+		!pet "option,value,variable%",13,13
+		!pet "option(s):",13
+		!pet "string$ must exist with length. 12/10 bytes.",13
+		!pet " 0, unpacked float to ascii hex in string$(12)",13
+		!pet " 1,   packed float to ascii hex in string$(10)",13
+		!pet " 2, float to int8 to variable%",13
+		!pet " 3, float to int16 to variable%",13,13,0
 		
-;Header: !pet "[ee] m4 m3 m2 m1 sg  [ee] m4 m3 m2 m1", 13, 0
-;Spacer: !pet "....", 0
-;PF_N0002:	!byte $82,$80,$00,$00,$00	; -2.0
-;PF_P0000:	!byte $00,$00,$00,$00,$00	;  0.0
-;PF_P0001:	!byte $81,$00,$00,$00,$00	;  1.0
-;PF_P0002:	!byte $82,$00,$00,$00,$00	;  2.0  
-;PF_P0007:	!byte $83,$60,$00,$00,$00	;  7.0
-;PF_P0010:	!byte $84,$20,$00,$00,$00	; 10.0
-;PF_P0063:	!byte $86,$7c,$00,$00,$00	; 63.0
+;
+; MEMORY VARIABLES
+;
+ParameterOption:	!byte $00						; Parameter SYS option
+ParameterValue1:	!byte $00, $00, $00, $00, $00	; Parameter SYS value
 
-ParameterOption:	!byte $00						; Parameter test option
-ParameterValue1:	!byte $00, $00, $00, $00, $00	; Parameter value
-ParameterVarPtr1:	!word $0000						; Parameter variable location
-CustomValue:		!byte $00, $00, $00, $00, $00	; Conversion value
-ZPVector = <MM_FREKZP								; Temporary vector, used by various routines
+ParameterVarPtr1:	!word $0000						; Parameter BASIC variable address
+
+PackedFloatValue:	!byte $00, $00, $00, $00, $00	; Floating Point packed value
+
+ZPVector = <MM_FREKZP								; 0-Page Vector, used by various routines
+ZPVector2 = <MM_FREKZP+2							; 0-Page Vector, used by various routines
 }
 
 ; ------------------------------------------------------------
@@ -98,4 +93,4 @@ ZPVector = <MM_FREKZP								; Temporary vector, used by various routines
 !src "processoptions.asm"
 ;!src "../Common/printbytetobinary.asm"
 ;!src "../Common/printcstring.a"
-!src "../Common/printbytetohex.a"
+!src "../Common/bytetohex.asm"

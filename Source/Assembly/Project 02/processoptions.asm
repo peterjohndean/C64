@@ -20,23 +20,61 @@ ProcessOption:
 
 .case0:
 	+BASIC_MOVMF_IMM ParameterValue1	; Restore
+	
+	; Source: Setup ZP Vectors
+	lda #<MM_FAC1
+	sta ZPVector2						; lsb
+	lda #>MM_FAC1
+	sta ZPVector2+1						; msb
+	
+	; Source: Setup ZP Vectors #1 - VARTAB string$
+	lda ParameterVarPtr1
+	sta ZPVector
+	lda ParameterVarPtr1+1
+	sta ZPVector+1
+	
+	; Sanity Check - string$ length
+	ldy #0								; Index = 0
+	lda (ZPVector),y					; Length
+	cmp #12								; Min. Length
+	bcc .nostore00						; A < Min. Length
+	
+	; Source: Setup ZP Vectors #2 - Get string$ vector
+	ldy #1								; Index = 1
+	lda (ZPVector),y
+	tax
+	iny									; Index = 2
+	lda (ZPVector),y
+	
+	; Destination: Setup ZP Vectors #2 - Set string$ vector
+	sta ZPVector+1						; msb
+	txa
+	sta ZPVector						; lsb
+	
+	; Convert & Store
+	jsr FloatUnpackedToHexBASICString
+	
+	rts
+
+.nostore00:
+	; BASIC string$ length doesn't meet minimum requirements.
 	lda #<MM_FAC1
 	ldy #>MM_FAC1
-	jsr OutputFloatUnpackedToHex
-	;jsr BASIC_GOCR
+	jsr OutputFloatUnpackedToHex		; Output
 	rts
-	
+
+
 .case1:
 	+BASIC_MOVMF_IMM ParameterValue1	; Restore
-	+BASIC_MOVFM_IMM CustomValue		; Save
-	lda #<CustomValue
-	ldy #>CustomValue
-	jsr OutputFloatPackedToHex
+	+BASIC_MOVFM_IMM PackedFloatValue	; Save
+	lda #<PackedFloatValue
+	ldy #>PackedFloatValue
+	jsr OutputFloatPackedToHex			; Need to change output to pass this back in a Var$
 	;jsr BASIC_GOCR
 	rts
 	
 .case2:
-	; Float to Int8 to var ..%
+	; Float to Int8 to Var%
 	lda ParameterVarPtr1
 	sta ZPVector
 	lda ParameterVarPtr1+1
@@ -45,7 +83,8 @@ ProcessOption:
 	+BASIC_MOVMF_IMM ParameterValue1	; Restore
 	jsr FLOATTOINT8						; Convert FAC1 to Int8 (A)
 	
-	; Save as big-endian
+	; Save as big-endian, why CBM, why!
+	; Oh, we are saving an 8-bit value, that expects it to be 16-bits
 	ldy #$01							; Index
 	sta (ZPVector),y					; Save lsb (..%)
 	dey									; Index = Index + 1
@@ -60,7 +99,7 @@ ProcessOption:
 	rts
 	
 .case3:
-	; Float to Int16 to var ..%
+	; Float to Int16 to Var%
 	lda ParameterVarPtr1
 	sta ZPVector
 	lda ParameterVarPtr1+1
@@ -69,7 +108,7 @@ ProcessOption:
 	+BASIC_MOVMF_IMM ParameterValue1	; Restore
 	jsr FLOATTOINT16					; Convert FAC1 to Int16 (A/Y)
 	
-	; Save as big-endian
+	; Save as big-endian, why CBM, why!
 	pha
 	tya
 	ldy #$01							; Index

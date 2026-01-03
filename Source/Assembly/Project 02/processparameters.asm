@@ -1,5 +1,17 @@
-!zone FETCHOPTIONPARAMETERS {
-FetchOptionParameters:
+!zone PROCESSPARAMETERS {
+ProcessParameters:
+; Approached it as if it was like a swift SWITCH statement,
+;
+; switch ParameterOption {
+; case0:
+;	rts
+; ...
+; default:
+;	rts
+; }
+;
+
+	; Fetch parameters base on option selected
 	lda ParameterOption
 	cmp #MAX_OPTIONS+1
     bcs .default		; if A >= Max+1 then it's > Max
@@ -17,12 +29,6 @@ FetchOptionParameters:
 	
 .case0:
 .case1:
-	; Parameter #2
-	jsr BASIC_CHKCOM					; Skip passed ','
-	jsr BASIC_FRMEVL					; Load FAC1
-	+BASIC_MOVFM_IMM ParameterValue1	; Save FAC1
-	rts
-	
 .case2:
 .case3:
 	; Parameter #2
@@ -32,10 +38,9 @@ FetchOptionParameters:
 	
 	; Parameter #3
 	jsr BASIC_CHKCOM					; Skip passed ','
-	jsr BASIC_PTRGET					; Variable
+	jsr BASIC_PTRGET					; String Variable
 	sta ParameterVarPtr1				; LSB
 	sty ParameterVarPtr1+1				; MSB
-	
 	rts
 	
 !address{
