@@ -19,15 +19,18 @@ ProcessOption:
 	rts
 
 .case0:
-	+BASIC_MOVMF_IMM ParameterValue1	; Restore
+	; Float (Unpacked) to String/Output
+	lda #FLOAT_SIZE_UNPACKED			; (0..5) EXP M1 M2 M3 M4 SIGN
+	sta FloatMemorySize
 	
-	; Source: Setup ZP Vectors
+	; Source (Float): Setup ZP Vectors
+	+BASIC_MOVMF_IMM ParameterValue1	; Restore
 	lda #<MM_FAC1
 	sta ZPVector2						; lsb
 	lda #>MM_FAC1
 	sta ZPVector2+1						; msb
 	
-	; Source: Setup ZP Vectors #1 - VARTAB string$
+	; Source (String): Setup ZP Vectors #1 - VARTAB string$
 	lda ParameterVarPtr1
 	sta ZPVector
 	lda ParameterVarPtr1+1
@@ -36,43 +39,77 @@ ProcessOption:
 	; Sanity Check - string$ length
 	ldy #0								; Index = 0
 	lda (ZPVector),y					; Length
-	cmp #12								; Min. Length
+	cmp #FLOAT_SIZE_UNPACKED*2			; Min. Length
 	bcc .nostore00						; A < Min. Length
 	
-	; Source: Setup ZP Vectors #2 - Get string$ vector
+	; Source (String): Setup ZP Vectors #2 - Get string$ vector
 	ldy #1								; Index = 1
 	lda (ZPVector),y
 	tax
 	iny									; Index = 2
 	lda (ZPVector),y
 	
-	; Destination: Setup ZP Vectors #2 - Set string$ vector
+	; Destination (String): Setup ZP Vectors #2 - Set string$ vector
 	sta ZPVector+1						; msb
 	txa
 	sta ZPVector						; lsb
 	
 	; Convert & Store
-	jsr FloatUnpackedToHexBASICString
+	jsr FloatToHexBASICString
 	
 	rts
 
 .nostore00:
 	; BASIC string$ length doesn't meet minimum requirements.
-	lda #<MM_FAC1
-	ldy #>MM_FAC1
-	jsr OutputFloatUnpackedToHex		; Output
+	jsr OutputFloatToHexChars			; Output
 	rts
-
 
 .case1:
-	+BASIC_MOVMF_IMM ParameterValue1	; Restore
-	+BASIC_MOVFM_IMM PackedFloatValue	; Save
-	lda #<PackedFloatValue
-	ldy #>PackedFloatValue
-	jsr OutputFloatPackedToHex			; Need to change output to pass this back in a Var$
-	;jsr BASIC_GOCR
-	rts
+	; Float (Packed) to String/Output
+	lda #FLOAT_SIZE_PACKED				; (0..4) EXP M1 M2 M3 M4
+	sta FloatMemorySize
 	
+	; Source (Float): Setup ZP Vectors
+	lda #<ParameterValue1
+	sta ZPVector2						; lsb
+	lda #>ParameterValue1
+	sta ZPVector2+1						; msb
+	
+	; Source (String): Setup ZP Vectors #1 - VARTAB string$
+	lda ParameterVarPtr1
+	sta ZPVector
+	lda ParameterVarPtr1+1
+	sta ZPVector+1
+	
+	; Sanity Check - string$ length
+	ldy #0								; Index = 0
+	lda (ZPVector),y					; Length
+	cmp #FLOAT_SIZE_PACKED*2			; Min. Length
+	bcc .nostore01						; A < Min. Length
+	
+	; Source (String): Setup ZP Vectors #2 - Get string$ vector
+	ldy #1								; Index = 1
+	lda (ZPVector),y
+	tax
+	iny									; Index = 2
+	lda (ZPVector),y
+	
+	; Destination (String): Setup ZP Vectors #2 - Set string$ vector
+	sta ZPVector+1						; msb
+	txa
+	sta ZPVector						; lsb
+	
+	; Convert & Store
+	jsr FloatToHexBASICString
+	
+	rts
+
+.nostore01:
+	; BASIC string$ length doesn't meet minimum requirements.
+	jsr OutputFloatToHexChars			; Output
+	rts
+
+
 .case2:
 	; Float to Int8 to Var%
 	lda ParameterVarPtr1

@@ -44,7 +44,9 @@ MLEP_END:
 ;
 ; SETTINGS
 ;
-MAX_OPTIONS = 4-1		; Maximum Options. eg. 2 available options, thus 0..1, so 2-1 = 0..1
+MAX_OPTIONS 		= 4-1	; Maximum Options. eg. 2 available options, thus 0..1, so 2-1 = 0..1
+FLOAT_SIZE_PACKED 	= $05	; Float packed memory size
+FLOAT_SIZE_UNPACKED = $06	; Float unpacked memory size
 
 !address {
 ;;
@@ -72,12 +74,10 @@ Help:
 ;
 ; MEMORY VARIABLES
 ;
+FloatMemorySize:	!byte $00						; Packed = 5 bytes, Unpacked = 6 bytes
 ParameterOption:	!byte $00						; Parameter SYS option
 ParameterValue1:	!byte $00, $00, $00, $00, $00	; Parameter SYS value
-
 ParameterVarPtr1:	!word $0000						; Parameter BASIC variable address
-
-PackedFloatValue:	!byte $00, $00, $00, $00, $00	; Floating Point packed value
 
 ZPVector = <MM_FREKZP								; 0-Page Vector, used by various routines
 ZPVector2 = <MM_FREKZP+2							; 0-Page Vector, used by various routines
