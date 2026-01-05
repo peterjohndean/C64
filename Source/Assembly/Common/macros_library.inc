@@ -185,3 +185,10 @@
     lda VariableAddress			; LSB
     jsr OutputByteToHex
 }
+
+!macro OUTPUT_CUSTOMSTROUT_IMM StrAddr {
+	lda #<StrAddr		; LSB
+    ldy #>StrAddr		; MSB
+    jsr CustomSTROUT	; Output zero/null terminated string
+}
+

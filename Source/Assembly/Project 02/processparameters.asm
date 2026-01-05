@@ -13,7 +13,7 @@ ProcessParameters:
 
 	; Fetch parameters base on option selected
 	lda ParameterOption
-	cmp #MAX_OPTIONS+1
+	cmp #MAX_OPTIONS+1	; Sanity check.
     bcs .default		; if A >= Max+1 then it's > Max
 	asl					; A = A * 2
 	tax
@@ -24,7 +24,6 @@ ProcessParameters:
 	jmp (ZPVector)    	; jump to selected case, rts is expected at each Vector
 
 .default:
-	+BASIC_STROUT_IMM Help
 	rts
 	
 .case0:

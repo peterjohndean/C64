@@ -4,7 +4,7 @@ ProcessOption:
 	; Original option
 	lda ParameterOption
 	
-	cmp #MAX_OPTIONS+1
+	cmp #MAX_OPTIONS+1	; Sanity check.
     bcs .default		; if A >= Max+1 then it's > Max
 	asl					; A = A * 2
 	tax
@@ -15,7 +15,6 @@ ProcessOption:
 	jmp (ZPVector)    ; jump to selected case (no RTS expected)
 
 .default:
-	;+BASIC_STROUT_IMM Help
 	rts
 
 .case0:

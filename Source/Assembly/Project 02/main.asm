@@ -28,13 +28,19 @@ MLEP:
 	jsr BASIC_FRMEVL	; Convert to Float (FAC1)
 	jsr FLOATTOUINT8	; Convert FAC1 to UInt8
 	sta ParameterOption
-	
+	cmp #MAX_OPTIONS+1
+    bcs .wrongOption	; if A >= Max+1 then it's > Max
+    
 	; Fetch remaining parameters
 	jsr ProcessParameters
 	
 	; Process the chosen option
 	jsr ProcessOption
 	
+	jmp MLEP_END
+	
+.wrongOption:
+	+OUTPUT_CUSTOMSTROUT_IMM Help
     
 ; Machine language exit point
 MLEP_END:
@@ -60,16 +66,16 @@ FLOAT_SIZE_UNPACKED = $06	; Float unpacked memory size
 ; MEMORY CONSTANTS
 ;
 Help:	
-		!pet "usage:",13
+		!pet 13,"usage:",13
 		!pet "sys49152, followed by;",13
-		!pet "option,value,string$",13
-		!pet "option,value,variable%",13,13
-		!pet "option(s):",13
-		!pet "string$ must exist with length. 12/10 bytes.",13
-		!pet " 0, unpacked float to ascii hex in string$(12)",13
-		!pet " 1,   packed float to ascii hex in string$(10)",13
-		!pet " 2, float to int8 to variable%",13
-		!pet " 3, float to int16 to variable%",13,13,0
+		!pet "option,value,var$",13
+		!pet "option,value,var%",13,13
+		!pet "valid option(s):",13
+		!pet "declared var$ 10 or 12 chars.",13
+		!pet " 0, unpacked float->ascii hex var$(12)",13
+		!pet " 1,   packed float->ascii hex var$(10)",13
+		!pet " 2, float->int8 var%",13
+		!pet " 3, float->int16 var%",13,13,0
 		
 ;
 ; MEMORY VARIABLES
@@ -92,5 +98,5 @@ ZPVector2 = <MM_FREKZP+2							; 0-Page Vector, used by various routines
 !src "processparameters.asm"
 !src "processoptions.asm"
 ;!src "../Common/printbytetobinary.asm"
-;!src "../Common/printcstring.a"
+!src "../Common/printcstring.asm"
 !src "../Common/bytetohex.asm"
