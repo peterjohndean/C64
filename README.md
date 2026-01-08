@@ -20,7 +20,7 @@ I’ve recently rekindled my interest in both assembly language programming and 
 	- Internet Archive. [ARCHIVE](https://archive.org)
 	- Forums, etc.
 
-4. [Compute!s Gazette](Source/Assembly/Compute!s$20Gazette/)
+4. Compute!s Gazette
 	- Going back in time reading and learning.
 	- Proofreader v2, created a working assembly file and binary. There is stuff in the assembly code I still trying to understand.
 	
