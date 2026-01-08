@@ -19,8 +19,12 @@ I’ve recently rekindled my interest in both assembly language programming and 
 	- Reading, experimenting with trial and error.
 	- Internet Archive. [ARCHIVE](https://archive.org)
 	- Forums, etc.
+
+4. [Compute!s Gazette](Source/Assembly/Compute!s$20Gazette)
+	- Going back in time reading and learning.
+	- Proofreader v2, created a working assembly file and binary. There is stuff in the assembly code I still trying to understand.
 	
-4. Projects
+5. Projects
 	- Project 01: Learn to use ACME, 6510 by means of dumping the BASIC storage areas.
 		-	![Output](Source/Assembly/Project%2001/output.png)
 		
