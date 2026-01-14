@@ -22,7 +22,8 @@ I’ve recently rekindled my interest in both assembly language programming and 
 
 4. Compute!s Gazette
 	- Going back in time reading and learning.
-	- Proofreader v2, created a working assembly file and binary. There is stuff in the assembly code I still trying to understand.
+	- Proofreader v2, created a working assembly file and binary.
+	- Proofreader v3, created a working assembly file and binary.
 	
 5. Projects
 	- Project 01: Learn to use ACME, 6510 by means of dumping the BASIC storage areas.
