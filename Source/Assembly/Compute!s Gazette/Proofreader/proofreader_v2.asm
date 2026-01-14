@@ -118,7 +118,7 @@ Show:
 		; Another wedge? Warm Reset? Other?
 		ldy Main+1
 		cpy #<CHRIN
-		bne BREAK	; If !=, another wedge as altered it
+		bne BREAK	; If !=, another wedge has altered it
 		
 		jsr LINPRT	; Output checksum
 		jmp Show2
