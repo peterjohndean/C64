@@ -60,7 +60,7 @@ istep1:
 		; Set new BASIC2.0 TXTTAB vector
 		;
 istep2:
-		lda #<BLOCK_END+1
+		lda #<BLOCK_END
 		sta TXTTAB			; lsb
 		lda #>BLOCK_END
 		sta TXTTAB+1		; msb
@@ -81,8 +81,8 @@ Main:
 		sta CHKSUM+1	; msb
 
 		; 6526 CIA #2 Data Port A?
-		lda #$00       
-		sta $ff00
+;		lda #$00       
+;		sta $ff00
 
 ;
 ; Copy (32bytes, 31 down to 0)
@@ -208,9 +208,18 @@ Lookup:
 		!byte $51, $52, $53, $58
 
 Preserve:
-		!fill $0901-Preserve-1, $00	; Save/Restore blocks expects size $1f (32 bytes)
+		!fill $0901-Preserve, $00	; Save/Restore blocks expects size $1f (32 bytes)
 									; However we will fillout the block (255 bytes).
 BLOCK_END:
+		;
+		; BASIC 2.0 Text
+		; Old: $0801
+		; New: $0901
+		; Initialise: If not, basic command syntax errors will ok :(
+		; $0901: $00		-> End of Line
+		; $0902: $00 $00	-> End of Program
+		;
+		!fill $03, $00
 
 ;
 ; Compile Information
@@ -218,7 +227,7 @@ BLOCK_END:
 !warn "Start: ", BLOCK_BEGIN
 !warn "  End: ", BLOCK_END
 !warn "Bytes: ", BLOCK_END-BLOCK_BEGIN
-!warn "TXTTAB:", BLOCK_END+1
+!warn "TXTTAB:", BLOCK_END
 
 ;
 ; Perhaps a future version
