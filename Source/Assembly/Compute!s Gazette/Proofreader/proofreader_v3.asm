@@ -1,10 +1,9 @@
 ;
-; Compute!s Gazette
-; December ?
-; Proofreader Version 3
-; Page ???
+; Original Compute!s Gazette February 1986, Page 108, 116
+; 
+; Modified Proofreader Version 3.01 (machine language only with single use installer)
 ;
-; To methods of invoking the Proofreader,
+; To methods of invoking the Proofreader (test on VICE macOS & C64U),
 ; 1. load"pr-v3.bin",8,1:sys 2049	-> for normal BASIC
 ; 2. £"pr-v3.bin"                   -> for JiffyDOS v6.x
 ;
@@ -13,7 +12,6 @@
 ; ACME Assembler
 ; acme --vicelabels vice.txt proofreader_v3.asm
 ;
-;!serious "Not working yet"
 !zone Target {
 	* = $0801					; sys 2049
 			
@@ -44,31 +42,7 @@ BLOCK_BEGIN:
 ;
 ; Install:
 ;
-Install:
-		;
-		; New ICRNCH handler
-		;
-istep1:
-		sei
-		lda #<Main
-		sta ICRNCH		; Set new handler lsb vector
-		lda #>Main
-		sta ICRNCH+1	; Set new handler msb vector
-		cli
-		
-		;
-		; Set new BASIC2.0 TXTTAB vector
-		;
-istep2:
-		lda #<BLOCK_END
-		sta TXTTAB			; lsb
-		lda #>BLOCK_END
-		sta TXTTAB+1		; msb
-istep3:
-		lda #$0
-		jsr NEW			; Perform NEW
-		
-		rts
+		jmp Install
 
 ;
 ; Main:
@@ -208,31 +182,63 @@ Lookup:
 		!byte $51, $52, $53, $58
 
 Preserve:
-		!fill $0901-Preserve, $00	; Save/Restore blocks expects size $1f (32 bytes)
-									; However we will fillout the block (255 bytes).
+		!fill $1f, $00				; Save/Restore blocks expects size $1f (32 bytes)
+
+		;
+		; End of essential code for Proofreader
+		;
 BLOCK_END:
-		;
-		; BASIC 2.0 Text
-		; Old: $0801
-		; New: $0901
-		; Initialise: If not, basic command syntax errors will ok :(
-		; $0901: $00		-> End of Line
-		; $0902: $00 $00	-> End of Program
-		;
-		!fill $03, $00
 
 ;
-; Compile Information
+; BASIC Text
+; Old: $0801 -> New: $0901
+; Initialise: If not, basic command syntax errors will ok :(
+; $0901: $00 $00	-> BASIC End of Program
 ;
-!warn "Start: ", BLOCK_BEGIN
-!warn "  End: ", BLOCK_END
-!warn "Bytes: ", BLOCK_END-BLOCK_BEGIN
-!warn "TXTTAB:", BLOCK_END
+		* = $0901
+NEW_TXTTAB:
+		!fill $02, $AA
+		
+;
+; Save memory, single use installer!
+;
+Install:
+		;
+		; New ICRNCH handler
+		;
+istep1:
+		sei
+		lda #<Main
+		sta ICRNCH		; Set new handler lsb vector
+		lda #>Main
+		sta ICRNCH+1	; Set new handler msb vector
+		cli
+		
+		;
+		; Set new BASIC text vector (aka wedge Proofreader)
+		;
+istep2:
+		lda #<NEW_TXTTAB
+		sta TXTTAB			; lsb
+		lda #>NEW_TXTTAB
+		sta TXTTAB+1		; msb
+		
+istep3:
+		lda #$0
+		jmp NEW			; Perform NEW, force system to adjust to the changes
 
 ;
-; Perhaps a future version
+; Compile Time Information
 ;
-; p/rloops might be able to be replaced with (untested - and I've spent enough time on v3 for now),
+!warn "Wedge Start: ", BLOCK_BEGIN
+!warn "        End: ", BLOCK_END
+!warn "       Size: ", BLOCK_END-BLOCK_BEGIN
+!warn "BASIC Text @ ", NEW_TXTTAB
+
+;
+; Perhaps a future version(s)
+; 1. Make the Install routine single use, saving space.
+; 2. p/rloops might be able to be replaced with (untested - and I've spent enough time on v3 for now),
 ;	; Save essential screen editor variables
 ;    lda $d1      ; Cursor column
 ;    pha
