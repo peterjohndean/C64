@@ -197,7 +197,7 @@ BLOCK_END:
 ;
 		* = $0901
 NEW_TXTTAB:
-		!fill $02, $AA
+		!fill $02, $00
 		
 ;
 ; Save memory, single use installer!
