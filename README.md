@@ -14,6 +14,9 @@ I’ve recently rekindled my interest in both assembly language programming and 
 	- VICE. [VICE](https://vice-emu.sourceforge.io)
 	- ACME Assembler. [ACME](https://sourceforge.net/projects/acme-crossass/)
 	- BBEdit. (macOS App Store)
+	- Xcode, 64tass and VICE IDE integration
+		- 64tass Assembler [64TASS](https://sourceforge.net/projects/tass64/)
+		- Xcode (macOS App Store)
 	
 3. Technical Sources
 	- Reading, experimenting with trial and error.
@@ -30,6 +33,9 @@ I’ve recently rekindled my interest in both assembly language programming and 
 		-	![Output](Source/Assembly/Project%2001/output.png)
 		
 	- Project 02: Learning C64 6510 mathematics routines.
+	
+6. Projects (64tass & Xcode)
+	- C64 XXD: Proof-of-concept.
 
 	
 ## Notes
