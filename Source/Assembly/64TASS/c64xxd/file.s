@@ -1,21 +1,23 @@
 ; Load binary file directly into memory
 ; $0800 - $bfff ≈ 45k RAM (47,103 bytes)
-loadData .proc
+setInputFile .proc
+toLoad
     ; Set filename
-    ldx #<file.input
-    ldy #>file.input
-    lda #len(file.input)
-    jsr SETNAM
+    ldx #<file.input.name   ; lsb
+    ldy #>file.input.name   ; msb
+;    lda #len(file.input)
+    lda file.input.len
+    jsr KERNAL_SETNAM
     
     ; Set LFS
     lda #READ_LFN
     ldx #READ_DEV
     ldy #READ_ADR
-    jsr SETLFS
+    jsr KERNAL_SETLFS
     
-    jsr OPEN		; Open file
+    jsr KERNAL_OPEN     ; Open file
 		
-    jsr READST		; Error check
+    jsr KERNAL_READST   ; Error check
     sta file.error
     beq _setChannel
     rts
@@ -23,13 +25,13 @@ loadData .proc
 _setChannel:
     ; Set as input channel
     ldx #READ_LFN
-    jsr CHKIN
+    jsr KERNAL_CHKIN
     
-    ; Header: Original load address lsb/msb
-    jsr CHRIN
-    sta file.origin
-    jsr CHRIN
-    sta file.origin+1
+    ; Header: prgOriginal load address lsb/msb
+    jsr KERNAL_CHRIN
+    sta file.prgOrigin
+    jsr KERNAL_CHRIN
+    sta file.prgOrigin+1
 
     ; Prepare zero-page pointer for indirect indexed writes
     lda file.ramStart
@@ -38,11 +40,11 @@ _setChannel:
     sta ZPVector+1
     
 _lloop
-    jsr READST
+    jsr KERNAL_READST
     sta file.error
     bne _isEOF
     
-    jsr CHRIN
+    jsr KERNAL_CHRIN
     ldy #0
     sta (ZPVector),y
 
@@ -59,40 +61,40 @@ _isEOF
 ;_error
 ;_exit
     ; Calculate Length (End Address - Start Address)
-    ; excludes the 2-byte origin address
+    ; excludes the 2-byte prgOrigin address
     sec
-    lda @b ZPVector
+    lda ZPVector
     sta file.ramEnd
     sbc file.ramStart
     sta file.ramLen     ; lsb
-    lda @b ZPVector+1
+    lda ZPVector+1
     sta file.ramEnd+1
     sbc file.ramStart+1
     sta file.ramLen+1   ; msb
     
     ; Close
-    jsr CLRCHN
+    jsr KERNAL_CLRCHN
     lda #READ_LFN
-    jmp CLOSE
+    jmp KERNAL_CLOSE
 .endproc
 
 setOutputFile .proc
 toOpen
     ; Set filename
-    ldx #<file.output
-    ldy #>file.output
+    ldx #<file.output       ; lsb
+    ldy #>file.output       ; msb
     lda #len(file.output)
-    jsr SETNAM
+    jsr KERNAL_SETNAM
     
     ; Set LFS
     lda #WRITE_LFN
     ldx #WRITE_DEV
     ldy #WRITE_ADR
-    jsr SETLFS
+    jsr KERNAL_SETLFS
     
-    jsr OPEN		; Open file
+    jsr KERNAL_OPEN		; Open file
 		
-    jsr READST		; Error check
+    jsr KERNAL_READST		; Error check
     sta file.error
     beq _setChannel
     rts
@@ -104,7 +106,7 @@ _setChannel:
     
     ; Set as output channel
     ldx #WRITE_LFN
-    jmp CHKOUT
+    jmp KERNAL_CHKOUT
     
 toClose
     ; Set for PETSCII
@@ -112,8 +114,8 @@ toClose
     sta outputByteToHex.adcRef
     
     ; Close
-    jsr CLRCHN
+    jsr KERNAL_CLRCHN
     lda #WRITE_LFN
-    jsr CLOSE
-    rts
+    jmp KERNAL_CLOSE
+;    rts
 .endproc

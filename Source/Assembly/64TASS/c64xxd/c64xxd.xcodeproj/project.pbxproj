@@ -10,9 +10,13 @@
 		D05B0AAC2F2E760300584662 /* variables.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = variables.s; sourceTree = "<group>"; };
 		D05B0AAD2F2E7DFB00584662 /* file.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = file.s; sourceTree = "<group>"; };
 		D05B0AAE2F2EB77900584662 /* process.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = process.s; sourceTree = "<group>"; };
+		D0A0ACDE2F310EAB00AB5AB9 /* c64_kernel.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = c64_kernel.s; sourceTree = "<group>"; };
+		D0A0ACDF2F310F8700AB5AB9 /* c64_basic.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = c64_basic.s; sourceTree = "<group>"; };
+		D0A0ACE02F3117F800AB5AB9 /* parameters.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = parameters.s; sourceTree = "<group>"; };
+		D0A0ACE12F311DB500AB5AB9 /* c64_memory.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = c64_memory.s; sourceTree = "<group>"; };
 		D0DA512C2F2D377600C06AF5 /* main.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = main.s; sourceTree = "<group>"; };
 		D0DA512D2F2D386300C06AF5 /* labels.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = labels.s; sourceTree = "<group>"; };
-		D0DA512F2F2D406000C06AF5 /* bank.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = bank.s; sourceTree = "<group>"; };
+		D0DA512F2F2D406000C06AF5 /* c64_bank.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = c64_bank.s; sourceTree = "<group>"; };
 		D0DA51302F2D4E9100C06AF5 /* convert.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = convert.s; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -20,13 +24,17 @@
 		D0DA51212F2D366900C06AF5 = {
 			isa = PBXGroup;
 			children = (
-				D0DA512C2F2D377600C06AF5 /* main.s */,
-				D0DA512D2F2D386300C06AF5 /* labels.s */,
-				D05B0AAC2F2E760300584662 /* variables.s */,
-				D05B0AAD2F2E7DFB00584662 /* file.s */,
-				D0DA512F2F2D406000C06AF5 /* bank.s */,
+				D0DA512F2F2D406000C06AF5 /* c64_bank.s */,
+				D0A0ACDF2F310F8700AB5AB9 /* c64_basic.s */,
+				D0A0ACDE2F310EAB00AB5AB9 /* c64_kernel.s */,
+				D0A0ACE12F311DB500AB5AB9 /* c64_memory.s */,
 				D0DA51302F2D4E9100C06AF5 /* convert.s */,
+				D05B0AAD2F2E7DFB00584662 /* file.s */,
+				D0DA512D2F2D386300C06AF5 /* labels.s */,
+				D0DA512C2F2D377600C06AF5 /* main.s */,
+				D0A0ACE02F3117F800AB5AB9 /* parameters.s */,
 				D05B0AAE2F2EB77900584662 /* process.s */,
+				D05B0AAC2F2E760300584662 /* variables.s */,
 			);
 			sourceTree = "<group>";
 		};
@@ -35,12 +43,12 @@
 /* Begin PBXLegacyTarget section */
 		D0DA51262F2D366900C06AF5 /* c64xxd */ = {
 			isa = PBXLegacyTarget;
-			buildArgumentsString = "-a main.s -o c64xxd.prg --vice-labels --labels=vice.txt -Wunused -Wshadow -Woptimize -Wimmediate -Wcase-symbol";
+			buildArgumentsString = "-a main.s -o c64xxd.prg --vice-labels --labels=vice.txt -Wunused -Wshadow -Woptimize -Wcase-symbol -L list.txt";
 			buildConfigurationList = D0DA51292F2D366900C06AF5 /* Build configuration list for PBXLegacyTarget "c64xxd" */;
 			buildPhases = (
 			);
 			buildToolPath = /Users/peter/Applications/64tass;
-			buildWorkingDirectory = "";
+			buildWorkingDirectory = /Users/peter/Development/C64/64TASS/c64xxd;
 			dependencies = (
 			);
 			name = c64xxd;
@@ -183,6 +191,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -205,6 +214,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
+				"OTHER_CFLAGS[arch=*]" = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -217,6 +227,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = S7V4VP9ZKR;
 				OTHER_CFLAGS = "";
+				"OTHER_CFLAGS[arch=*]" = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

@@ -10,7 +10,7 @@
 ;    pha					; Save A
 ;    lda #0
 ;    adc #'0'			; Convert carry to '0' or '1'
-;    jsr CHROUT			; Output binary value
+;    jsr KERNAL_CHROUT			; Output binary value
 ;    pla					; Restore A
 ;    dex
 ;    bpl _loop
@@ -23,7 +23,7 @@
 ; Destroys: A
 ; ------------------------------------------------------------
 outputByteToHex .proc
-    pha					; Preserve original A
+    pha					; Preserve prgOriginal A
     lsr					; Shift upper nibble into lower 4 bits
     lsr
     lsr
@@ -33,7 +33,7 @@ outputByteToHex .proc
     and #$0F			; Mask to get low nibble
     
 ; ------------------------------------------------------------
-; Convert nibble in A to ASCII hex, output via KERNEL_CHROUT
+; Convert nibble in A to ASCII hex, output via KERNAL_CHROUT
 ; ------------------------------------------------------------
 _OutputNibble
     ora #$30	; Add ASCII '0'
@@ -43,7 +43,7 @@ _OutputNibble
     adc adcRef
     			; C=1 from CMP, so effectively adds 7
 _Output:
-    jmp CHROUT	; Output nibble, the kernel routine will rts
+    jmp KERNAL_CHROUT	; Output nibble, the kernel routine will rts
     
 adcRef  .byte   $06 ; $06 for PETSCII/ASCII uppercase, $26 for ASCII lowercase
 .endproc

@@ -2,10 +2,10 @@ processData .proc
 
 ; xxxx: xxxx xxxx xxxx xxxx xxxx xxxx
     ;
-    lda file.origin
-    sta file.offset
-    lda file.origin+1
-    sta file.offset+1
+    lda file.prgOrigin
+    sta file.prgAddr
+    lda file.prgOrigin+1
+    sta file.prgAddr+1
     
     ;
     ; Prepare zero-page pointer for indirect indexed reads
@@ -17,15 +17,15 @@ processData .proc
 _oloop
     ;
     lda #13
-    jsr CHROUT
+    jsr KERNAL_CHROUT
     
     ; Output address
-    lda file.offset+1
+    lda file.prgAddr+1
     jsr outputByteToHex
-    lda file.offset
+    lda file.prgAddr
     jsr outputByteToHex
     lda #':'
-    jsr CHROUT
+    jsr KERNAL_CHROUT
 
     ldy #0
     ldx #8
@@ -36,17 +36,17 @@ _iloop
     jsr incVector
     bcs _end
     
-    jsr incOffset
+    jsr incPrgAddr
     
     lda (ZPVector),y
     jsr outputByteToHex
     jsr incVector
     bcs _end
     
-    jsr incOffset
+    jsr incPrgAddr
     
     lda #' '
-    jsr CHROUT
+    jsr KERNAL_CHROUT
     
     dex
     bne _iloop
@@ -64,17 +64,17 @@ incVector .proc
     inc ZPVector+1
 +
     ; If C=0, ZPVector < file.ramEnd, elsif C=1, ZPVector >= file.ramEnd
-    lda @b ZPVector     ; lsb
+    lda ZPVector     ; lsb
     cmp file.ramEnd
-    lda @b ZPVector+1   ; msb
+    lda ZPVector+1   ; msb
     sbc file.ramEnd+1
     rts
 .endproc
 
-incOffset .proc
-    inc file.offset
+incPrgAddr .proc
+    inc file.prgAddr
     bne +
-    inc file.offset+1
+    inc file.prgAddr+1
 +
     rts
 .endproc
