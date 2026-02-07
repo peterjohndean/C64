@@ -81,9 +81,12 @@ _isEOF
 setOutputFile .proc
 toOpen
     ; Set filename
-    ldx #<file.output       ; lsb
-    ldy #>file.output       ; msb
-    lda #len(file.output)
+;    ldx #<file.output       ; lsb
+;    ldy #>file.output       ; msb
+;    lda #len(file.output)
+    ldx #<output       ; lsb
+    ldy #>output       ; msb
+    lda #len(output)
     jsr KERNAL_SETNAM
     
     ; Set LFS

@@ -3,7 +3,7 @@ sysParameters .proc
 ;
 ; Description:  Count SYSxxxxx parameters
 ; Parameters:   None
-; Returns:      Parameter count (Register A)
+; Returns:      Parameter count (Register A), param.count
 ;
 count
     ; Save TXTPTR
@@ -63,49 +63,86 @@ _done
     pla
     sta BASIC_TXTPTR
     
-;    txa
+    stx param.count
+    
+    txa
 ;    clc
 ;    adc #$30                ; Convert number to PETSCII digit (0-9 only for demo)
 ;    sta $0400
+;    
+;    txa
     
-    txa
     rts
 
 _flagQuote  .byte   $00     ; Localised variable
 
 ;
 ; Description:  Parse SYSxxxxx parameters
-; Format:       SYSxxxxx,"filename"
+; Format:       SYSxxxxx,"inputfile"
 ; Parameters:   None
-; Returns:      None
-; Modifies:     ZPVector2, file.input.{name|len}
+; Returns:      ZPVector2, file.input.{name|len}, param.valid
 ;
 parse
+    ;
+    ; Parameter #1
+    ;
     jsr BASIC_CHKCOM
     jsr BASIC_FRMEVL
-    bit BASIC_VALTYP    ; Is String?
-    bmi _isString
-    rts
+    bit BASIC_VALTYP        ; Is String?
+    bpl _invalid
     
-_isString
-    ; Store length
-    sta file.input.len
+    sta file.input.len      ; Store length
     tay
+    
+    lda BASIC_VALTYP
+    sta param.valid         ; Validate
     
     ; Set destination
     lda #<file.input.name   ; lsb
     sta ZPVector2
     lda #>file.input.name+1 ; msb
     sta ZPVector2+1
-
+;    jsr _isString
+;    
+;    ;
+;    ; Parameter #2
+;    ;
+;    lda param.count
+;    cmp #$02
+;    bne _exit
+;    
+;    jsr BASIC_CHKCOM
+;    jsr BASIC_FRMEVL
+;    bit BASIC_VALTYP        ; Is String?
+;    bpl _invalid
+;    
+;    sta file.output.len      ; Store length
+;    tay
+;    
+;    ; Set destination
+;    lda #<file.output.name   ; lsb
+;    sta ZPVector2
+;    lda #>file.output.name+1 ; msb
+;    sta ZPVector2+1
+    
+;_isString
     ; Store filename
+    dey
+    bmi _invalid
+    
 _cpyloop
     lda (BASIC_INDEX),y
     sta (ZPVector2),y
     dey
-    bpl _cpyloop            ; Is positive?
+    bpl _cpyloop            ; Is positive (0-127)?
     
     ; Cleanup
     jmp BASIC_FRESTR
+
+_invalid
+    lda #$00
+    sta param.valid
     
+;_exit
+    rts
 .endproc

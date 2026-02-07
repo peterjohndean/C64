@@ -7,17 +7,32 @@
 
 ;
 ; LOAD "C64XXD.PRG",10,1: NEW: SYS49152,"FILENAME"  - BASIC 2.0
-; %"FILENAME",10: SYS49152,"FILENAME"               - JiffyDOS v6.x
+; %"FILENAME",10: SYS49152,"INPUT"                  - JiffyDOS v6.x
 ;
+
+; TODO
+; - Remove the parameter passing.
+; - Remove fixed output file.
+; - Add modern drive & file selection process
+; - Add xxd options
 
     ;
     ; Process
     ;
     jsr initialise
+    
+    ; Minimum # of parameters
     jsr sysParameters.count
-    beq exit
-    jsr sysParameters.parse
+    lda param.count
+    cmp #$01
+    bne _parametermismatch
 
+    ; Are valid parameters?
+    jsr sysParameters.parse
+    lda param.valid
+    beq _parametermismatch
+;    gne exit
+    
     jsr bank.romBasicOff
     
     jsr setInputFile.toLoad
@@ -27,6 +42,10 @@
     ;
     ; Output: File
     ;
+;    lda param.count
+;    cmp #$01
+;    beq _toScreen
+    
     jsr setOutputFile.toOpen
     sta file.error
     bne exit
@@ -34,6 +53,12 @@
     jsr processData
     
     jsr setOutputFile.toClose
+    
+;    jmp exit
+;    
+;_toScreen
+;    jsr processData
+    
     jsr bank.romBasicOn
     
     ;
@@ -55,6 +80,8 @@
     lda file.prgOrigin
     jsr outputByteToHex
     
+_parametermismatch
+
 exit
     rts
 
