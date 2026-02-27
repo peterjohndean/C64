@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+    <key>Kind</key>
+    <string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+    <key>Identifier</key>
+    <string>com.c64dev.template.tass</string>
+    <key>Ancestors</key>
+    <array>
+        <string>com.apple.dt.unit.base</string>
+    </array>
+    <key>Concrete</key>
+    <true/>
+    
+    <key>Description</key>
+    <string>Commodore 64 assembly project using 64TASS and VICE.</string>
+    
+    <key>Image</key>
+    <dict>
+        <key>SystemSymbolName</key>
+        <string>cpu</string>
+    </dict>
+    
+    <!-- 
+    # 1. Create template directory
+	mkdir -p ~/Library/Developer/Xcode/Templates/Project\ Templates/C64/64TASS\ Project.xctemplate
+	
+	# 2. Copy your files
+	cp TemplateInfo.plist ~/Library/.../64TASS\ Project.xctemplate/
+	cp main.s ~/Library/.../64TASS\ Project.xctemplate/
+	
+	# 3. Validate plist syntax
+	plutil -lint ~/Library/Developer/Xcode/Templates/Project\ Templates/C64/64TASS\ Project.xctemplate/TemplateInfo.plist 
+	
+	# 4. Restart Xcode
+	killall Xcode
+	
+	# 5. Test: Create new project
+	# File → New → Project → Find "Commodore 64 assembly project"
+    -->
+
+	<!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- PROJECT CONFIGURATION - Build settings defined here!        -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <key>Project</key>
+    <dict>
+        <!-- Define all build variables directly -->
+        <key>SharedSettings</key>
+        <dict>
+            <!-- Toolchain paths -->
+            <key>C64_ASM_TOOL</key>
+            <string>/Users/peter/Applications/64tass</string>
+            
+            <!-- ── 64TASS Assembler Flags ────────────────────────────────────────────────────
+			// -I $(C64_SHARED_LIB)   add shared library to .include search path
+			// -a                     input source file (positional, must come early)
+			// -o                     output .prg file
+			// --vice-labels          emit labels in VICE monitor format (al command)
+			// --labels=              write the label file to the specified path
+			// --long-branch          silently promote out-of-range Bxx to equivalent
+			//                        JMP sequence — useful while learning, avoids
+			//                        "branch too far" errors mid-project
+			// -L                     write a full listing file to the specified path
+			// --case-sensitive       labels are case-sensitive (A != a) — good practice
+			// -Wunused               warn on labels that are defined but never referenced
+			// -Wshadow               warn when a local label shadows an outer scope label
+			// -Woptimize             warn when a longer form is used where a shorter fits
+			// -Wlong-branch          warn when --long-branch actually promotes a branch
+			// -Wcase-symbol          warn on case mismatches against --case-sensitive labels -->
+
+			<key>C64_ASM_FLAGS</key>
+			<string>-I $(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)</string>
+
+            
+            <key>C64_VICE_TOOL</key>
+            <string>/Applications/vice-arm64-gtk3-3.10/bin/x64sc</string>
+            
+            <!-- Project paths (relative to SOURCE_ROOT) -->
+            <key>C64_SHARED_LIB</key>
+            <string>../SharedLib/Includes</string>
+            
+            <key>C64_SOURCE</key>
+            <string>$(PROJECT_NAME)/main.s</string>
+            
+            <key>C64_PRG</key>
+            <string>$(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME).prg</string>
+            
+            <key>C64_LABELS</key>
+            <string>$(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME)_lbl.txt</string>
+            
+            <key>C64_LIST</key>
+            <string>$(PROJECT_NAME)/$(TARGET_NAME)_lst.txt</string>
+            
+            <!-- Standard Xcode settings -->
+            <key>PRODUCT_NAME</key>
+            <string>$(TARGET_NAME)</string>
+        </dict>
+    </dict>
+
+	<!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- TARGET CONFIGURATION                                        -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <key>Targets</key>
+    <array>
+        <dict>
+            <key>Name</key>
+            <string>___PACKAGENAME___</string>
+
+            <key>TargetType</key>
+            <string>Legacy</string>
+
+            <key>BuildToolPath</key>
+            <string>$(C64_ASM_TOOL)</string>
+
+            <key>BuildToolArgsString</key>
+            <string>$(C64_ASM_FLAGS)</string>
+            
+            <key>BuildWorkingDirectory</key>
+            <string>$(SOURCE_ROOT)</string>
+
+            <key>PassBuildSettingsInEnvironment</key>
+            <true/>
+        </dict>
+    </array>
+    
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- FILES                                                       -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <key>Nodes</key>
+    <array>
+        <string>main.s</string>
+        <string>README-SETUP.md</string>
+        <string>../___PACKAGENAME___.xcodeproj/xcshareddata/xcschemes/___PACKAGENAME___.xcscheme</string>
+    </array>
+
+    <key>Definitions</key>
+    <dict>
+        <key>main.s</key>
+        <dict>
+            <key>Path</key>
+            <string>main.s</string>
+            <key>Group</key>
+            <string>___PACKAGENAME___</string>
+        </dict>
+        
+        <key>README-SETUP.md</key>
+		<dict>
+			<key>Path</key>
+			<string>README-SETUP.md</string>
+		</dict>
+		
+		<key>../___PACKAGENAME___.xcodeproj/xcshareddata/xcschemes/___PACKAGENAME___.xcscheme</key>
+		<dict>
+			<key>Path</key>
+			<string>xcshareddata/xcschemes/___PACKAGENAME___.xcscheme</string>
+		</dict>
+    </dict>
+
+</dict>
+</plist>
