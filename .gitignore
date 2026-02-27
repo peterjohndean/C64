@@ -5,7 +5,6 @@ symbols.txt
 .xcworkspace/
 xcuserdata/
 *.xcuserdatad/
-*.xcscheme
 *.xcsettings
 *.xcbkptlist
 build/
