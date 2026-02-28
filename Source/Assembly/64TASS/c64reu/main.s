@@ -1,4 +1,3 @@
-; -a $(SOURCE_ROOT)/$(PROJECT_NAME)/main.s -o $(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME).prg --vice-labels --labels=$(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME)_lbl.txt --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME)_lst.txt --case-sensitive
 
 .cpu "6502"
 
@@ -30,20 +29,20 @@ stub_end:
         .word   0               ; null next-line pointer — end of BASIC program
 
 entry:
-        
+    jsr reu_init
 ;
     lda REU_STATUS
     jsr OutputByteToBinary
     jsr BASIC_GOCR
     
-    #REU_DETECT no_reu
+    #REU_QUICK_DETECT no_reu
     
     jsr Output_ByteToHex
-    #STROUT msgFound
+    #BASIC_STROUT_MACRO msgFound
     
     ; Store a message into REU
     #REU_FROM_C64 $100000, msg, msg_end - msg
-    #REU_WAIT_EOB
+    jsr REU_WAIT_EOB_PROC
     
     ; Clear the source area
     ldx #0
@@ -55,13 +54,13 @@ clr
     bne clr
 
     ; Make sure only spaces are output
-    #STROUT msg
+    #BASIC_STROUT_MACRO msg
     jsr BASIC_GOCR
     
     ; Retrieve it back
     #REU_TO_C64 $100000, msg, msg_end - msg
-    #REU_WAIT_EOB
-    #STROUT msg
+    jsr REU_WAIT_EOB_PROC
+    #BASIC_STROUT_MACRO msg
     
 no_reu
     rts
@@ -75,7 +74,9 @@ msg_end
 ;
 .include "labels_reu.s"
 .include "labels_rom_basic.s"
+.include "macros_rom_basic.s"
 .include "labels_rom_kernel.s"
-.include "macro_reu.s"
+.include "macros_reu.s"
 .include "convert.s"
 
+.include "reusize.s"
