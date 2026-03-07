@@ -1,11 +1,9 @@
 .DS_Store
-vice.txt
-list.txt
-symbols.txt
-.xcworkspace/
+*_lbl.txt
+*_lst.txt
+*.xcworkspace
 xcuserdata/
 *.xcuserdatad/
-*.xcsettings
 *.xcbkptlist
 build/
 .swiftpm/

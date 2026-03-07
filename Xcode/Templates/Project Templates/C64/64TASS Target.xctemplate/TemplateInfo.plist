@@ -6,7 +6,7 @@
     <key>Kind</key>
     <string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
     <key>Identifier</key>
-    <string>com.c64dev.template.tass</string>
+    <string>com.c64dev.template.tass.target</string>
     <key>Ancestors</key>
     <array>
         <string>com.apple.dt.unit.base</string>
@@ -15,8 +15,8 @@
     <true/>
     
     <key>Description</key>
-    <string>Commodore 64 assembly project using 64TASS and VICE.</string>
-    <key>ProjectOnly</key>
+    <string>Add a Commodore 64 assembly target using 64TASS and VICE.</string>
+    <key>TargetOnly</key>
     <true/>
     
     <key>Image</key>
@@ -44,68 +44,6 @@
     -->
 
 	<!-- ═══════════════════════════════════════════════════════════ -->
-    <!-- PROJECT CONFIGURATION - Build settings defined here!        -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <key>Project</key>
-    <dict>
-        <!-- Define all build variables directly -->
-        <key>SharedSettings</key>
-        <dict>
-            <!-- Toolchain paths -->
-            <key>C64_ASM_TOOL</key>
-            <string>/Users/peter/Applications/64tass</string>
-            
-            <!-- ── 64TASS Assembler Flags ────────────────────────────────────────────────────
-			// $(C64_SHARED_LIB)      add shared library to .include search path
-			// -a                     input source file (positional, must come early)
-			// -o                     output .prg file
-			// --vice-labels          emit labels in VICE monitor format (al command)
-			// --labels=              write the label file to the specified path
-			// --long-branch          silently promote out-of-range Bxx to equivalent
-			//                        JMP sequence — useful while learning, avoids
-			//                        "branch too far" errors mid-project
-			// -L                     write a full listing file to the specified path
-			// --case-sensitive       labels are case-sensitive (A != a) — good practice
-			// -Wunused               warn on labels that are defined but never referenced
-			// -Wshadow               warn when a local label shadows an outer scope label
-			// -Woptimize             warn when a longer form is used where a shorter fits
-			// -Wlong-branch          warn when --long-branch actually promotes a branch
-			// -Wcase-symbol          warn on case mismatches against --case-sensitive labels -->
-
-			<key>C64_ASM_FLAGS</key>
-			<string>$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)</string>
-
-            <key>C64_VICE_TOOL</key>
-            <string>/Applications/vice-arm64-gtk3-3.10/bin/x64sc</string>
-            
-            <!-- Project paths (relative to SOURCE_ROOT) -->
-            <key>C64_SHARED_LIB</key>
-            <string>-I ../shared/inc -I ../shared/lib -I ../shared/mac</string>
-            
-            <key>C64_SOURCE</key>
-            <string>$(TARGET_NAME)/main.s</string>
-            
-            <key>C64_PRG</key>
-            <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME).prg</string>
-            
-            <key>C64_LABELS</key>
-            <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME)_lbl.txt</string>
-            
-            <key>C64_LIST</key>
-            <string>$(TARGET_NAME)/$(TARGET_NAME)_lst.txt</string>
-            
-            <!-- Standard Xcode settings -->
-            <key>PRODUCT_NAME</key>
-            <string>$(TARGET_NAME)</string>
-            
-            <!-- Build Settings -->
-            <key>DEAD_CODE_STRIPPING</key>
-            <string>YES</string>
-
-        </dict>
-    </dict>
-
-	<!-- ═══════════════════════════════════════════════════════════ -->
     <!-- TARGET CONFIGURATION                                        -->
     <!-- ═══════════════════════════════════════════════════════════ -->
     <key>Targets</key>
@@ -113,6 +51,9 @@
         <dict>
             <key>Name</key>
             <string>___PACKAGENAME___</string>
+            
+            <key>TargetIdentifier</key>
+            <string>com.c64dev.template.tass.target.legacy</string>
 
             <key>TargetType</key>
             <string>Legacy</string>
@@ -128,6 +69,39 @@
             
             <key>PassBuildSettingsInEnvironment</key>
             <true/>
+
+            <key>SharedSettings</key>
+            <dict>
+                <key>C64_ASM_TOOL</key>
+                <string>/Users/peter/Applications/64tass</string>
+                
+                <key>C64_ASM_FLAGS</key>
+                <string>$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)</string>
+                
+                <key>C64_VICE_TOOL</key>
+                <string>/Applications/vice-arm64-gtk3-3.10/bin/x64sc</string>
+                
+                <key>C64_SHARED_LIB</key>
+                <string>-I ../shared/inc -I ../shared/lib -I ../shared/mac</string>
+                
+                <key>C64_SOURCE</key>
+                <string>$(TARGET_NAME)/main.s</string>
+                
+                <key>C64_PRG</key>
+                <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME).prg</string>
+                
+                <key>C64_LABELS</key>
+                <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME)_lbl.txt</string>
+                
+                <key>C64_LIST</key>
+                <string>$(TARGET_NAME)/$(TARGET_NAME)_lst.txt</string>
+                
+                <key>PRODUCT_NAME</key>
+                <string>$(TARGET_NAME)</string>
+                
+                <!--<key>DEAD_CODE_STRIPPING</key>
+                <string>YES</string>-->
+            </dict>
         </dict>
     </array>
     
@@ -138,10 +112,11 @@
     <array>
         <string>main.s</string>
         <string>README-SETUP.md</string>
-        <string>../___PROJECTNAME___.xcodeproj/xcshareddata/xcschemes/___TARGETNAME___.xcscheme</string>
-        <string>../___PROJECTNAME___.xcodeproj/xcuserdata/peter.xcuserdatad/xcschemes/xcschememanagement.plist</string>
+    	<string>../___PROJECTNAME___.xcodeproj/xcshareddata/xcschemes/___TARGETNAME___.xcscheme</string>
+    <!--<string>../___PROJECTNAME___.xcodeproj/xcuserdata/peter.xcuserdatad/xcschemes/xcschememanagement.plist</string>
         <string>../___PROJECTNAME___.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings</string>
         <string>../___PROJECTNAME___.xcodeproj/project.xcworkspace/xcuserdata/peter.xcuserdatad/WorkspaceSettings.xcsettings</string>
+        <string>../___PROJECTNAME___.xcodeproj/xcshareddata/C64_TARGET_TEMPLATE_SENTINEL___TARGETNAME___.txt</string>-->
     </array>
 
     <key>Definitions</key>
@@ -166,6 +141,7 @@
 			<string>xcshareddata/xcschemes/___TARGETNAME___.xcscheme</string>
 		</dict>
 
+		<!--
 		<key>../___PROJECTNAME___.xcodeproj/xcuserdata/peter.xcuserdatad/xcschemes/xcschememanagement.plist</key>
 		<dict>
 			<key>Path</key>
@@ -183,7 +159,13 @@
 			<key>Path</key>
 			<string>WorkspaceSettings.user.xcsettings</string>
 		</dict>
+		
+		<key>../___PROJECTNAME___.xcodeproj/xcshareddata/C64_TARGET_TEMPLATE_SENTINEL___TARGETNAME___.txt</key>
+		<dict>
+			<key>Path</key>
+			<string>C64_TARGET_TEMPLATE_SENTINEL.txt</string>
+		</dict>
+		-->
     </dict>
-
 </dict>
 </plist>

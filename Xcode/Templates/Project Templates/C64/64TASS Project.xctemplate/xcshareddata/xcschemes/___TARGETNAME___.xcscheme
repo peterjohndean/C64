@@ -15,10 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "___TARGET_IDENTIFIER___"
-               BuildableName = "___PACKAGENAME___"
-               BlueprintName = "___PACKAGENAME___"
-               ReferencedContainer = "container:___PACKAGENAME___.xcodeproj">
+               BuildableName = "___TARGETNAME___"
+               BlueprintName = "___TARGETNAME___"
+               ReferencedContainer = "container:___PROJECTNAME___.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,10 +46,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "___TARGET_IDENTIFIER___"
-            BuildableName = "___PACKAGENAME___"
-            BlueprintName = "___PACKAGENAME___"
-            ReferencedContainer = "container:___PACKAGENAME___.xcodeproj">
+            BuildableName = "___TARGETNAME___"
+            BlueprintName = "___TARGETNAME___"
+            ReferencedContainer = "container:___PROJECTNAME___.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <CommandLineArguments>
@@ -73,10 +71,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "___TARGET_IDENTIFIER___"
-            BuildableName = "___PACKAGENAME___"
-            BlueprintName = "___PACKAGENAME___"
-            ReferencedContainer = "container:___PACKAGENAME___.xcodeproj">
+            BuildableName = "___TARGETNAME___"
+            BlueprintName = "___TARGETNAME___"
+            ReferencedContainer = "container:___PROJECTNAME___.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

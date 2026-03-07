@@ -1,0 +1,415 @@
+
+; 64tass Turbo Assembler Macro V1.60.3243 listing file
+; 64tass -a -o c64xxd.prg --vice-labels --labels=vice.txt -Wunused -Wshadow -Woptimize -Wcase-symbol -L list.txt main.s
+; Sun Feb  8 10:52:52 2026
+
+;Offset	;Hex		;Monitor	;Source
+
+;******  Processing input file: main.s
+
+.c000	20 66 c0	jsr $c066	    jsr initialise
+.c003	20 f5 c1	jsr $c1f5	    jsr sysParameters.count
+.c006	ad b1 c0	lda $c0b1	    lda param.count
+.c009	c9 01		cmp #$01	    cmp #$01
+.c00b	d0 46		bne $c053	    bne _parametermismatch
+.c00d	20 45 c2	jsr $c245	    jsr sysParameters.parse
+.c010	ad b2 c0	lda $c0b2	    lda param.valid
+.c013	f0 3e		beq $c053	    beq _parametermismatch
+.c015	20 54 c0	jsr $c054	    jsr bank.romBasicOff
+.c018	20 c7 c0	jsr $c0c7	    jsr setInputFile.toLoad
+.c01b	8d 96 c0	sta $c096	    sta file.error
+.c01e	d0 33		bne $c053	    bne exit
+.c020	20 39 c1	jsr $c139	    jsr setOutputFile.toOpen
+.c023	8d 96 c0	sta $c096	    sta file.error
+.c026	d0 2b		bne $c053	    bne exit
+.c028	20 86 c1	jsr $c186	    jsr processData
+.c02b	20 61 c1	jsr $c161	    jsr setOutputFile.toClose
+.c02e	20 5d c0	jsr $c05d	    jsr bank.romBasicOn
+.c031	a9 0d		lda #$0d	    lda #13
+.c033	20 d2 ff	jsr $ffd2	    jsr KERNAL_CHROUT
+.c036	ad 91 c0	lda $c091	    lda file.ramLen+1
+.c039	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c03c	ad 90 c0	lda $c090	    lda file.ramLen
+.c03f	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c042	a9 2c		lda #$2c	    lda #','
+.c044	20 d2 ff	jsr $ffd2	    jsr KERNAL_CHROUT
+.c047	ad 93 c0	lda $c093	    lda file.prgOrigin+1
+.c04a	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c04d	ad 92 c0	lda $c092	    lda file.prgOrigin
+.c050	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c053					_parametermismatch
+.c053					exit
+.c053	60		rts		    rts
+
+;******  Processing file: labels.s
+
+=1					READ_LFN	= 1		; logical file number
+=10					READ_DEV	= 10	; device
+=0					READ_ADR	= 0		; secondary address
+=2					WRITE_LFN	= 2		; logical file number
+=10					WRITE_DEV	= 10	; device
+=2					WRITE_ADR	= 2		; secondary address
+=$fb					ZPVector    = <USER_FREKZP      ; zero-page pointer for indirect indexed read/writes
+=$fd					ZPVector2   = <USER_FREKZP+2
+
+;******  Return to file: main.s
+
+
+;******  Processing file: c64_memory.s
+
+=$0001					R6510           = $0001 ; 6510 On-Chip 8-Bit Input/Output Register
+=$000d					BASIC_VALTYP    = $000d ; Flag: Data Type: $FF = String, $00 = Numeric
+=$0022					BASIC_INDEX     = $0022 ; Miscellaneous Temporary Pointers and Save Area ($0022-$0025)
+=$0073					BASIC_CHRGET    = $0073 ; ROM routine: get next char (skips spaces), alters TXTPTR
+=$0079					BASIC_CHRGOT    = $0079 ; ROM routine: get current char (skips spaces)
+=$007a					BASIC_TXTPTR    = $007a ; Pointer: Current Byte of BASIC Text [$007a-$007b]
+=$0090					KERNAL_STATUS   = $0090 ; Kernal I/O Status Word (ST)
+=$00fb					USER_FREKZP     = $00fb ; Free 0/Zero-Page Space for User Programs ($00fb-$00fe)
+
+;******  Return to file: main.s
+
+
+;******  Processing file: c64_basic.s
+
+=$ad9e					BASIC_FRMEVL	= $ad9e		; Data Type: Numeric - into the FAC1
+=$aefd					BASIC_CHKCOM	= $aefd		; Check if the next character is a comma and skip it.
+=$b6a3					BASIC_FRESTR    = $b6a3     ; Finalize string
+
+;******  Return to file: main.s
+
+
+;******  Processing file: c64_kernel.s
+
+=$ffb7					KERNAL_READST	= $ffb7	; Read status register, register A
+=$ffbd					KERNAL_SETNAM	= $ffbd	; Set filename pointer, Register A = length, YX to filename
+=$ffba					KERNAL_SETLFS	= $ffba	; Set LFS, Register A = Logical, X = First/Device, Y = secondary address
+=$ffc0					KERNAL_OPEN	    = $ffc0	; Open logical file
+=$ffc3					KERNAL_CLOSE	= $ffc3	; Close logical file, register A = logical file #
+=$ffc6					KERNAL_CHKIN	= $ffc6	; Set input device, register X = logic file #
+=$ffc9					KERNAL_CHKOUT	= $ffc9	; Set output device, register X = logical file #
+=$ffcc					KERNAL_CLRCHN	= $ffcc	; Clear channels
+=$ffcf					KERNAL_CHRIN	= $ffcf	; Read character from input channel, register A
+=$ffd2					KERNAL_CHROUT	= $ffd2	; Output character in register A
+
+;******  Return to file: main.s
+
+
+;******  Processing file: c64_bank.s
+
+.c054					bank
+.c054					romBasicOff
+.c054	78		sei		    sei
+.c055	a5 01		lda $01		    lda R6510
+.c057	29 fe		and #$fe	    and #%11111110      ; BASIC ROM off, RAM on
+.c059	85 01		sta $01		    sta R6510
+.c05b	58		cli		    cli
+.c05c	60		rts		    rts
+.c05d					romBasicOn
+.c05d	78		sei		    sei
+.c05e	a5 01		lda $01		    lda R6510
+.c060	09 01		ora #$01	    ora #%00000001      ; BASIC ROM on, RAM off
+.c062	85 01		sta $01		    sta R6510
+.c064	58		cli		    cli
+.c065	60		rts		    rts
+
+;******  Return to file: main.s
+
+
+;******  Processing file: variables.s
+
+.c066					initialise
+.c066	a9 00		lda #$00	    lda #0
+.c068	85 90		sta $90		    sta KERNAL_STATUS
+.c06a	8d b1 c0	sta $c0b1	    sta param.count
+.c06d	8d b2 c0	sta $c0b2	    sta param.valid
+.c070	a9 8c		lda #$8c	    lda #<file          ; lsb
+.c072	85 fd		sta $fd		    sta ZPVector2
+.c074	a9 c0		lda #$c0	    lda #>file+1        ; msb
+.c076	85 fe		sta $fe		    sta ZPVector2+1
+.c078	a0 24		ldy #$24	    ldy #size(file)-1   ; length/size of file struct
+.c07a	a9 00		lda #$00	    lda #$00
+.c07c					_clearloop
+.c07c	91 fd		sta ($fd),y	    sta (ZPVector2),y
+.c07e	88		dey		    dey
+.c07f	10 fb		bpl $c07c	    bpl _clearloop      ; Is positive?
+.c081	a9 00		lda #$00	    lda #<$0800
+.c083	8d 8c c0	sta $c08c	    sta file.ramStart
+.c086	a9 08		lda #$08	    lda #>$0800
+.c088	8d 8d c0	sta $c08d	    sta file.ramStart+1
+.c08b	60		rts		    rts
+>0000	00				count   .byte $00       ; Parameter count
+>0001	00				valid   .byte $00       ; Valid parameter(s)
+>0000	00 08				ramStart    .addr $0800 ; Vector RAM start address for binary program
+>0002	00 00				ramEnd      .addr $0000 ; Vector RAM end address for binary program
+>0004	00 00				ramLen      .addr $0000 ; Vector RAM length
+>0006	00 00				prgOrigin   .addr $0000 ; binary program origin/load/entry address
+>0008	00 00				prgAddr     .addr $0000 ; binary program address counter
+>000a	00				error       .byte $00   ; error code
+.000b					input
+>000b					name        .fill 25    ; Reserved bytes for filename including any DOS directives
+>0024	00				len         .byte $00   ; Length of filename
+>0000					name        .fill 25    ; Reserved bytes for filename including any DOS directives
+>0019	00				len         .byte $00   ; Length of filename
+.c08c					file
+>c08c	00 08				ramStart    .addr $0800 ; Vector RAM start address for binary program
+>c08e	00 00				ramEnd      .addr $0000 ; Vector RAM end address for binary program
+>c090	00 00				ramLen      .addr $0000 ; Vector RAM length
+>c092	00 00				prgOrigin   .addr $0000 ; binary program origin/load/entry address
+>c094	00 00				prgAddr     .addr $0000 ; binary program address counter
+>c096	00				error       .byte $00   ; error code
+.c097					input
+>c097					name        .fill 25    ; Reserved bytes for filename including any DOS directives
+>c0b0	00				len         .byte $00   ; Length of filename
+.c0b1					param
+>c0b1	00				count   .byte $00       ; Parameter count
+>c0b2	00				valid   .byte $00       ; Valid parameter(s)
+>c0b3	40 30 3a 4f 55 54 50 55		output      .text "@0:outputhex.txt,s,w"    ; fixed output file
+>c0bb	54 48 45 58 2e 54 58 54 2c 53 2c 57
+
+;******  Return to file: main.s
+
+
+;******  Processing file: file.s
+
+.c0c7					setInputFile
+.c0c7					toLoad
+.c0c7	a2 97		ldx #$97	    ldx #<file.input.name   ; lsb
+.c0c9	a0 c0		ldy #$c0	    ldy #>file.input.name   ; msb
+.c0cb	ad b0 c0	lda $c0b0	    lda file.input.len
+.c0ce	20 bd ff	jsr $ffbd	    jsr KERNAL_SETNAM
+.c0d1	a9 01		lda #$01	    lda #READ_LFN
+.c0d3	a2 0a		ldx #$0a	    ldx #READ_DEV
+.c0d5	a0 00		ldy #$00	    ldy #READ_ADR
+.c0d7	20 ba ff	jsr $ffba	    jsr KERNAL_SETLFS
+.c0da	20 c0 ff	jsr $ffc0	    jsr KERNAL_OPEN     ; Open file
+.c0dd	20 b7 ff	jsr $ffb7	    jsr KERNAL_READST   ; Error check
+.c0e0	8d 96 c0	sta $c096	    sta file.error
+.c0e3	f0 01		beq $c0e6	    beq _setChannel
+.c0e5	60		rts		    rts
+.c0e6					_setChannel:
+.c0e6	a2 01		ldx #$01	    ldx #READ_LFN
+.c0e8	20 c6 ff	jsr $ffc6	    jsr KERNAL_CHKIN
+.c0eb	20 cf ff	jsr $ffcf	    jsr KERNAL_CHRIN
+.c0ee	8d 92 c0	sta $c092	    sta file.prgOrigin
+.c0f1	20 cf ff	jsr $ffcf	    jsr KERNAL_CHRIN
+.c0f4	8d 93 c0	sta $c093	    sta file.prgOrigin+1
+.c0f7	ad 8c c0	lda $c08c	    lda file.ramStart
+.c0fa	85 fb		sta $fb		    sta ZPVector
+.c0fc	ad 8d c0	lda $c08d	    lda file.ramStart+1
+.c0ff	85 fc		sta $fc		    sta ZPVector+1
+.c101					_lloop
+.c101	20 b7 ff	jsr $ffb7	    jsr KERNAL_READST
+.c104	8d 96 c0	sta $c096	    sta file.error
+.c107	d0 0f		bne $c118	    bne _isEOF
+.c109	20 cf ff	jsr $ffcf	    jsr KERNAL_CHRIN
+.c10c	a0 00		ldy #$00	    ldy #0
+.c10e	91 fb		sta ($fb),y	    sta (ZPVector),y
+.c110	e6 fb		inc $fb		    inc ZPVector
+.c112	d0 ed		bne $c101	    bne _lloop
+.c114	e6 fc		inc $fc		    inc ZPVector+1
+.c116	d0 e9		bne $c101	    bne _lloop
+.c118					_isEOF
+.c118	29 40		and #$40	    and #%01000000  ; Check bit 6 (EOF)
+.c11a	38		sec		    sec
+.c11b	a5 fb		lda $fb		    lda ZPVector
+.c11d	8d 8e c0	sta $c08e	    sta file.ramEnd
+.c120	ed 8c c0	sbc $c08c	    sbc file.ramStart
+.c123	8d 90 c0	sta $c090	    sta file.ramLen     ; lsb
+.c126	a5 fc		lda $fc		    lda ZPVector+1
+.c128	8d 8f c0	sta $c08f	    sta file.ramEnd+1
+.c12b	ed 8d c0	sbc $c08d	    sbc file.ramStart+1
+.c12e	8d 91 c0	sta $c091	    sta file.ramLen+1   ; msb
+.c131	20 cc ff	jsr $ffcc	    jsr KERNAL_CLRCHN
+.c134	a9 01		lda #$01	    lda #READ_LFN
+.c136	4c c3 ff	jmp $ffc3	    jmp KERNAL_CLOSE
+.c139					setOutputFile
+.c139					toOpen
+.c139	a2 b3		ldx #$b3	    ldx #<output       ; lsb
+.c13b	a0 c0		ldy #$c0	    ldy #>output       ; msb
+.c13d	a9 14		lda #$14	    lda #len(output)
+.c13f	20 bd ff	jsr $ffbd	    jsr KERNAL_SETNAM
+.c142	a9 02		lda #$02	    lda #WRITE_LFN
+.c144	a2 0a		ldx #$0a	    ldx #WRITE_DEV
+.c146	a0 02		ldy #$02	    ldy #WRITE_ADR
+.c148	20 ba ff	jsr $ffba	    jsr KERNAL_SETLFS
+.c14b	20 c0 ff	jsr $ffc0	    jsr KERNAL_OPEN		; Open file
+.c14e	20 b7 ff	jsr $ffb7	    jsr KERNAL_READST		; Error check
+.c151	8d 96 c0	sta $c096	    sta file.error
+.c154	f0 01		beq $c157	    beq _setChannel
+.c156	60		rts		    rts
+.c157					_setChannel:
+.c157	a9 26		lda #$26	    lda #$26
+.c159	8d 85 c1	sta $c185	    sta outputByteToHex.adcRef
+.c15c	a2 02		ldx #$02	    ldx #WRITE_LFN
+.c15e	4c c9 ff	jmp $ffc9	    jmp KERNAL_CHKOUT
+.c161					toClose
+.c161	a9 06		lda #$06	    lda #$06
+.c163	8d 85 c1	sta $c185	    sta outputByteToHex.adcRef
+.c166	20 cc ff	jsr $ffcc	    jsr KERNAL_CLRCHN
+.c169	a9 02		lda #$02	    lda #WRITE_LFN
+.c16b	4c c3 ff	jmp $ffc3	    jmp KERNAL_CLOSE
+
+;******  Return to file: main.s
+
+
+;******  Processing file: convert.s
+
+.c16e					outputByteToHex
+.c16e	48		pha		    pha					; Preserve prgOriginal A
+.c16f	4a		lsr a		    lsr					; Shift upper nibble into lower 4 bits
+.c170	4a		lsr a		    lsr
+.c171	4a		lsr a		    lsr
+.c172	4a		lsr a		    lsr
+.c173	20 79 c1	jsr $c179	    jsr _OutputNibble	; Output high nibble
+.c176	68		pla		    pla
+.c177	29 0f		and #$0f	    and #$0F			; Mask to get low nibble
+.c179					_OutputNibble
+.c179	09 30		ora #$30	    ora #$30	; Add ASCII '0'
+.c17b	c9 3a		cmp #$3a	    cmp #$3A 	; If >= '9'+1
+.c17d	90 03		bcc $c182	    bcc _Output	; ...then it's 0<U+2013>9
+.c17f	6d 85 c1	adc $c185	    adc adcRef
+.c182					_Output:
+.c182	4c d2 ff	jmp $ffd2	    jmp KERNAL_CHROUT	; Output nibble, the kernel routine will rts
+>c185	06				adcRef  .byte   $06 ; $06 for PETSCII/ASCII uppercase, $26 for ASCII lowercase
+
+;******  Return to file: main.s
+
+
+;******  Processing file: process.s
+
+.c186					processData
+.c186	ad 92 c0	lda $c092	    lda file.prgOrigin
+.c189	8d 94 c0	sta $c094	    sta file.prgAddr
+.c18c	ad 93 c0	lda $c093	    lda file.prgOrigin+1
+.c18f	8d 95 c0	sta $c095	    sta file.prgAddr+1
+.c192	ad 8c c0	lda $c08c	    lda file.ramStart
+.c195	85 fb		sta $fb		    sta ZPVector
+.c197	ad 8d c0	lda $c08d	    lda file.ramStart+1
+.c19a	85 fc		sta $fc		    sta ZPVector+1
+.c19c					_oloop
+.c19c	a9 0d		lda #$0d	    lda #13
+.c19e	20 d2 ff	jsr $ffd2	    jsr KERNAL_CHROUT
+.c1a1	ad 95 c0	lda $c095	    lda file.prgAddr+1
+.c1a4	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c1a7	ad 94 c0	lda $c094	    lda file.prgAddr
+.c1aa	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c1ad	a9 3a		lda #$3a	    lda #':'
+.c1af	20 d2 ff	jsr $ffd2	    jsr KERNAL_CHROUT
+.c1b2	a0 00		ldy #$00	    ldy #0
+.c1b4	a2 08		ldx #$08	    ldx #8
+.c1b6					_iloop
+.c1b6	b1 fb		lda ($fb),y	    lda (ZPVector),y
+.c1b8	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c1bb	20 db c1	jsr $c1db	    jsr incVector
+.c1be	b0 1a		bcs $c1da	    bcs _end
+.c1c0	20 ec c1	jsr $c1ec	    jsr incPrgAddr
+.c1c3	b1 fb		lda ($fb),y	    lda (ZPVector),y
+.c1c5	20 6e c1	jsr $c16e	    jsr outputByteToHex
+.c1c8	20 db c1	jsr $c1db	    jsr incVector
+.c1cb	b0 0d		bcs $c1da	    bcs _end
+.c1cd	20 ec c1	jsr $c1ec	    jsr incPrgAddr
+.c1d0	a9 20		lda #$20	    lda #' '
+.c1d2	20 d2 ff	jsr $ffd2	    jsr KERNAL_CHROUT
+.c1d5	ca		dex		    dex
+.c1d6	d0 de		bne $c1b6	    bne _iloop
+.c1d8	f0 c2		beq $c19c	    geq _oloop
+.c1da					_end
+.c1da	60		rts		    rts
+.c1db					incVector
+.c1db	e6 fb		inc $fb		    inc ZPVector
+.c1dd	d0 02		bne $c1e1	    bne +
+.c1df	e6 fc		inc $fc		    inc ZPVector+1
+.c1e1					+
+.c1e1	a5 fb		lda $fb		    lda ZPVector     ; lsb
+.c1e3	cd 8e c0	cmp $c08e	    cmp file.ramEnd
+.c1e6	a5 fc		lda $fc		    lda ZPVector+1   ; msb
+.c1e8	ed 8f c0	sbc $c08f	    sbc file.ramEnd+1
+.c1eb	60		rts		    rts
+.c1ec					incPrgAddr
+.c1ec	ee 94 c0	inc $c094	    inc file.prgAddr
+.c1ef	d0 03		bne $c1f4	    bne +
+.c1f1	ee 95 c0	inc $c095	    inc file.prgAddr+1
+.c1f4					+
+.c1f4	60		rts		    rts
+
+;******  Return to file: main.s
+
+
+;******  Processing file: parameters.s
+
+.c1f5					sysParameters
+.c1f5					count
+.c1f5	a5 7a		lda $7a		    lda BASIC_TXTPTR
+.c1f7	48		pha		    pha
+.c1f8	a5 7b		lda $7b		    lda BASIC_TXTPTR+1
+.c1fa	48		pha		    pha
+.c1fb	a2 00		ldx #$00	    ldx #0                  ; Parameter counter
+.c1fd	8e 44 c2	stx $c244	    stx _flagQuote          ; Reset
+.c200	20 79 00	jsr $0079	    jsr BASIC_CHRGOT
+.c203	c9 00		cmp #$00	    cmp #0
+.c205	f0 32		beq $c239	    beq _done               ; Is EOL (end of line)?
+.c207	c9 3a		cmp #$3a	    cmp #':'
+.c209	f0 2e		beq $c239	    beq _done               ; Is EOS (end of statement)?
+.c20b	c9 2c		cmp #$2c	    cmp #','
+.c20d	d0 01		bne $c210	    bne _cloop              ; Comma?
+.c20f	e8		inx		    inx                     ; If yes, parameter found
+.c210					_cloop
+.c210	20 73 00	jsr $0073	    jsr BASIC_CHRGET
+.c213	c9 00		cmp #$00	    cmp #0
+.c215	f0 22		beq $c239	    beq _done               ; Is end of line?
+.c217	c9 3a		cmp #$3a	    cmp #':'
+.c219	f0 1e		beq $c239	    beq _done               ; Is end of statement?
+.c21b	c9 22		cmp #$22	    cmp #'"'                ; Is quote?
+.c21d	f0 0f		beq $c22e	    beq _toggleQuote
+.c21f	c9 2c		cmp #$2c	    cmp #','                ; Is comma?
+.c221	f0 02		beq $c225	    beq _isComma
+.c223	d0 eb		bne $c210	    gne _cloop
+.c225					 _isComma:
+.c225	2c 44 c2	bit $c244	    bit _flagQuote          ; Is part of string?
+.c228	30 e6		bmi $c210	    bmi _cloop              ; If bit 7 set, we are in quotes. Ignore comma.
+.c22a	e8		inx		    inx
+.c22b	4c 10 c2	jmp $c210	    jmp _cloop
+.c22e					_toggleQuote:
+.c22e	ad 44 c2	lda $c244	    lda _flagQuote
+.c231	49 80		eor #$80	    eor #$80                ; Toggle bit 7 (High bit)
+.c233	8d 44 c2	sta $c244	    sta _flagQuote
+.c236	4c 10 c2	jmp $c210	    jmp _cloop
+.c239					_done
+.c239	68		pla		    pla
+.c23a	85 7b		sta $7b		    sta BASIC_TXTPTR+1
+.c23c	68		pla		    pla
+.c23d	85 7a		sta $7a		    sta BASIC_TXTPTR
+.c23f	8e b1 c0	stx $c0b1	    stx param.count
+.c242	8a		txa		    txa
+.c243	60		rts		    rts
+>c244	00				_flagQuote  .byte   $00     ; Localised variable
+.c245					parse
+.c245	20 fd ae	jsr $aefd	    jsr BASIC_CHKCOM
+.c248	20 9e ad	jsr $ad9e	    jsr BASIC_FRMEVL
+.c24b	24 0d		bit $0d		    bit BASIC_VALTYP        ; Is String?
+.c24d	10 1e		bpl $c26d	    bpl _invalid
+.c24f	8d b0 c0	sta $c0b0	    sta file.input.len      ; Store length
+.c252	a8		tay		    tay
+.c253	a5 0d		lda $0d		    lda BASIC_VALTYP
+.c255	8d b2 c0	sta $c0b2	    sta param.valid         ; Validate
+.c258	a9 97		lda #$97	    lda #<file.input.name   ; lsb
+.c25a	85 fd		sta $fd		    sta ZPVector2
+.c25c	a9 c0		lda #$c0	    lda #>file.input.name+1 ; msb
+.c25e	85 fe		sta $fe		    sta ZPVector2+1
+.c260	88		dey		    dey
+.c261	30 0a		bmi $c26d	    bmi _invalid
+.c263					_cpyloop
+.c263	b1 22		lda ($22),y	    lda (BASIC_INDEX),y
+.c265	91 fd		sta ($fd),y	    sta (ZPVector2),y
+.c267	88		dey		    dey
+.c268	10 f9		bpl $c263	    bpl _cpyloop            ; Is positive?
+.c26a	4c a3 b6	jmp $b6a3	    jmp BASIC_FRESTR
+.c26d					_invalid
+.c26d	a9 00		lda #$00	    lda #$00
+.c26f	8d b2 c0	sta $c0b2	    sta param.valid
+.c272	60		rts		    rts
+
+;******  Return to file: main.s
+
+
+;******  End of listing

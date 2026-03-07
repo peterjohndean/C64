@@ -1,0 +1,33 @@
+
+al C:00b0 .QFLAG
+al C:00a7 .INBIT
+al C:0014 .LINNUM
+al C:0304 .ICRNCH
+al C:002b .TXTTAB
+al C:a642 .NEW
+al C:0200 .BUF
+al C:00b4 .CINDEX
+al C:00a7 .CHKSUM
+al C:ffd2 .CHROUT
+
+al C:0829 .iloop
+al C:0899 .Preserve
+al C:0801 .BLOCK_BEGIN
+al C:0804 .Main
+al C:085d .display
+al C:0827 .oloop
+al C:0889 .Lookup
+al C:0861 .output
+al C:0886 .exit
+al C:0847 .nospace
+al C:08b8 .BLOCK_END
+al C:080e .ploop
+al C:0917 .istep3
+al C:090f .istep2
+al C:0903 .istep1
+al C:084a .sloop
+al C:0879 .rloop
+al C:085d .reduce
+al C:0901 .NEW_TXTTAB
+al C:0903 .Install
+al C:083b .noquote
