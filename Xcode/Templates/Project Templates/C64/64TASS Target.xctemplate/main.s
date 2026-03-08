@@ -12,8 +12,7 @@
 .cpu "6502"
 
 ; set the program counter to the BASIC start address
-;* = $c000    ; sys 49152
-* = $0801
+* = $0801	; run
 
 ; ---------------------------------------------------------------------------
 ; BASIC stub — generates the one-line BASIC program:  10 SYS xxxx
@@ -28,7 +27,7 @@
 ;   $00   : end-of-line terminator
 ; ---------------------------------------------------------------------------
 
-basic_stub:
+basic_stub
         .word   basic_end			; pointer to the next BASIC line
         .word   10					; BASIC line number 10
         .byte   $9e					; BASIC token for SYS
@@ -37,31 +36,45 @@ basic_stub:
 									; across 64TASS's multi-pass resolution
         .byte   0					; end-of-line terminator
 
-basic_end:
+basic_end
         .word   0					; null next-line pointer — end of BASIC program
 
 ; ---------------------------------------------------------------------------
 ; Machine code entry point
 ; ---------------------------------------------------------------------------
-
-entry:
+entry
         ldx     #0              ; initialise X as the string index
 
-print_loop:
+print_loop
         lda     message,x       ; load character at index X
         beq     done            ; $00 = end of string
         jsr     $ffd2           ; Kernal CHROUT — output the character
         inx                     ; advance to the next character
         bne     print_loop      ; loop until done
 
-done:
+done
         rts                     ; return to BASIC
 
 ; ---------------------------------------------------------------------------
 ; Data
 ; ---------------------------------------------------------------------------
 
-message:
+message
         .text   "hello, world!"
         .byte   $0d             ; PETSCII carriage return
         .byte   $00             ; null terminator
+
+; ---------------------------------------------------------------------------
+; Labels, Macros and Libraries
+; ---------------------------------------------------------------------------
+;.include "labels_rom_basic.s"
+;.include "labels_rom_kernal.s"
+;.include "labels_reu.s"
+;
+;.include "macros_reu.s"
+;.include "macros_rom_basic.s"
+;.include "macros_rom_kernal.s"
+;
+;.include "library_reu.s"
+;.include "library_bitwise.s"
+;.include "library_convert.s"

@@ -20,13 +20,24 @@ Press **⌘R** now to build and launch your program in VICE.
 
 ## 📊 What Gets Built
 
-After **⌘B** or **⌘R**, check your target's subfolder:
+After **⌘B** or **⌘R**, output files are written to Xcode's standard
+**DerivedData** build directory (`$(TARGET_BUILD_DIR)`). You can find the
+exact path in the build log, or navigate there via:
+
+> **Product → Show Build Folder in Finder**
+
+The three output files produced per build are:
+
 ```
-___PACKAGENAME___/
+<DerivedData>/Build/Products/<Config>-<Platform>/
 ├── ___PACKAGENAME___.prg       ← C64 executable
 ├── ___PACKAGENAME____lbl.txt   ← VICE monitor labels
 └── ___PACKAGENAME____lst.txt   ← Assembly listing
 ```
+
+> **Note:** Output is no longer written into the source subdirectory.
+> `C64_BUILD_DIR` is set to `$(TARGET_BUILD_DIR)`, so all three files land
+> in Xcode's DerivedData folder alongside any other build products.
 
 ---
 
@@ -44,20 +55,24 @@ from within Xcode without touching the argument string.
 |---------|---------|---------|
 | `C64_ASM_TOOL` | `/Users/peter/Applications/64tass` | Assembler path |
 | `C64_VICE_TOOL` | `/Applications/vice-arm64-gtk3-3.10/bin/x64sc` | Emulator path |
+| `C64_BUILD_DIR` | `$(TARGET_BUILD_DIR)` | Output directory for all build artifacts |
 | `C64_SHARED_LIB` | `-I ../shared/inc -I ../shared/lib -I ../shared/mac` | Shared include directories (passed directly to assembler) |
 | `C64_SOURCE` | `$(TARGET_NAME)/main.s` | Input source file, per-target subdirectory |
-| `C64_PRG` | `$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME).prg` | Output binary |
-| `C64_LABELS` | `$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME)_lbl.txt` | VICE label file |
-| `C64_LIST` | `$(TARGET_NAME)/$(TARGET_NAME)_lst.txt` | Assembly listing |
-| `C64_ASM_FLAGS` | See below | All assembler flags |
+| `C64_PRG` | `$(C64_BUILD_DIR)/$(TARGET_NAME).prg` | Output binary |
+| `C64_LABELS` | `$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt` | VICE label file |
+| `C64_LIST` | `$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt` | Assembly listing |
+| `C64_ASM_DEFAULT_FLAGS` | See below | Base assembler flags, shared across configurations |
+| `C64_ASM_FLAGS` | `$(C64_ASM_DEFAULT_FLAGS)` | Effective flags passed to the assembler (overridden per configuration — see below) |
 
-> **Note:** All output paths are scoped to `$(TARGET_NAME)`, not `$(PROJECT_NAME)`.
-> In a multi-target project each target gets its own subfolder and its own
-> `.prg`, label, and listing files — they never collide.
+> **Note:** `C64_ASM_FLAGS` is what the build system actually passes to the
+> assembler. In the shared (non-configuration-specific) setting it simply
+> expands to `$(C64_ASM_DEFAULT_FLAGS)`. The Debug and Release configurations
+> each override it to prepend their own defines — see **Debug / Release
+> Configurations** below.
 
 ### Assembler Flags Reference
 
-The full flags string is assembled from the above variables:
+`C64_ASM_DEFAULT_FLAGS` expands to:
 
 ```
 $(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS)
@@ -81,6 +96,29 @@ $(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS)
 | `-Wlong-branch` | Warn when `--long-branch` promotes a branch |
 | `-Wcase-symbol` | Warn on case mismatches against `--case-sensitive` labels |
 
+### Debug / Release Configurations
+
+The Debug and Release configurations each override `C64_ASM_FLAGS` to prepend
+preprocessor defines before the shared base flags:
+
+| Configuration | `C64_ASM_FLAGS` value |
+|---------------|-----------------------|
+| **Debug** | `-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)` |
+| **Release** | `-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)` |
+
+This lets you conditionally assemble code in your source files:
+
+```asm
+.if DEBUG
+    ; extra debug output, breakpoints, etc.
+    jsr print_debug_info
+.endif
+```
+
+> To add your own conditional defines, edit `C64_ASM_FLAGS` for the relevant
+> configuration in Build Settings, inserting additional `-D KEY=VALUE` entries
+> before `$(C64_ASM_DEFAULT_FLAGS)`.
+
 ---
 
 ## 💡 Assembly Tips
@@ -102,7 +140,8 @@ append another `-I <path>` entry.
 
 Each target has its own subdirectory at `$(SOURCE_ROOT)/$(TARGET_NAME)/` containing
 its own `main.s`. All build outputs (`.prg`, labels, listing) are written into
-that same subdirectory, keeping targets fully isolated.
+`$(TARGET_BUILD_DIR)`, which Xcode scopes per-target automatically — they never
+collide.
 
 ---
 
@@ -121,11 +160,18 @@ Workspace/
     │       └── xcschemes/
     │           └── ___PACKAGENAME___.xcscheme   ← pre-configured Run scheme
     │
-    └── ___PACKAGENAME___/         ← target subdirectory (one per target)
-        ├── main.s                 ← your code starts here
-        ├── ___PACKAGENAME___.prg        ← built output
-        ├── ___PACKAGENAME____lbl.txt    ← VICE labels
-        └── ___PACKAGENAME____lst.txt    ← assembly listing
+    └── ___PACKAGENAME___/         ← target subdirectory (source only)
+        └── main.s                 ← your code starts here
+```
+
+Build outputs are written to Xcode's DerivedData directory (`$(TARGET_BUILD_DIR)`),
+not into the source tree:
+
+```
+~/Library/Developer/Xcode/DerivedData/<Project>/Build/Products/<Config>/
+├── ___PACKAGENAME___.prg
+├── ___PACKAGENAME____lbl.txt
+└── ___PACKAGENAME____lst.txt
 ```
 
 For a project with multiple targets:
@@ -139,14 +185,13 @@ MyProject/
 │           └── Demo2.xcscheme     ← one scheme per target, all shared
 │
 ├── Demo1/
-│   ├── main.s
-│   ├── Demo1.prg
-│   └── ...
+│   └── main.s
 └── Demo2/
-    ├── main.s
-    ├── Demo2.prg
-    └── ...
+    └── main.s
 ```
+
+Each target's outputs land in their own `$(TARGET_BUILD_DIR)` subdirectory
+inside DerivedData and are fully isolated from one another.
 
 ---
 
@@ -204,8 +249,8 @@ al start                  ; search labels containing "start"
   relative to `SOURCE_ROOT`. Add further `-I <path>` entries as needed.
 
 ### VICE launches but program does not load
-- Confirm `$(TARGET_NAME).prg` exists in the target's subfolder after a
-  successful build.
+- Confirm `$(TARGET_NAME).prg` exists in `$(TARGET_BUILD_DIR)` after a
+  successful build. Use **Product → Show Build Folder in Finder** to locate it.
 - Check the build log for any 64TASS errors or warnings.
 
 ### Branch too far errors

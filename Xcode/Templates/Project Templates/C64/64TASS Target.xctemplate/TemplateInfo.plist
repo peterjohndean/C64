@@ -75,9 +75,13 @@
                 <key>C64_ASM_TOOL</key>
                 <string>/Users/peter/Applications/64tass</string>
                 
+                <key>C64_BUILD_DIR</key>
+				<!--<string>$(SOURCE_ROOT)/$(TARGET_NAME)/build</string>-->
+				<string>$(TARGET_BUILD_DIR)</string>
+			
                 <key>C64_ASM_FLAGS</key>
-                <string>$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)</string>
-                
+				<string>$(C64_ASM_DEFAULT_FLAGS)</string>
+			
                 <key>C64_VICE_TOOL</key>
                 <string>/Applications/vice-arm64-gtk3-3.10/bin/x64sc</string>
                 
@@ -88,20 +92,32 @@
                 <string>$(TARGET_NAME)/main.s</string>
                 
                 <key>C64_PRG</key>
-                <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME).prg</string>
-                
-                <key>C64_LABELS</key>
-                <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME)_lbl.txt</string>
-                
-                <key>C64_LIST</key>
-                <string>$(TARGET_NAME)/$(TARGET_NAME)_lst.txt</string>
+				<string>$(C64_BUILD_DIR)/$(TARGET_NAME).prg</string>
+				
+				<key>C64_LABELS</key>
+				<string>$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt</string>
+				
+				<key>C64_LIST</key>
+				<string>$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt</string>
                 
                 <key>PRODUCT_NAME</key>
                 <string>$(TARGET_NAME)</string>
-                
-                <!--<key>DEAD_CODE_STRIPPING</key>
-                <string>YES</string>-->
             </dict>
+            
+            <!-- Per-configuration overrides -->
+			<key>Configurations</key>
+			<dict>
+				<key>Debug</key>
+				<dict>
+					<key>C64_ASM_FLAGS</key>
+					<string>-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)</string>
+				</dict>
+				<key>Release</key>
+				<dict>
+					<key>C64_ASM_FLAGS</key>
+					<string>-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)</string>
+				</dict>
+			</dict>
         </dict>
     </array>
     
@@ -113,10 +129,6 @@
         <string>main.s</string>
         <string>README-SETUP.md</string>
     	<string>../___PROJECTNAME___.xcodeproj/xcshareddata/xcschemes/___TARGETNAME___.xcscheme</string>
-    <!--<string>../___PROJECTNAME___.xcodeproj/xcuserdata/peter.xcuserdatad/xcschemes/xcschememanagement.plist</string>
-        <string>../___PROJECTNAME___.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings</string>
-        <string>../___PROJECTNAME___.xcodeproj/project.xcworkspace/xcuserdata/peter.xcuserdatad/WorkspaceSettings.xcsettings</string>
-        <string>../___PROJECTNAME___.xcodeproj/xcshareddata/C64_TARGET_TEMPLATE_SENTINEL___TARGETNAME___.txt</string>-->
     </array>
 
     <key>Definitions</key>
@@ -140,32 +152,6 @@
 			<key>Path</key>
 			<string>xcshareddata/xcschemes/___TARGETNAME___.xcscheme</string>
 		</dict>
-
-		<!--
-		<key>../___PROJECTNAME___.xcodeproj/xcuserdata/peter.xcuserdatad/xcschemes/xcschememanagement.plist</key>
-		<dict>
-			<key>Path</key>
-			<string>xcschememanagement.plist</string>
-		</dict>
-
-		<key>../___PROJECTNAME___.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings</key>
-		<dict>
-			<key>Path</key>
-			<string>WorkspaceSettings.xcsettings</string>
-		</dict>
-
-		<key>../___PROJECTNAME___.xcodeproj/project.xcworkspace/xcuserdata/peter.xcuserdatad/WorkspaceSettings.xcsettings</key>
-		<dict>
-			<key>Path</key>
-			<string>WorkspaceSettings.user.xcsettings</string>
-		</dict>
-		
-		<key>../___PROJECTNAME___.xcodeproj/xcshareddata/C64_TARGET_TEMPLATE_SENTINEL___TARGETNAME___.txt</key>
-		<dict>
-			<key>Path</key>
-			<string>C64_TARGET_TEMPLATE_SENTINEL.txt</string>
-		</dict>
-		-->
     </dict>
 </dict>
 </plist>

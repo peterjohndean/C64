@@ -55,6 +55,11 @@
             <key>C64_ASM_TOOL</key>
             <string>/Users/peter/Applications/64tass</string>
             
+            <!-- Build directory -->
+            <key>C64_BUILD_DIR</key>
+			<!--<string>$(SOURCE_ROOT)/$(TARGET_NAME)/build</string>-->
+			<string>$(TARGET_BUILD_DIR)</string>
+
             <!-- ── 64TASS Assembler Flags ────────────────────────────────────────────────────
 			// $(C64_SHARED_LIB)      add shared library to .include search path
 			// -a                     input source file (positional, must come early)
@@ -72,13 +77,15 @@
 			// -Wlong-branch          warn when --long-branch actually promotes a branch
 			// -Wcase-symbol          warn on case mismatches against --case-sensitive labels -->
 
-			<key>C64_ASM_FLAGS</key>
+			<key>C64_ASM_DEFAULT_FLAGS</key>
 			<string>$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)</string>
+			
+			<key>C64_ASM_FLAGS</key>
+			<string>$(C64_ASM_DEFAULT_FLAGS)</string>
 
             <key>C64_VICE_TOOL</key>
             <string>/Applications/vice-arm64-gtk3-3.10/bin/x64sc</string>
             
-            <!-- Project paths (relative to SOURCE_ROOT) -->
             <key>C64_SHARED_LIB</key>
             <string>-I ../shared/inc -I ../shared/lib -I ../shared/mac</string>
             
@@ -86,13 +93,13 @@
             <string>$(TARGET_NAME)/main.s</string>
             
             <key>C64_PRG</key>
-            <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME).prg</string>
+            <string>$(C64_BUILD_DIR)/$(TARGET_NAME).prg</string>
             
             <key>C64_LABELS</key>
-            <string>$(SOURCE_ROOT)/$(TARGET_NAME)/$(TARGET_NAME)_lbl.txt</string>
+            <string>$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt</string>
             
             <key>C64_LIST</key>
-            <string>$(TARGET_NAME)/$(TARGET_NAME)_lst.txt</string>
+            <string>$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt</string>
             
             <!-- Standard Xcode settings -->
             <key>PRODUCT_NAME</key>
@@ -101,8 +108,22 @@
             <!-- Build Settings -->
             <key>DEAD_CODE_STRIPPING</key>
             <string>YES</string>
-
         </dict>
+        
+        <!-- Per-configuration overrides -->
+		<key>Configurations</key>
+		<dict>
+			<key>Debug</key>
+			<dict>
+				<key>C64_ASM_FLAGS</key>
+				<string>-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)</string>
+			</dict>
+			<key>Release</key>
+			<dict>
+				<key>C64_ASM_FLAGS</key>
+				<string>-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)</string>
+			</dict>
+		</dict>
     </dict>
 
 	<!-- ═══════════════════════════════════════════════════════════ -->
@@ -184,6 +205,5 @@
 			<string>WorkspaceSettings.user.xcsettings</string>
 		</dict>
     </dict>
-
 </dict>
 </plist>
