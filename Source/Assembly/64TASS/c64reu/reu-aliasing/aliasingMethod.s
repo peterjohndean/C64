@@ -1,9 +1,10 @@
-reu_init
+reu_aliasing .proc
     ; display header
     #BASIC_STROUT_MACRO msg_header
     
     ; detect reu presence and size
-    #REU_DETECT no_reu_found
+;    #REU_ALIASING_DETECT no_reu_found
+    jsr REU_ALIASING_DETECT_PROC
     
     ; A register now contains bank mask
     ; save it for later use
@@ -18,7 +19,7 @@ reu_init
     ; show bank mask in hex
     #BASIC_STROUT_MACRO msg_mask
     lda detected_size
-    jsr Output_ByteToHex
+    jsr OUTPUT_BYTETOHEX_PROC
     
     #BASIC_STROUT_MACRO msg_complete
     rts
@@ -109,3 +110,4 @@ msg_4mb         .null "4 mb"
 msg_8mb         .null "8 mb"
 msg_16mb        .null "16 mb (vice/c64u max)"
 msg_unknown     .null "unknown"
+.endproc

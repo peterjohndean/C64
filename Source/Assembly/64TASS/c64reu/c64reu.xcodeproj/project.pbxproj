@@ -7,35 +7,53 @@
 	objects = {
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D0BD9A102F51833A0020757B /* c64reu */ = {
+		D03392A82F5E3C4800F25B08 /* c64reu */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = c64reu;
+			sourceTree = "<group>";
+		};
+		D03392B72F5E3CBF00F25B08 /* vice-mirror */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "vice-mirror";
+			sourceTree = "<group>";
+		};
+		D03392C12F5E3CF500F25B08 /* reu-aliasing */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "reu-aliasing";
+			sourceTree = "<group>";
+		};
+		D03392CB2F5E3D1D00F25B08 /* vice-aliasing-diagnostic */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "vice-aliasing-diagnostic";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXGroup section */
-		D0BD9A0A2F51833A0020757B = {
+		D03392A22F5E3C4800F25B08 = {
 			isa = PBXGroup;
 			children = (
-				D0BD9A102F51833A0020757B /* c64reu */,
+				D03392A82F5E3C4800F25B08 /* c64reu */,
+				D03392B72F5E3CBF00F25B08 /* vice-mirror */,
+				D03392C12F5E3CF500F25B08 /* reu-aliasing */,
+				D03392CB2F5E3D1D00F25B08 /* vice-aliasing-diagnostic */,
 			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
-		D0BD9A0F2F51833A0020757B /* c64reu */ = {
+		D03392A72F5E3C4800F25B08 /* c64reu */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "$(C64_ASM_FLAGS)";
-			buildConfigurationList = D0BD9A172F51833A0020757B /* Build configuration list for PBXLegacyTarget "c64reu" */;
+			buildConfigurationList = D03392B22F5E3C4800F25B08 /* Build configuration list for PBXLegacyTarget "c64reu" */;
 			buildPhases = (
 			);
 			buildToolPath = "$(C64_ASM_TOOL)";
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D0BD9A102F51833A0020757B /* c64reu */,
+				D03392A82F5E3C4800F25B08 /* c64reu */,
 			);
 			name = c64reu;
 			packageProductDependencies = (
@@ -43,51 +61,119 @@
 			passBuildSettingsInEnvironment = 1;
 			productName = c64reu;
 		};
+		D03392B62F5E3CBF00F25B08 /* vice-mirror */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(C64_ASM_FLAGS)";
+			buildConfigurationList = D03392BC2F5E3CBF00F25B08 /* Build configuration list for PBXLegacyTarget "vice-mirror" */;
+			buildPhases = (
+			);
+			buildToolPath = "$(C64_ASM_TOOL)";
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D03392B72F5E3CBF00F25B08 /* vice-mirror */,
+			);
+			name = "vice-mirror";
+			packageProductDependencies = (
+			);
+			passBuildSettingsInEnvironment = 1;
+			productName = "vice-mirror";
+		};
+		D03392C02F5E3CF500F25B08 /* reu-aliasing */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(C64_ASM_FLAGS)";
+			buildConfigurationList = D03392C62F5E3CF500F25B08 /* Build configuration list for PBXLegacyTarget "reu-aliasing" */;
+			buildPhases = (
+			);
+			buildToolPath = "$(C64_ASM_TOOL)";
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D03392C12F5E3CF500F25B08 /* reu-aliasing */,
+			);
+			name = "reu-aliasing";
+			packageProductDependencies = (
+			);
+			passBuildSettingsInEnvironment = 1;
+			productName = "reu-aliasing";
+		};
+		D03392CA2F5E3D1D00F25B08 /* vice-aliasing-diagnostic */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(C64_ASM_FLAGS)";
+			buildConfigurationList = D03392D02F5E3D1D00F25B08 /* Build configuration list for PBXLegacyTarget "vice-aliasing-diagnostic" */;
+			buildPhases = (
+			);
+			buildToolPath = "$(C64_ASM_TOOL)";
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D03392CB2F5E3D1D00F25B08 /* vice-aliasing-diagnostic */,
+			);
+			name = "vice-aliasing-diagnostic";
+			packageProductDependencies = (
+			);
+			passBuildSettingsInEnvironment = 1;
+			productName = "vice-aliasing-diagnostic";
+		};
 /* End PBXLegacyTarget section */
 
 /* Begin PBXProject section */
-		D0BD9A0B2F51833A0020757B /* Project object */ = {
+		D03392A32F5E3C4800F25B08 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
-					D0BD9A0F2F51833A0020757B = {
-						CreatedOnToolsVersion = 26.2;
+					D03392A72F5E3C4800F25B08 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					D03392B62F5E3CBF00F25B08 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					D03392C02F5E3CF500F25B08 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					D03392CA2F5E3D1D00F25B08 = {
+						CreatedOnToolsVersion = 26.3;
 					};
 				};
 			};
-			buildConfigurationList = D0BD9A0E2F51833A0020757B /* Build configuration list for PBXProject "c64reu" */;
+			buildConfigurationList = D03392A62F5E3C4800F25B08 /* Build configuration list for PBXProject "c64reu" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = D0BD9A0A2F51833A0020757B;
+			mainGroup = D03392A22F5E3C4800F25B08;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D0BD9A0F2F51833A0020757B /* c64reu */,
+				D03392A72F5E3C4800F25B08 /* c64reu */,
+				D03392B62F5E3CBF00F25B08 /* vice-mirror */,
+				D03392C02F5E3CF500F25B08 /* reu-aliasing */,
+				D03392CA2F5E3D1D00F25B08 /* vice-aliasing-diagnostic */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin XCBuildConfiguration section */
-		D0BD9A152F51833A0020757B /* Debug */ = {
+		D03392B02F5E3C4800F25B08 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				C64_ASM_FLAGS = "-I $(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
+				C64_ASM_DEFAULT_FLAGS = "$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
+				C64_ASM_FLAGS = "-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)";
 				C64_ASM_TOOL = /Users/peter/Applications/64tass;
-				C64_LABELS = "$(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME)_lbl.txt";
-				C64_LIST = "$(PROJECT_NAME)/$(TARGET_NAME)_lst.txt";
-				C64_PRG = "$(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME).prg";
-				C64_SHARED_LIB = ../SharedLib/Includes;
-				C64_SOURCE = "$(PROJECT_NAME)/main.s";
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
 				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -147,18 +233,20 @@
 			};
 			name = Debug;
 		};
-		D0BD9A162F51833A0020757B /* Release */ = {
+		D03392B12F5E3C4800F25B08 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				C64_ASM_FLAGS = "-I $(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
+				C64_ASM_DEFAULT_FLAGS = "$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
+				C64_ASM_FLAGS = "-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)";
 				C64_ASM_TOOL = /Users/peter/Applications/64tass;
-				C64_LABELS = "$(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME)_lbl.txt";
-				C64_LIST = "$(PROJECT_NAME)/$(TARGET_NAME)_lst.txt";
-				C64_PRG = "$(SOURCE_ROOT)/$(PROJECT_NAME)/$(TARGET_NAME).prg";
-				C64_SHARED_LIB = ../SharedLib/Includes;
-				C64_SOURCE = "$(PROJECT_NAME)/main.s";
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
 				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -211,23 +299,127 @@
 			};
 			name = Release;
 		};
-		D0BD9A182F51833A0020757B /* Debug */ = {
+		D03392B32F5E3C4800F25B08 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				C64_ASM_FLAGS = "-I $(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
 				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = S7V4VP9ZKR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		D0BD9A192F51833A0020757B /* Release */ = {
+		D03392B42F5E3C4800F25B08 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				C64_ASM_FLAGS = "-I $(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
 				CODE_SIGN_STYLE = Automatic;
-				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		D03392BD2F5E3CBF00F25B08 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				C64_ASM_FLAGS = "-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D03392BE2F5E3CBF00F25B08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				C64_ASM_FLAGS = "-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		D03392C72F5E3CF500F25B08 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				C64_ASM_FLAGS = "-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D03392C82F5E3CF500F25B08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				C64_ASM_FLAGS = "-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		D03392D12F5E3D1D00F25B08 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				C64_ASM_FLAGS = "-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D03392D22F5E3D1D00F25B08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				C64_ASM_FLAGS = "-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = S7V4VP9ZKR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -236,25 +428,52 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D0BD9A0E2F51833A0020757B /* Build configuration list for PBXProject "c64reu" */ = {
+		D03392A62F5E3C4800F25B08 /* Build configuration list for PBXProject "c64reu" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D0BD9A152F51833A0020757B /* Debug */,
-				D0BD9A162F51833A0020757B /* Release */,
+				D03392B02F5E3C4800F25B08 /* Debug */,
+				D03392B12F5E3C4800F25B08 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D0BD9A172F51833A0020757B /* Build configuration list for PBXLegacyTarget "c64reu" */ = {
+		D03392B22F5E3C4800F25B08 /* Build configuration list for PBXLegacyTarget "c64reu" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D0BD9A182F51833A0020757B /* Debug */,
-				D0BD9A192F51833A0020757B /* Release */,
+				D03392B32F5E3C4800F25B08 /* Debug */,
+				D03392B42F5E3C4800F25B08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D03392BC2F5E3CBF00F25B08 /* Build configuration list for PBXLegacyTarget "vice-mirror" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D03392BD2F5E3CBF00F25B08 /* Debug */,
+				D03392BE2F5E3CBF00F25B08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D03392C62F5E3CF500F25B08 /* Build configuration list for PBXLegacyTarget "reu-aliasing" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D03392C72F5E3CF500F25B08 /* Debug */,
+				D03392C82F5E3CF500F25B08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D03392D02F5E3D1D00F25B08 /* Build configuration list for PBXLegacyTarget "vice-aliasing-diagnostic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D03392D12F5E3D1D00F25B08 /* Debug */,
+				D03392D22F5E3D1D00F25B08 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = D0BD9A0B2F51833A0020757B /* Project object */;
+	rootObject = D03392A32F5E3C4800F25B08 /* Project object */;
 }

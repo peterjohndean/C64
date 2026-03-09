@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D03392A72F5E3C4800F25B08"
-               BuildableName = "c64reu"
-               BlueprintName = "c64reu"
+               BlueprintIdentifier = "D03392B62F5E3CBF00F25B08"
+               BuildableName = "vice-mirror"
+               BlueprintName = "vice-mirror"
                ReferencedContainer = "container:c64reu.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,9 +47,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D03392A72F5E3C4800F25B08"
-            BuildableName = "c64reu"
-            BlueprintName = "c64reu"
+            BlueprintIdentifier = "D03392B62F5E3CBF00F25B08"
+            BuildableName = "vice-mirror"
+            BlueprintName = "vice-mirror"
             ReferencedContainer = "container:c64reu.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -73,9 +73,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D03392A72F5E3C4800F25B08"
-            BuildableName = "c64reu"
-            BlueprintName = "c64reu"
+            BlueprintIdentifier = "D03392B62F5E3CBF00F25B08"
+            BuildableName = "vice-mirror"
+            BlueprintName = "vice-mirror"
             ReferencedContainer = "container:c64reu.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
