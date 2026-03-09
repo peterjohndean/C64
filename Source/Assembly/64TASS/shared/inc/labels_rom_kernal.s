@@ -15,3 +15,4 @@ KERNAL_CHRIN	= $ffcf	; Read character from input channel, register A
 KERNAL_LOAD     = $ffd5 ; Load RAM from device, A=0 (load), A=1 (verify), RAM at Y/X address.
 KERNAL_CLALL	= $ffe7	; Close all
 KERNAL_CHROUT	= $ffd2	; Output character in register A
+KERNAL_GETIN    = $ffe4 ; Get input character, reads the next key from the keyboard queue into A, or $00 if the queue is empty. Non-blocking.

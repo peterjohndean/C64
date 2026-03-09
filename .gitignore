@@ -1,4 +1,4 @@
-.DS_Store
+*.DS_Store
 *_lbl.txt
 *_lst.txt
 *.xcworkspace
