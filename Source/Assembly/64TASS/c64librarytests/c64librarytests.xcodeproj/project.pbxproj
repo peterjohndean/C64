@@ -1,0 +1,300 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXFileReference section */
+		D033927E2F5E289400F25B08 /* labels_reu.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = labels_reu.s; path = ../shared/inc/labels_reu.s; sourceTree = SOURCE_ROOT; };
+		D033927F2F5E289400F25B08 /* labels_rom_basic.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = labels_rom_basic.s; path = ../shared/inc/labels_rom_basic.s; sourceTree = SOURCE_ROOT; };
+		D03392802F5E289400F25B08 /* labels_rom_kernal.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = labels_rom_kernal.s; path = ../shared/inc/labels_rom_kernal.s; sourceTree = SOURCE_ROOT; };
+		D03392812F5E289400F25B08 /* library_bitwise.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = library_bitwise.s; path = ../shared/lib/library_bitwise.s; sourceTree = SOURCE_ROOT; };
+		D03392822F5E289400F25B08 /* library_convert.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = library_convert.s; path = ../shared/lib/library_convert.s; sourceTree = SOURCE_ROOT; };
+		D03392832F5E289400F25B08 /* library_reu.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = library_reu.s; path = ../shared/lib/library_reu.s; sourceTree = SOURCE_ROOT; };
+		D03392842F5E289400F25B08 /* macros_reu.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = macros_reu.s; path = ../shared/mac/macros_reu.s; sourceTree = SOURCE_ROOT; };
+		D03392852F5E289400F25B08 /* macros_rom_basic.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = macros_rom_basic.s; path = ../shared/mac/macros_rom_basic.s; sourceTree = SOURCE_ROOT; };
+		D03392862F5E289400F25B08 /* macros_rom_kernal.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = macros_rom_kernal.s; path = ../shared/mac/macros_rom_kernal.s; sourceTree = SOURCE_ROOT; };
+		D033928E2F5E312300F25B08 /* labels_screen.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = labels_screen.s; path = ../shared/inc/labels_screen.s; sourceTree = SOURCE_ROOT; };
+		D033928F2F5E343E00F25B08 /* labels_memorymap.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; name = labels_memorymap.s; path = ../shared/inc/labels_memorymap.s; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D03392702F5E27CD00F25B08 /* c64librarytests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = c64librarytests;
+			sourceTree = "<group>";
+		};
+		D033928D2F5E2AC100F25B08 /* routines */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = routines;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXGroup section */
+		D033926A2F5E27CD00F25B08 = {
+			isa = PBXGroup;
+			children = (
+				D03392872F5E28A300F25B08 /* shared */,
+				D033928D2F5E2AC100F25B08 /* routines */,
+				D03392702F5E27CD00F25B08 /* c64librarytests */,
+			);
+			sourceTree = "<group>";
+		};
+		D03392872F5E28A300F25B08 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				D033928F2F5E343E00F25B08 /* labels_memorymap.s */,
+				D033928E2F5E312300F25B08 /* labels_screen.s */,
+				D033927E2F5E289400F25B08 /* labels_reu.s */,
+				D033927F2F5E289400F25B08 /* labels_rom_basic.s */,
+				D03392802F5E289400F25B08 /* labels_rom_kernal.s */,
+				D03392812F5E289400F25B08 /* library_bitwise.s */,
+				D03392822F5E289400F25B08 /* library_convert.s */,
+				D03392832F5E289400F25B08 /* library_reu.s */,
+				D03392842F5E289400F25B08 /* macros_reu.s */,
+				D03392852F5E289400F25B08 /* macros_rom_basic.s */,
+				D03392862F5E289400F25B08 /* macros_rom_kernal.s */,
+			);
+			path = shared;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		D033926F2F5E27CD00F25B08 /* c64librarytests */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(C64_ASM_FLAGS)";
+			buildConfigurationList = D033927A2F5E27CD00F25B08 /* Build configuration list for PBXLegacyTarget "c64librarytests" */;
+			buildPhases = (
+			);
+			buildToolPath = "$(C64_ASM_TOOL)";
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D03392702F5E27CD00F25B08 /* c64librarytests */,
+				D033928D2F5E2AC100F25B08 /* routines */,
+			);
+			name = c64librarytests;
+			packageProductDependencies = (
+			);
+			passBuildSettingsInEnvironment = 1;
+			productName = c64librarytests;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		D033926B2F5E27CD00F25B08 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					D033926F2F5E27CD00F25B08 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+				};
+			};
+			buildConfigurationList = D033926E2F5E27CD00F25B08 /* Build configuration list for PBXProject "c64librarytests" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D033926A2F5E27CD00F25B08;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D033926F2F5E27CD00F25B08 /* c64librarytests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		D03392782F5E27CD00F25B08 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				C64_ASM_DEFAULT_FLAGS = "$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
+				C64_ASM_FLAGS = "-D DEBUG=1 -D RELEASE=0 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			};
+			name = Debug;
+		};
+		D03392792F5E27CD00F25B08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				C64_ASM_DEFAULT_FLAGS = "$(C64_SHARED_LIB) -o $(C64_PRG) --vice-labels --labels=$(C64_LABELS) --long-branch -Wunused -Wshadow -Woptimize -Wlong-branch -Wcase-symbol -L $(C64_LIST) --case-sensitive -a $(C64_SOURCE)";
+				C64_ASM_FLAGS = "-D DEBUG=0 -D RELEASE=1 $(C64_ASM_DEFAULT_FLAGS)";
+				C64_ASM_TOOL = /Users/peter/Applications/64tass;
+				C64_BUILD_DIR = "$(TARGET_BUILD_DIR)";
+				C64_LABELS = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lbl.txt";
+				C64_LIST = "$(C64_BUILD_DIR)/$(TARGET_NAME)_lst.txt";
+				C64_PRG = "$(C64_BUILD_DIR)/$(TARGET_NAME).prg";
+				C64_SHARED_LIB = "-I ../shared/inc -I ../shared/lib -I ../shared/mac";
+				C64_SOURCE = "$(TARGET_NAME)/main.s";
+				C64_VICE_TOOL = "/Applications/vice-arm64-gtk3-3.10/bin/x64sc";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			};
+			name = Release;
+		};
+		D033927B2F5E27CD00F25B08 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D033927C2F5E27CD00F25B08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = S7V4VP9ZKR;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D033926E2F5E27CD00F25B08 /* Build configuration list for PBXProject "c64librarytests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D03392782F5E27CD00F25B08 /* Debug */,
+				D03392792F5E27CD00F25B08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D033927A2F5E27CD00F25B08 /* Build configuration list for PBXLegacyTarget "c64librarytests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D033927B2F5E27CD00F25B08 /* Debug */,
+				D033927C2F5E27CD00F25B08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D033926B2F5E27CD00F25B08 /* Project object */;
+}
