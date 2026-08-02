@@ -65,11 +65,11 @@ Use **Product > Show Build Folder in Finder** to open the exact folder.
 
 ```text
 <DerivedData>/Build/Products/<Config>-<Platform>/
-├── ___PACKAGENAME___.prg       # C64 executable
-├── ___PACKAGENAME___-lbl.txt   # VICE monitor labels from ld65 -Ln
-├── ___PACKAGENAME___-lst.txt   # Combined ca65 assembly listings
-├── ___PACKAGENAME___-map.txt   # Linker map from ld65 -m
-└── <library>.lib               # Temporary shared library archives, when present
+├── c64fp.prg       # C64 executable
+├── c64fp-lbl.txt   # VICE monitor labels from ld65 -Ln
+├── c64fp-lst.txt   # Combined ca65 assembly listings
+├── c64fp-map.txt   # Linker map from ld65 -m
+└── <library>.lib   # Temporary shared library archives, when present
 ```
 
 Temporary object files are removed after a successful build.
@@ -173,9 +173,9 @@ Workspace/
 │       │   └── *.s
 │       └── text/
 │           └── *.s
-└── ___PACKAGENAME___/
-    ├── ___PACKAGENAME___.xcodeproj/
-    └── ___PACKAGENAME___/
+└── c64fp/
+    ├── c64fp.xcodeproj/
+    └── c64fp/
         ├── Makefile
         ├── c64-asm.cfg
         ├── c64-hybrid.cfg

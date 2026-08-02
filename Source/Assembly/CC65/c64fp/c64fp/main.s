@@ -15,8 +15,8 @@
 
 ; ---------------------------------------------------------------------------
 ; Usage from BASIC:
-;   poke780,0:sys2061     ; 0 = screen output (default/safe if never set)
-;   poke780,1:sys2061     ; 1 = printer output
+;   poke780,0:sys2061   ; 0 = screen output (default/safe if never set)
+;   poke780,1:sys2061   ; 1 = printer output
 ;   run                 ; either poke first, then run or just run for default.
 ; ---------------------------------------------------------------------------
 
@@ -44,7 +44,8 @@ stub_end:
 .segment "INIT"
 
 .proc main
-    ; 0. Output to Screen or Printer
+;    .org 2061
+    ; 0. Output to Screen (default)/Printer
     lda MM_SAREG            ; peek(780), 0 = screen, 1 = printer
     cmp #1
     beq want_printer
@@ -107,17 +108,8 @@ msg_redirect:
     jsr KERNAL_GETIN        ; non-blocking keyboard read
     beq @wait_key
 
-    jsr FP_TESTS            ; fall back to screen output
-    rts
+    ; fall-through
 
-    ; -------------------------------------------------------------------
-    ; screen_only: SAREG wasn't exactly 1 - run FP_TESTS exactly as the
-    ; original, un-modified main.s did, with no KERNAL channel calls at
-    ; all. This is intentionally the SIMPLEST path in this file: it's
-    ; what runs by far the most often (every screen-output test run),
-    ; and it's identical in behaviour to the version of this file that
-    ; existed before printer support was added at all.
-    ; -------------------------------------------------------------------
 screen_only:
     jsr FP_TESTS
     rts

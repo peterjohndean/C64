@@ -10,6 +10,7 @@
     .export ieee754_neg5
 
     .segment "RODATA"
+    ; woz/rankin values
     val_1billion:   .byte $9d,$77,$35,$94   ; 1,000,000,000.0
     val_100:        .byte $86,$64,$00,$00   ; 100.0
     val_12:         .byte $83,$60,$00,$00   ; 12
