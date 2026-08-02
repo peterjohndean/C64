@@ -64,7 +64,7 @@
 ;
 ; Example: $0A1234  → bank $0A, page $12, byte $34
 ;
-; In CC65, the backtick operator extracts byte 2 (the bank):
+; In ca65, the ^ operator extracts byte 2 (the bank):
 ;   lda #^\rAddress     ; extracts bits 16-23
 ;
 ; MACRO INVENTORY
@@ -98,7 +98,7 @@
 ;      → the macro programs the REU registers and fires DMA
 ;
 ;   2. Wait for completion (if issuing sequential transfers):
-;      jsr REU_WAIT_EOB_PROC    ; or use #REU_WAIT_EOB_MACRO
+;      jsr REU_WAIT_EOB_PROC    ; or expand REU_WAIT_EOB_MACRO
 ;
 ;   3. Proceed with next operation.
 ;
@@ -107,17 +107,16 @@
 ;
 ; ZERO PAGE USAGE
 ; ---------------
-; REU_ALIASING_DETECT uses zero page locations $FB, $FC, $FD
-; as temporary byte staging areas during aliasing tests.
-; Ensure these are free when calling that macro.
+; REU_ALIASING_DETECT uses zero page locations $FB and $FD as
+; temporary byte staging areas. REU_DETECT_SIZE uses $FB and $FC.
+; Ensure these are free while calling either routine.
 ;
 ; NOTES ON VICE EMULATION
 ; ------------------------
-; VICE emulator has a known bug in its 256KB (1764) emulation:
-; the aliasing boundary is incorrectly placed, causing
-; REU_ALIASING_DETECT to misreport 256KB as 512KB. Real
-; hardware (C64U) detects all sizes correctly. See the
-; VICE_256KB_BUG.md companion document for full details.
+; VICE emulator has a known 256KB (1764) emulation quirk. The
+; older boundary-probe routine can misreport it, while the newer
+; REU_DETECT_SIZE fingerprint routine clamps the VICE-only 5-bank
+; result back to 4 banks. Real hardware (C64U) detects correctly.
 ;
 ; ASSEMBLER: CC65
 ; ============================================================
@@ -189,15 +188,15 @@
 ;            3. Load transfer length into REU_LEN_LO/HI
 ;            4. Write command to REU_COMMAND (triggers DMA)
 ;            5. CPU halts until transfer completes (transparent)
-; Notes   : Uses 64TASS ` operator to extract bank byte.
+; Notes   : Uses ca65's ^ operator to extract bank byte.
 ;           Formula: bank = (rAddress >> 16) & $FF
 ;                    offset = rAddress & $FFFF
 ;           The transfer is transparent DMA - CPU is halted
 ;           but the transfer appears atomic to the program.
 ; Cycles  : ~20 CPU cycles + DMA time (~2 cycles per byte)
-; Example : #REU_FROM_C64 $0A1234, $C000, 1000
+; Example : REU_FROM_C64 $0A1234, $C000, 1000
 ;           → copies 1000 bytes from $C000 to bank $0A, offset $1234
-;           #REU_FROM_C64 $0A1234, $C000, 1000, $91
+;           REU_FROM_C64 $0A1234, $C000, 1000, $91
 ;           → uses $91 command instead of default $90
 ; ============================================================
 .macro REU_FROM_C64 rAddress, cAddress, tLength, tCommand
@@ -246,12 +245,12 @@
 ;            3. Load transfer length into REU_LEN_LO/HI
 ;            4. Write command to REU_COMMAND (triggers DMA)
 ;            5. CPU halts until transfer completes (transparent)
-; Notes   : Uses 64TASS ` operator for bank byte extraction.
+; Notes   : Uses ca65's ^ operator for bank byte extraction.
 ;           Default command is $91 (REU→C64) for this macro.
 ; Cycles  : ~20 CPU cycles + DMA time (~2 cycles per byte)
-; Example : #REU_TO_C64 $050000, $C000, 1000
+; Example : REU_TO_C64 $050000, $C000, 1000
 ;           → copies 1000 bytes from bank $05 to $C000
-;           #REU_TO_C64 $050000, $C000, 1000, $92
+;           REU_TO_C64 $050000, $C000, 1000, $92
 ;           → uses $92 (swap) instead of default $91
 ; ============================================================
 .macro REU_TO_C64 rAddress, cAddress, tLength, tCommand
@@ -305,7 +304,7 @@
 ;           can perform atomic bidirectional transfers.
 ;           The swap happens during DMA, appearing atomic.
 ; Cycles  : ~20 CPU cycles + DMA time (~2 cycles per byte)
-; Example : #REU_SWAP $010000, $C000, 1000
+; Example : REU_SWAP $010000, $C000, 1000
 ;           → swaps 1000 bytes between $C000 and bank $01
 ;           Before: C64[$C000]=A, REU[$010000]=B
 ;           After:  C64[$C000]=B, REU[$010000]=A
@@ -376,11 +375,11 @@
 ;           Example: bank=$05, offset=$1234 → $051234
 ; Cycles  : ~20 CPU cycles + DMA time (~2 cycles per byte)
 ; Example : ldx #$04                       ; bank 4 in X
-;           #REU_FROM_C64_B stx, $0000, $c000, 1
+;           REU_FROM_C64_B stx, $0000, $c000, 1
 ;           → copies 1 byte from $C000 to bank $04, offset $0000
 ;           
 ;           lda #$08                        ; bank 8 in A
-;           #REU_FROM_C64_B sta, $1000, $d000, 256, $91
+;           REU_FROM_C64_B sta, $1000, $d000, 256, $91
 ;           → uses $91 command, bank in A, offset $1000
 ; ============================================================
 .macro REU_FROM_C64_B rBank, rOffset, cAddress, tLength, tCommand
@@ -471,11 +470,11 @@
 ;           The rBank parameter accepts store opcodes directly.
 ; Cycles  : ~20 CPU cycles + DMA time (~2 cycles per byte)
 ; Example : ldx #$04                       ; bank 4 in X
-;           #REU_TO_C64_B stx, $0000, $c000, 1
+;           REU_TO_C64_B stx, $0000, $c000, 1
 ;           → copies 1 byte from bank $04 to $C000
 ;
 ;           ldy zp_bank                     ; bank from zero page
-;           #REU_TO_C64_B sty, $0000, $c000, 1
+;           REU_TO_C64_B sty, $0000, $c000, 1
 ;           → Y holds bank, uses default $91 command
 ; ============================================================
 .macro REU_TO_C64_B rBank, rOffset, cAddress, tLength, tCommand
@@ -529,7 +528,7 @@
 ;           This is a blocking/busy-wait loop - the CPU does
 ;           nothing but poll the status register. For time-
 ;           critical code, consider an interrupt-driven approach
-;           using the EOB interrupt (bit 7 of REU_CONTROL).
+;           using the EOB interrupt via REU_INT_MASK.
 ;           
 ;           Status Register ($DF00) format:
 ;           bit 7: interrupt pending (1 = EOB interrupt occurred)
@@ -539,8 +538,8 @@
 ;           bit 3-0: version number (implementation specific)
 ; Cycles  : Variable - depends on transfer size
 ;           Approximately 6 cycles per iteration + DMA time
-; Example : #REU_FROM_C64 $000000, $C000, 1000
-;           #REU_WAIT_EOB_MACRO
+; Example : REU_FROM_C64 $000000, $C000, 1000
+;           REU_WAIT_EOB_MACRO
 ;           ; now safe to start next transfer
 ; ============================================================
 .macro REU_WAIT_EOB_MACRO
@@ -574,7 +573,7 @@ reu_wait_loop:
 ;           - Build custom transfer sequences
 ;           - Dynamic length calculations
 ; Cycles  : ~12 cycles
-; Example : #REU_SET_LENGTH_MACRO 1000
+; Example : REU_SET_LENGTH_MACRO 1000
 ;           ; now length registers are set to 1000 bytes
 ;           ; ... set up addresses ...
 ;           lda #$90
@@ -619,9 +618,9 @@ reu_wait_loop:
 ;           (REU_FROM_C64, REU_TO_C64, etc.) which program all
 ;           registers in a single macro call.
 ; Cycles  : ~8 cycles
-; Example : #REU_SET_C64_ADDRESS_MACRO $C000
-;           #REU_SET_REU_ADDRESS_MACRO $050000
-;           #REU_SET_LENGTH_MACRO       256
+; Example : REU_SET_C64_ADDRESS_MACRO $C000
+;           REU_SET_REU_ADDRESS_MACRO $050000
+;           REU_SET_LENGTH_MACRO       256
 ;           lda #$90
 ;           sta REU_COMMAND             ; fire DMA: C64→REU
 ; ============================================================
@@ -665,9 +664,9 @@ reu_wait_loop:
 ;             REU_SET_LENGTH_MACRO       - to set the length
 ;           Then write the command byte manually to fire the DMA.
 ; Cycles  : ~12 cycles
-; Example : #REU_SET_C64_ADDRESS_MACRO  $C000
-;           #REU_SET_REU_ADDRESS_MACRO  $050000
-;           #REU_SET_LENGTH_MACRO       256
+; Example : REU_SET_C64_ADDRESS_MACRO  $C000
+;           REU_SET_REU_ADDRESS_MACRO  $050000
+;           REU_SET_LENGTH_MACRO       256
 ;           lda #$91
 ;           sta REU_COMMAND             ; fire DMA: REU→C64
 ; ============================================================

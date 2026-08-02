@@ -17,12 +17,15 @@
 ; ============================================================
 ; PURPOSE
 ; -------
-; A CC65 tools port of the classic Rankin/Wozniak 6502 floating point
+; A ca65/cc65-tools port of the classic Rankin/Wozniak 6502 floating point
 ; package, "Floating Point Routines for the 6502", Dr. Dobb's
 ; Journal, August 1976 (https://6502.org/source/floats/wozfp1.txt).
 ; This is a SYNTAX AND ADDRESSING port, not a redesign: every
 ; routine below is the same algorithm, same instruction sequence,
 ; same fall-through/branch structure as the original 1976 listing.
+; Only the assembler dialect (ca65 vs. the original's
+; "=" immediate syntax and BSS directives) and the zero page
+; addresses have changed.
 ;
 ; PROVENANCE / ERRATA
 ; ---------------------
@@ -44,7 +47,7 @@
 ; the double-entry and alignment-trampoline mechanisms described
 ; below and was cross-checked against this port while applying the
 ; fix - it also has a materially different, rounding-aware FIX
-; that lib_fp_convert.s borrows from for FP_TO_INT8/16/24.
+; that the integer conversion helpers borrow from for FP_TO_INT8/16/24.
 ;
 ; DEPENDENCIES
 ; ------------
@@ -57,7 +60,7 @@
 ; routines (FP_CLEANUP_FAC1FAC2 below exists precisely because of
 ; that sharing).
 ;
-; Also requires lib_fp_error.s to be included BEFORE this file
+; Also requires library_fp_error.s to be included BEFORE this file
 ; - the overflow/domain-error trap sites here call FP_ERROR by
 ; name, and macros_rom_basic.s/macros_rom_kernal.s for
 ; BASIC_STROUT_MACRO/KERNAL_CHROUT_MACRO, which FP_ERROR uses.
@@ -116,7 +119,7 @@
 ; JSR is deliberately used to create a return address that lands
 ; back inside a DIFFERENT routine's fall-through path. Splitting
 ; these into separate .proc blocks would either break branch
-; range (a .proc boundary is not a physical barrier in 64TASS,
+; range (a .proc boundary is not a physical barrier in ca65,
 ; but reordering to make each piece independently droppable would
 ; force real gaps) or force duplicating the shared tail code,
 ; doubling the size of what is famously some of the tightest
@@ -127,21 +130,15 @@
 ; It's declared with .block rather than .proc specifically
 ; because .proc's dead-code-elimination bookkeeping combined with
 ; this many interlinked branches (some near the +/-127 byte short-
-; branch limit) made 64TASS's multi-pass branch-length resolution
-; fail to converge ("can't calculate stable value" on the .proc
-; line itself, discovered by hand-counting instruction bytes and
-; confirmed when actually assembling this file). .block sidesteps
-; that resolution path entirely and always emits its contents,
-; which costs nothing here anyway: this block is always emitted
-; in full regardless of which of FP_FADD/FP_FSUB/FP_FMUL/FP_FDIV/
-; FP_FLOAT/FP_FIX/FP_SWAP your program actually calls, because
-; they share too much code to bill separately even under .proc's
-; DCE. FP_LOG_PROC, FP_LOG10_PROC and FP_EXP_PROC ARE independent
-; of each other and of one another's private scratch space - each
-; is only reached via JSR from outside and only reaches
-; FP_CORE_PROC via JSR, so each stays a real .proc with its own
-; DCE, at the cost of a few bytes of duplicated constant tables
-; (documented at each duplication).
+; branch limit) and would obscure the deliberate fall-throughs.
+; Keeping the core in one contiguous .proc mirrors the original
+; page layout and avoids presenting tightly interdependent entry
+; points as independent routines. FP_LOG_PROC, FP_LOG10_PROC and
+; FP_EXP_PROC ARE independent of each other and of one another's
+; private scratch space - each is only reached via JSR from
+; outside and only reaches FP_CORE_PROC via JSR, so each stays a
+; real .proc, at the cost of a few bytes of duplicated constant
+; tables (documented at each duplication).
 ;
 ; TWO DELIBERATE CLEVER TRICKS WORTH UNDERSTANDING BEFORE YOU
 ; TOUCH THIS CODE
@@ -194,21 +191,21 @@
 ; bare BRK, on the assumption the caller had installed a BRK
 ; handler (this predates any notion of a portable error-return
 ; convention). This port replaces all three with calls into
-; FP_ERROR (lib_fp_error.s), which prints what went wrong
+; FP_ERROR (library_fp_error.s), which prints what went wrong
 ; and unwinds to a recovery point the caller establishes up front
-; with FP_ERROR_INIT_MACRO (macros_fp.s) - see lib_fp_error.s's
+; with FP_ERROR_INIT_MACRO (macros_fp.s) - see library_fp_error.s's
 ; header for the full setjmp/longjmp-style contract, the error code
 ; list, and why a single shared recovery point (rather than trying
 ; to unwind exactly one call level) is the right model here. The
 ; three trap sites are:
 ;   FP_CORE_PROC's fdiv/rtlog/ovchk - overflow in FADD/FSUB/FMUL/
 ;     FDIV/FIX, or division by zero (detected distinctly - see
-;     lib_fp_error.s)
+;     library_fp_error.s)
 ;   FP_LOG_PROC's error_trap - LOG/LOG10 argument <= 0 (no real log)
 ;   FP_EXP_PROC's ovflw_trap - EXP argument too large, e^x overflows
 ; There is no trap for underflow - results that underflow are
 ; silently set to 0.0, exactly as documented in the original.
-; REQUIRES lib_fp_error.s TO BE ASSEMBLED BEFORE THIS FILE -
+; REQUIRES library_fp_error.s TO BE ASSEMBLED BEFORE THIS FILE -
 ; see the dependency note below.
 ; ============================================================
 
@@ -447,7 +444,7 @@ fdiv:
                             ; overflow does, so this needs to
                             ; be caught up front to report it
                             ; distinctly (see
-                            ; lib_fp_error.s's note on
+                            ; library_fp_error.s's note on
                             ; this)
     lda #1                  ; error code 1: division by zero
     jmp FP_ERROR
@@ -557,7 +554,7 @@ fix_conv:
 ::FP_SWAP   = swap
 ::FP_NORM   = norm          ; normalize FP1 in place, entry documented
                             ; by wozfp3.txt as a standalone routine -
-                            ; used by lib_fp_convert.s to float
+                            ; used by library_fp_convert.s to float
                             ; 8-bit and 24-bit integers without going
                             ; through FP_FLOAT's 16-bit-only entry
 ::FP_RTAR   = rtar          ; shift FP1's 6-byte mantissa+extension

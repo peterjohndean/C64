@@ -8,22 +8,17 @@
 ; PURPOSE
 ; -------
 ; Zero page address definitions for FP_CORE_PROC, FP_LOG_PROC,
-; FP_LOG10_PROC and FP_EXP_PROC in library_fp.s. This is a
-; 64TASS port of the classic Rankin/Wozniak 6502 floating point
+; FP_LOG10_PROC and FP_EXP_PROC in lib_fp.s. This is a
+; ca65/cc65-tools port of the classic Rankin/Wozniak 6502 floating point
 ; package published in Dr. Dobb's Journal, August 1976:
 ;
 ;   "Floating Point Routines for the 6502"
 ;   by Roy Rankin (Stanford) and Steve Wozniak (Apple)
 ;   https://6502.org/source/floats/wozfp1.txt
 ;
-; A related errata (three corrections, published in the
-; November/December 1976 issue of Dr. Dobb's Journal) exists
-; for this package but its exact content could not be sourced
-; at time of writing. This port follows wozfp1.txt as published.
-; Test LOG/LOG10/EXP edge cases (values near 1.0, very large or
-; very small magnitudes) on both VICE and the C64U before relying
-; on this in anything important - see library_fp.s header for
-; the specific behaviours worth stress-testing.
+; Roy Rankin's November/December 1976 errata corrected LOG's
+; sign-extension step; that fix is implemented in lib_fp_log.s.
+; See lib_fp.s and the math doc files for the full provenance.
 ;
 ; NUMBER FORMAT (unchanged from the original)
 ; --------------------------------------------
@@ -119,9 +114,8 @@
 ; declaring buffers with .fill/.byte at the end of the file/proc
 ; rather than at a fixed address. This costs a few extra cycles per
 ; access (absolute,X instead of zero-page,X) but keeps LOG and EXP
-; fully independent for 64TASS's dead code elimination - if your
-; program only calls FP_FADD/FP_FSUB/FP_FMUL/FP_FDIV, none of this
-; scratch is assembled in at all.
+; independent and avoids spending extra zero page unless those
+; routines are linked.
 ; ============================================================
 .ifndef LABELS_FP_S
 LABELS_FP_S = 1
@@ -129,7 +123,8 @@ FP_SIGN     = $02   ; mul/div running sign flag (SIGN)
 
 FP_STRPTR   = $FB   ; string pointer (2 bytes, $FB-$FC), used only by
                      ; FP_FROM_ASCII_PROC/FP_TO_ASCII_PROC in
-                     ; library_fp_ascii.s for (FP_STRPTR),y indirect
+                     ; lib_fp_from_ascii.s/lib_fp_to_ascii.s for
+                     ; (FP_STRPTR),y indirect
                      ; addressing - indirect-indexed addressing REQUIRES
                      ; its pointer to live in zero page, unlike everything
                      ; else in this library. $FB-$FE is a commonly-cited

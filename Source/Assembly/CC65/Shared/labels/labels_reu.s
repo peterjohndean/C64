@@ -56,10 +56,10 @@ REU_CMD_VERIFY      = $93   ; 1001 0011 - Verify/compare both regions
 ;   REU_ADDR_1  = $010000   ; Start of bank 1 (64KB in)
 ;   REU_ADDR_2  = $020000   ; Start of bank 2 (128KB in)
 ;
-; 64tass lets us extract bytes cleanly:
+; ca65 lets us extract bytes cleanly:
 ;   lda #<(addr)           ; low  byte  (bits 0-7)
 ;   lda #>(addr)           ; high byte  (bits 8-15)
-;   lda #^(addr)           ; bank byte  (bits 16-23) <-- cc65 specific!
+;   lda #^(addr)           ; bank byte  (bits 16-23)
 ;
 ;  BANK $00 : $0000 - $FFFF  =  1st 64KB  (bytes        0 -  65,535)
 ;  BANK $01 : $0000 - $FFFF  =  2nd 64KB  (bytes   65,536 - 131,071)
@@ -134,4 +134,3 @@ REU_STATUS_VERSION = %00001111  ; Bits 3-0 mask
 ;  interrupts via REU_INT_MASK ($DF09) - advanced usage
 ; ============================================================
 .endif
-

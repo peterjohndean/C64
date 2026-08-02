@@ -70,10 +70,8 @@ REU_DETECT_SIZE		= REU_DETECT_SIZE_PROC
 ;           Read bank 0 - if $AA, aliasing detected
 ; Notes   : CRITICAL - must wait for each transfer to complete!
 ;           Requires REU_WAIT_EOB_PROC to be defined.
-;           VICE BUG: VICE 256KB REU is misdetected as 512KB
-;           due to incorrect aliasing in VICE's 1764 emulation.
-;           Real hardware (C64U) detects all sizes correctly.
-;           See VICE_256KB_BUG.md for details.
+;           VICE 256KB emulation can confuse this older boundary
+;           probe. Prefer REU_DETECT_SIZE when exact size matters.
 ; Cycles  : Variable - depends on REU size (more tests for larger)
 ; ============================================================
 .proc REU_ALIASING_DETECT_PROC
@@ -354,7 +352,7 @@ reu_probe_banks:
 ; MEMORY LAYOUT (C64 RAM)
 ; -----------------------
 ; All storage lives at the END of this .proc block, assembled
-; inline immediately after the code. 64TASS .proc scoping
+; inline immediately after the code. ca65 .proc scoping
 ; keeps the labels local and invisible to other modules.
 ;
 ;   DMA_BYTE  ($+n, 1 byte)   - one-byte DMA staging window
@@ -383,7 +381,7 @@ reu_probe_banks:
 ;   macros_reu.s must be included before this file:
 ;     REU_FROM_C64_B  - programs REU registers and fires DMA
 ;     REU_TO_C64_B    - reads one byte from REU into C64 RAM
-;   library_reu.s must be included before this file:
+;   this file provides:
 ;     REU_WAIT_EOB_PROC - polls $DF00 until bit 6 (EOB) set
 ;
 ; CYCLES    : Variable — dominated by DMA overhead × 768 calls
@@ -391,7 +389,7 @@ reu_probe_banks:
 ;             plus one or two extra reads for the 16MB check.
 ; EXAMPLE
 ; -------
-;     jsr REU_FETCH_SIZE_PROC  ; run detection
+;     jsr REU_DETECT_SIZE      ; run detection
 ;     lda zp_count             ; A = bank count (0-255/$FF)
 ;     ; multiply by 64 for total KB, e.g.:
 ;     ;   2 → 128KB   4 → 256KB   8 → 512KB   $FF → 16384KB

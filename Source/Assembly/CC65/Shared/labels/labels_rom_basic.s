@@ -7,7 +7,7 @@ LABELS_ROM_BASIC_S = 1
 ;------------------------------------------------
 BASIC_GOCR      := $aad7 ; Output cr/lf
 BASIC_STROUT    := $ab1e ; Output zero/null terminated string at Y/A
-BASIC_LINPRT    := $bdcd ; Output unit16 (Register A/X) as a number in ASCII/PETSCII
+BASIC_LINPRT    := $bdcd ; Output uint16 (Register A/X) as a number in ASCII/PETSCII
 .endif
 
 .if 0

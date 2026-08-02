@@ -38,7 +38,7 @@
 ; the double-entry and alignment-trampoline mechanisms described
 ; below and was cross-checked against this port while applying the
 ; fix - it also has a materially different, rounding-aware FIX
-; that library_fp_convert.s borrows from for FP_TO_INT8/16/24.
+; that the integer conversion helpers borrow from for FP_TO_INT8/16/24.
 ;
 ; NUMBER FORMAT
 ; --------------
@@ -94,7 +94,7 @@
 ; JSR is deliberately used to create a return address that lands
 ; back inside a DIFFERENT routine's fall-through path. Splitting
 ; these into separate .proc blocks would either break branch
-; range (a .proc boundary is not a physical barrier in 64TASS,
+; range (a .proc boundary is not a physical barrier in ca65,
 ; but reordering to make each piece independently droppable would
 ; force real gaps) or force duplicating the shared tail code,
 ; doubling the size of what is famously some of the tightest
@@ -102,24 +102,15 @@
 ; "basic page" is kept as one block, exactly as it was one
 ; physical page ($1F00) in the original.
 ;
-; It's declared with .block rather than .proc specifically
-; because .proc's dead-code-elimination bookkeeping combined with
-; this many interlinked branches (some near the +/-127 byte short-
-; branch limit) made 64TASS's multi-pass branch-length resolution
-; fail to converge ("can't calculate stable value" on the .proc
-; line itself, discovered by hand-counting instruction bytes and
-; confirmed when actually assembling this file). .block sidesteps
-; that resolution path entirely and always emits its contents,
-; which costs nothing here anyway: this block is always emitted
-; in full regardless of which of FP_FADD/FP_FSUB/FP_FMUL/FP_FDIV/
-; FP_FLOAT/FP_FIX/FP_SWAP your program actually calls, because
-; they share too much code to bill separately even under .proc's
-; DCE. FP_LOG_PROC, FP_LOG10_PROC and FP_EXP_PROC ARE independent
-; of each other and of one another's private scratch space - each
-; is only reached via JSR from outside and only reaches
-; FP_CORE_PROC via JSR, so each stays a real .proc with its own
-; DCE, at the cost of a few bytes of duplicated constant tables
-; (documented at each duplication).
+; Keeping the core in one contiguous .proc mirrors the original
+; page layout, keeps the short branches honest, and avoids
+; presenting tightly interdependent entry points as independent
+; routines. FP_LOG_PROC, FP_LOG10_PROC and FP_EXP_PROC ARE
+; independent of each other and of one another's private scratch
+; space - each is only reached via JSR from outside and only
+; reaches FP_CORE_PROC via JSR, so each stays a real .proc, at the
+; cost of a few bytes of duplicated constant tables (documented at
+; each duplication).
 ;
 ; TWO DELIBERATE CLEVER TRICKS WORTH UNDERSTANDING BEFORE YOU
 ; TOUCH THIS CODE
@@ -186,7 +177,6 @@
 ;   FP_EXP_PROC's ovflw_trap - EXP argument too large, e^x overflows
 ; There is no trap for underflow - results that underflow are
 ; silently set to 0.0, exactly as documented in the original.
-; REQUIRES lib_fp_error.s TO BE ASSEMBLED BEFORE THIS FILE -
+; REQUIRES lib_fp_error.s TO BE ASSEMBLED BEFORE lib_fp.s -
 ; see the dependency note below.
 ; ============================================================
-

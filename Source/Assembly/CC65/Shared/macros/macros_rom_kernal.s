@@ -46,7 +46,7 @@
 ; ---------------
 ;   KERNAL_CHROUT_MACRO  — load immediate byte into A, call CHROUT
 ;
-; ASSEMBLER : 64TASS (tested against v1.60)
+; ASSEMBLER : ca65 / cc65 tools
 ; ============================================================
 
 ; ============================================================
@@ -61,7 +61,7 @@
 ; This macro is intended for outputting literal characters or
 ; control codes that are known at assembly time. For runtime
 ; values already in a register or memory, call KERNAL_CHROUT
-; (or the CHROUT procedure wrappers in library_convert.s)
+; (or another runtime wrapper around CHROUT)
 ; directly — using this macro with a runtime variable is not
 ; possible because LDA immediate only accepts a constant.
 ;
