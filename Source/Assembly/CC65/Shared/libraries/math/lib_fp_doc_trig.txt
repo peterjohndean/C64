@@ -1,0 +1,169 @@
+; ============================================================
+; FILE    : lib_fp_doc_trig.txt
+; PROJECT : Commodore 64 Floating Point Library (Rankin/Wozniak port)
+; AUTHOR  : Peter
+; TARGET  : Commodore 64 / 6510 CPU
+; TOOLS   : CC65 tools, VICE emulator, physical C64U
+; ============================================================
+; PURPOSE
+; -------
+; sin/cos/tan for the FP library. Not part of the original 1976
+; Rankin/Wozniak package (which shipped FADD/FSUB/FMUL/FDIV/FIX/
+; FLOAT plus LOG/LOG10/EXP only - no trig at all) - this is new
+; work, built entirely from primitives that package (and this
+; port's own later additions, FP_FMOD in particular) already
+; provides.
+;
+; ROUTINE INVENTORY
+; -------------------
+;   FP_SIN_PROC       (lib_fp_sin.s)      - sin(x), Taylor/Horner
+;                                           core, scope [-pi/2,pi/2]
+;   FP_SIN_FULL_PROC  (lib_fp_sin_full.s) - sin(x), any x, via
+;                                           FP_FMOD + quadrant
+;                                           reduction into the core
+;   FP_COS_PROC        (lib_fp_cos.s)      - cos(x), any x, via
+;                                           cos(x)=sin(x+pi/2)
+;   FP_TAN_PROC         (lib_fp_tan.s)      - tan(x), any x, via
+;                                           FP_FDIV(sin(x),cos(x))
+;
+; DESIGN SUMMARY (see each file's own header for full reasoning)
+; -----------------------------------------------------------------
+; FP_SIN_PROC is the only one of the four with any new numerical
+; method in it: a 5-term Taylor series for sin(x), evaluated via
+; Horner's method (one running accumulator, one FMUL+FADD pair per
+; coefficient), scoped to [-pi/2,pi/2] because that is where the
+; series' own truncation error stays comfortably under this
+; format's ~1e-7 mantissa precision floor - checked numerically
+; before committing to 5 terms, not assumed.
+;
+; Everything built on top of it is composition, not new math:
+;   - FP_SIN_FULL_PROC reduces any angle down to something
+;     FP_SIN_PROC already handles correctly, using the already-
+;     existing FP_FMOD_PROC plus a 4-way quadrant symmetry table.
+;   - FP_COS_PROC is a single FADD (phase shift by pi/2) followed
+;     by a call into FP_SIN_FULL_PROC - no separate cos polynomial
+;     was written, deliberately (see lib_fp_cos.s's header for why
+;     a "narrow cos core" analogous to FP_SIN_PROC doesn't make
+;     sense here).
+;   - FP_TAN_PROC is FP_FDIV(sin(x),cos(x)), relying entirely on
+;     FP_FDIV's own already-tested division-by-zero and overflow
+;     traps rather than adding a new domain-check epsilon (see
+;     lib_fp_tan.s's header for why an epsilon threshold would
+;     actually have been mathematically wrong, not just redundant).
+;
+; This mirrors the reasoning already established elsewhere in this
+; library (lib_fp_trunc.s: "composing proven building blocks is
+; slower but far less likely to hide a new bug") - applied here to
+; an entire family of four routines built from one seed of new
+; numerical work.
+;
+; TEST INVENTORY
+; -----------------
+; All values below are ACTUAL measured results (hex FAC dump +
+; rendered decimal), confirmed identical on both VICE and physical
+; C64U hardware for every test listed - not merely predicted.
+; "err" is signed measured-minus-exact, exact values from Python's
+; math module.
+;
+; tr_sin.s (FP_SIN_PROC core, scope [-pi/2,pi/2], all four points
+; individually verified, including the documented scope boundary):
+;   T00  sin(30 deg)  = 0.4999999 (err -1.19e-7)
+;   T01  sin(45 deg)  = 0.7071066 (err -1.91e-7)
+;   T02  sin(60 deg)  = 0.8660254 (err +4.41e-8)
+;   T03  sin(90 deg)  = 1.0000036 (err +3.58e-6) <- scope boundary;
+;        error matches the series' own predicted truncation error
+;        at this exact point almost exactly (predicted ~3.54e-6),
+;        confirming the header's precision table describes real
+;        hardware behaviour, not just arithmetic on paper
+;
+; tr_sin_full.s (FP_SIN_FULL_PROC, range reduction - one test per
+; quadrant plus the two reduction-specific edge cases):
+;   T00  sin(120 deg) = 0.8660247 (err -6.71e-7)  quadrant 2
+;   T01  sin(200 deg) = -0.3420191 (err +1.06e-6) quadrant 3
+;   T02  sin(300 deg) = -0.8660243 (err +1.15e-6) quadrant 4
+;   T03  sin(400 deg) = 0.6427873 (err -2.72e-7)  >360 deg wraparound
+;   T04  sin(-30 deg) = -0.4999990 (err +9.54e-7) negative-input fold
+;
+; tr_cos.s (FP_COS_PROC - includes two cases chosen specifically to
+; land the phase-shifted argument exactly on a quadrant boundary
+; inside FP_SIN_FULL_PROC):
+;   T00  cos(0 deg)   = 1.0000036 (err +3.58e-6) == sin(90) core call
+;   T01  cos(45 deg)  = 0.7071062 (err -5.49e-7)
+;   T02  cos(90 deg)  = 0.0000010 (err +9.54e-7) shifted arg lands on pi
+;   T03  cos(180 deg) = -1.0000036 (err -3.58e-6)
+;   T04  cos(270 deg) = 0.0000000 (exact)        shifted arg lands on 2pi
+;
+; tr_tan.s (FP_TAN_PROC - four ordinary angles plus the asymptote
+; itself, tested deliberately rather than avoided):
+;   T00  tan(0 deg)   = 0.0000000 (exact)
+;   T01  tan(30 deg)  = 0.5773502 (err -1.02e-8)
+;   T02  tan(45 deg)  = 1.0000005 (err +4.77e-7)
+;   T03  tan(60 deg)  = 1.7320538 (err +2.95e-6)
+;   T04  tan(90 deg)  = 1048580.0 - the asymptote: NOT a trap, a
+;        large-but-finite quotient, exactly the documented behaviour
+;        (cos(90) itself rounds to ~9.5e-7, not exact 0.0 - see
+;        lib_fp_tan.s's SCOPE note for why this is correct, not a
+;        bug, and matches how standard tan() implementations behave
+;        near an asymptote generally)
+;
+; BUGS FOUND AND FIXED DURING THIS TEST PASS
+; -----------------------------------------------
+; Both were the SAME class of bug, found twice, in two different
+; places - worth recording as a pattern, not just two isolated fixes:
+;
+;   1. tr_sin.s's original T00 loaded FP1 with the bare integer 30
+;      (via FP_FROM_INT8) instead of 30 degrees expressed in
+;      radians, and called FP_SIN with no FP_ERROR_INIT_MACRO guard
+;      armed. 30.0 radians is wildly outside FP_SIN_PROC's
+;      documented [-pi/2,pi/2] scope, so the Horner polynomial's
+;      intermediate terms genuinely overflowed - and with no
+;      recovery point armed, FP_ERROR_PROC's unwind restored the
+;      stack pointer from an FP_ERROR_SP that had never been set,
+;      RTS'd to garbage, and crashed. Fixed by passing an already-
+;      correct radian constant AND arming a guard around every
+;      risky FP call from then on - see tr_sin.s.
+;
+;   2. TEST_CHECK itself (tp_check.s) rendered results via
+;      FP_TO_ASCII (16-bit integer-part ceiling, 65,535) with no
+;      guard of its own. tr_tan.s's T04 (tan(90 deg) ~= 1,048,580)
+;      exceeded that ceiling and hit FP_TO_ASCII's own documented
+;      "uncaught, out of scope" trap DURING DISPLAY - after the
+;      actual FP_TAN computation had already succeeded correctly.
+;      Same root cause as bug 1 (a trap with no recovery point
+;      armed), but this time inside a routine every single test in
+;      the suite calls, so it would have silently been waiting to
+;      recur for any future test with a large result, not just this
+;      one. Fixed by switching to FP_TO_ASCII24 (raises the ceiling
+;      to 8,388,607) AND arming TEST_CHECK's own guard around the
+;      conversion, with a "<value too large to display>" fallback
+;      for anything that still exceeds even that - see tp_check.s.
+;
+; The pattern worth remembering: FP_ERROR_INIT_MACRO/CLEAR_MACRO
+; needs to be armed at EVERY point a trap could plausibly fire, not
+; just around the "main" call being tested - a shared utility
+; routine (like TEST_CHECK) is just as capable of triggering an
+; unguarded trap as the test code that calls it, and is arguably
+; more dangerous when it does, since it fires downstream of every
+; test rather than just one.
+;
+; KNOWN LIMITATIONS (carried over from each routine's own SCOPE
+; note - repeated here for a single reference point)
+; -----------------------------------------------------------------
+;   - FP_SIN_PROC alone (not FP_SIN_FULL_PROC): |x| > pi/2 produces
+;     a silently wrong result, no trap - a Taylor series degrades
+;     smoothly rather than failing loudly. Use FP_SIN_FULL_PROC for
+;     any input that isn't already known to be in range.
+;   - FP_TAN_PROC near an asymptote: returns a large but finite
+;     value rather than trapping, UNLESS cos(x) happens to round to
+;     exact canonical zero (rare) or the quotient's exponent
+;     genuinely overflows this format's range. This is intentional
+;     (see lib_fp_tan.s) and matches conventional tan() behaviour
+;     elsewhere, not a defect.
+;   - All four routines compound rounding error from every FP
+;     operation in their call chain - FP_SIN_FULL_PROC/FP_COS_PROC/
+;     FP_TAN_PROC's measured errors (roughly 1e-7 to a few 1e-6) run
+;     somewhat higher than FP_SIN_PROC's own core error at the same
+;     angle, because each adds its own FMOD/FADD/FSUB/FDIV step on
+;     top of the core polynomial call - expected accumulation, not
+;     a red flag, per the error-budget discussion in each file.
+; ============================================================

@@ -1,0 +1,50 @@
+; ============================================================
+; FILE    : lib_fp_ascii.s
+; PROJECT : Commodore 64 Floating Point Library (Rankin/Wozniak port)
+; AUTHOR  : Peter
+; TARGET  : Commodore 64 / 6510 CPU
+; TOOLS   : CC65 tools, VICE emulator, physical C64U
+; ============================================================
+; PURPOSE
+; -------
+; Decimal string <-> float conversion, in the spirit of BASIC's
+; VAL()/STR$() but implemented directly against FP_CORE_PROC
+; rather than BASIC's own FAC routines.
+;
+; ROUTINE INVENTORY
+; -------------------
+;   FP_FROM_ASCII_PROC - parse a decimal string into FP1
+;   FP_TO_ASCII_PROC    - format FP1 as a decimal string
+;
+; SCOPE - READ THIS BEFORE RELYING ON EITHER ROUTINE
+; -----------------------------------------------------
+; These are deliberately NOT a full free-format implementation
+; like BASIC's own FOUT/VAL (which handle scientific notation,
+; arbitrary magnitude, and BASIC's specific rounding/significant-
+; digit rules). What's here:
+;
+;   FP_FROM_ASCII_PROC accepts: an optional leading + or -, digits,
+;   at most one decimal point, more digits. NO exponent notation
+;   ("1E10" is not understood - it will parse as "1", stop at 'E').
+;   An empty string, or a string with no digits at all, returns
+;   with carry set and FP1 left at 0.0.
+;
+;   FP_TO_ASCII_PROC produces a fixed-point (never scientific
+;   notation) string: an optional '-', the integer part, and a
+;   caller-specified number of fractional digits. The integer part
+;   is extracted via FP_TO_INT16_PROC, so values whose magnitude is
+;   >= 65536 are OUT OF SCOPE for this routine - the output will be
+;   wrong (not merely imprecise) above that. If you need to display
+;   larger magnitudes, or scientific notation, or BASIC-compatible
+;   formatting, this isn't that - consider it a starting point.
+;
+; Both routines expect PETSCII/ASCII digit codes ($30-$39 for
+; '0'-'9', $2D for '-', $2B for '+', $2E for '.') - these happen to
+; be identical in PETSCII and ASCII, so this works whether the
+; string came from KERNAL_CHRIN, a screen-code buffer that's been
+; translated, or a .text/.null literal, AS LONG AS your 64TASS
+; source encoding (.enc, if you've changed it from the default)
+; produces those exact byte values for these characters. Verify
+; this on your own setup before trusting it - it's a one-line VICE
+; memory dump to check.
+; ============================================================

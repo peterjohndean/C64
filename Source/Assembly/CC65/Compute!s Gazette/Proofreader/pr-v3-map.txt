@@ -1,0 +1,30 @@
+Modules list:
+-------------
+pr-v3.s.7715.0.o:
+    CODE              Offs=000000  Size=0000B7  Align=00001  Fill=0000
+    LOADADDR          Offs=000000  Size=000002  Align=00001  Fill=0000
+    TEXTTAB           Offs=000000  Size=00001B  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+LOADADDR              0007FF  000800  000002  00001
+CODE                  000801  0008B7  0000B7  00001
+TEXTTAB               000901  00091B  00001B  00001
+
+
+Exports list by name:
+---------------------
+
+
+
+Exports list by value:
+----------------------
+
+
+
+Imports list:
+-------------
+

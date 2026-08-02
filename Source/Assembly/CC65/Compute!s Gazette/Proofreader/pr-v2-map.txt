@@ -1,0 +1,28 @@
+Modules list:
+-------------
+pr-v2.s.7712.0.o:
+    CODE              Offs=000000  Size=000085  Align=00001  Fill=0000
+    LOADADDR          Offs=000000  Size=000002  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+LOADADDR              000374  000375  000002  00001
+CODE                  000376  0003FA  000085  00001
+
+
+Exports list by name:
+---------------------
+
+
+
+Exports list by value:
+----------------------
+
+
+
+Imports list:
+-------------
+

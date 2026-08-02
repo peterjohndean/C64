@@ -1,0 +1,7 @@
+al 0003EB .Show2
+al 0003E8 .BREAK
+al 0003AD .Next
+al 0003B5 .Show
+al 00037E .Setup
+al 000396 .Main
+al 000376 .Install

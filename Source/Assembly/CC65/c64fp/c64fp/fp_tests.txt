@@ -1,0 +1,169 @@
+; ============================================================
+; FILE    : fp_tests.txt
+; PROJECT : Commodore 64 Floating Point Library (Rankin/Wozniak port)
+; AUTHOR  : Peter
+; TARGET  : Commodore 64 / 6510 CPU
+; TOOLS   : CC65 tools, VICE emulator, physical C64U
+; ============================================================
+; PURPOSE
+; -------
+; Exercises the C64 floating-point library through grouped CA65 test
+; routines registered by fp_tests.s. The runner prints the number of
+; groups, dispatches each group through a self-modifying JSR, and reports
+; individual results as PASS, FAIL, or CHECK lines.
+;
+; The suite covers:
+;
+;   - Core arithmetic: FADD, FSUB, FMUL, FDIV and FMOD.
+;   - Transcendentals: LOG, LOG10 and EXP.
+;   - Trigonometry: SIN, full-range SIN, COS, TAN, degree/radian
+;     conversion and round trips.
+;   - Rounding: TRUNC, FLOOR and CEIL.
+;   - Comparison and compare-to-constant helpers.
+;   - FP1/FP2 utility behavior: SWAP and FAC cleanup.
+;   - Integer conversions: signed 8/16/24-bit and unsigned 8/16/24-bit.
+;   - IEEE-754 conversion, including Infinity and NaN rejection.
+;   - ASCII conversion: legacy 16-bit-range paths and newer 24-bit-range
+;     formatting/parsing paths.
+;   - FP_ERROR_PROC trap/recovery behavior for expected arithmetic and
+;     conversion failures.
+;
+; The current group order in fp_tests.s is:
+;
+;   00 tr_fadd       01 tr_fsub       02 tr_fmul       03 tr_fdiv
+;   04 tr_fmod       05 tr_log        06 tr_exp        07 tr_sin
+;   08 tr_sin_full   09 tr_cos        10 tr_tan        11 tr_deg_rad
+;   12 tr_trunc      13 tr_floor      14 tr_ceil       15 tr_compare
+;   16 tr_swap       17 tr_clearfac   18 tr_int8       19 tr_int16
+;   20 tr_int24      21 tr_uint8      22 tr_uint16     23 tr_uint24
+;   24 tr_ieee754    25 tr_ascii16    26 tr_ascii24
+;
+; The left number is the group id printed by SHOW_CURRENT_TEST_MACRO.
+; Each group owns its own local test id, so output should be read as
+; "group-test", not as one global Txx sequence.
+;
+; IMPORTANT REGRESSION TARGETS
+; ----------------------------
+;   - tr_log test 0 exercises LOG(0.5), the argument-below-1.0 path
+;     fixed by Rankin's errata (wozfp2.txt). Comment out the
+;     [ERRATA FIX] block after FP_LOG_PROC's @cont label and rerun this
+;     group to confirm the failure mode: a negative exponent is
+;     zero-extended instead of sign-extended, producing a result with the
+;     wrong sign/magnitude.
+;
+;   - tr_fadd test 2 adds 1,000,000,000.0 and 0.5. This drives the
+;     mantissa-alignment trampoline through a large exponent gap. At
+;     that magnitude the representable increment is 128, so the correct
+;     rounded result is exactly 1,000,000,000.0.
+;
+;   - tr_int8, tr_int16, tr_int24 and their unsigned counterparts cover
+;     round trips, overflow boundaries, and negative-input rejection for
+;     unsigned output paths. tr_uint16 and tr_uint24 use values above
+;     the signed-positive threshold so the sign-bit adjustment paths are
+;     genuinely exercised.
+;
+;   - tr_ascii16 and tr_ascii24 cover parser tolerance, integer-only
+;     input, fraction-only input, exact decimal cases, and precision-floor
+;     behavior where binary FP cannot represent the requested decimal
+;     exactly.
+;
+;   - tr_ieee754 verifies normal and zero round trips, a boundary case
+;     that depends on exponent rebiasing and FP_NEGATE normalization, and
+;     explicit traps for IEEE Infinity and NaN input.
+;
+;   - Trap tests deliberately trigger the expected FP_ERROR_CODE values:
+;       0 generic overflow       tr_fmul overflow
+;       1 division by zero       tr_fdiv /0, tr_fmod %0
+;       2 log domain             tr_log(-5), tr_log(0)
+;       3 exp overflow           tr_exp(1000)
+;       4 IEEE-754 Infinity      tr_ieee754 +Infinity
+;       5 IEEE-754 NaN           tr_ieee754 quiet NaN
+;     tr_fadd also verifies the guarded success/no-trap path. Because
+;     tr_fadd is currently group 0, it does not prove post-trap state; the
+;     trap groups themselves prove their own recovery by resuming and
+;     reporting PASS rather than crashing or returning to the wrong label.
+;
+; TEST VECTOR PROVENANCE
+; --------------------------
+; Values used for FADD/FSUB/FMUL/FDIV were derived directly from
+; value = mantissa_int/2^22 * 2^(exponent-128) (see the derivation
+; in lib_fp_doc_convert.txt) and cross-checked against wozfp3.txt's
+; FADD and FMUL worked examples, which are internally consistent. The
+; FSUB and FDIV examples in wozfp3.txt are not used as sources here; see
+; the caution note in lib_fp_doc.txt for why.
+;
+; Most conversion and formatting tests avoid hand-encoded FP constants
+; where practical. They build values through FP_FROM_INT*, FP_FROM_UINT*
+; or FP_FROM_ASCII* and then assert the returned integer/string value.
+; This reduces the chance of copying old hand-encoding mistakes back into
+; the suite.
+;
+; WHAT THIS DOES *NOT* COVER
+; ------------------------------
+; FP_LOG_PROC, FP_LOG10_PROC and FP_EXP_PROC are rational-
+; approximation algorithms; their results are correct to within the
+; format's roughly 7 significant decimal digits, not bit-exact against
+; every decimal expectation. The trigonometry routines use Taylor/Horner
+; plus range-reduction composition, with measured error budgets documented
+; in lib_fp_doc_trig.txt. LOG, LOG10, EXP and the trigonometry groups
+; therefore use CHECK output for human inspection rather than exact byte
+; assertions for every case.
+;
+; CHECK output is not a failure. It means the test prints FP1 as raw bytes
+; and/or ASCII so the result can be compared against the nearby comment and
+; the expected mathematical ballpark. PASS/FAIL lines are used where the
+; suite can assert an exact FP byte pattern, integer return value, string,
+; comparison code, or expected trap code.
+;
+; This suite is still primarily a regression harness for known library
+; behavior. It is not exhaustive numeric validation across the whole input
+; space, and it does not currently measure precision envelopes statistically.
+; Add targeted groups first; generalize only when repeated patterns justify
+; it.
+;
+; RUNTIME NOTES
+; -------------
+; fp_tests.s patches the operand bytes of a dummy JSR immediately before
+; dispatching each group, so the test program must execute from RAM. Running
+; from ROM or write-protected memory will break the registry dispatcher.
+;
+; main.s chooses screen output by default. Before SYS 2061, POKE 780,1 to
+; redirect test output to device 4, secondary address 7. Any other value in
+; SAREG keeps output on screen.
+;
+; DEPENDENCIES
+; ------------
+; The Makefile assembles all project .s files recursively and archives each
+; immediate Shared/libraries subdirectory into a temporary .lib. The FP test
+; files therefore rely on the exported labels and procedures supplied by the
+; shared labels, macros, math and convert libraries.
+;
+; Important shared math modules used by this suite:
+;
+;   - lib_fp_error.s provides FP_ERROR and the FP_ERROR_CODE contract used
+;     by every trap test.
+;   - lib_fp.s provides the original core aliases: FP_FADD, FP_FSUB,
+;     FP_FMUL, FP_FDIV, FP_FLOAT, FP_FIX, FP_SWAP, FP_NORM, FP_RTAR and
+;     FP_NEGATE.
+;   - lib_fp_log.s, lib_fp_log10.s and lib_fp_exp.s provide LOG, LOG10 and
+;     EXP as separate procedures with their own private scratch space.
+;   - lib_fp_fmod.s, lib_fp_sin.s, lib_fp_sin_full.s, lib_fp_cos.s,
+;     lib_fp_tan.s and lib_fp_deg_rad.s provide the extended math tested
+;     by the trigonometry groups.
+;   - lib_fp_compare.s plus FP_COMPARE_TO_MACRO in macros_fp.s provide
+;     comparison tests and helpers used by conversion/rounding code.
+;   - lib_fp_from_int*.s, lib_fp_to_int*.s, lib_fp_from_uint*.s and
+;     lib_fp_to_uint*.s provide signed and unsigned integer conversion.
+;   - lib_fp_trunc.s, lib_fp_floor.s and lib_fp_ceil.s provide rounding.
+;   - lib_fp_from_ascii.s, lib_fp_to_ascii.s, lib_fp_from_ascii24.s and
+;     lib_fp_to_ascii24.s provide decimal parsing/formatting.
+;   - lib_fp_ieee754.s provides IEEE single-precision interchange and traps
+;     with code 4 for Infinity and code 5 for NaN.
+;   - lib_fp_cleanupfac1fac2.s clears the shared BASIC FAC1/FAC2 workspace
+;     before returning to BASIC.
+;
+; The convert library must provide OUTPUT_BYTETOHEX and OUTPUT_BYTETODEC
+; for diagnostics and group/test numbering.
+;
+; See the individual library headers for the detailed dependency rationale.
+; ============================================================

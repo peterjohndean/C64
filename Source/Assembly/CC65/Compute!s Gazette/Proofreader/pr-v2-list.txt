@@ -1,0 +1,133 @@
+ca65 V2.19 - Git 547d92358
+Main file   : pr-v2.s
+Current file: pr-v2.s
+
+000000r 1               ;
+000000r 1               ; Compute!s Gazette
+000000r 1               ; December 1983
+000000r 1               ; Proofreader Version 2
+000000r 1               ; Page 203
+000000r 1               ; load"pr-v2.bin",8,1
+000000r 1               ; sys886:new
+000000r 1               ;
+000000r 1               ; CC65
+000000r 1               ; cl65 -g -t c64 -C pr-v2.cfg -Ln pr-v2-vice.txt -m pr-v2-map.txt -l pr-v2-list.txt pr-v2.s -o pr-v2.bin
+000000r 1               
+000000r 1               	.segment "LOADADDR"
+000000r 1  76 03            .word $0376     ; The PRG load address header
+000002r 1               
+000002r 1               	.segment "CODE"
+000000r 1               ;
+000000r 1               ; Labels
+000000r 1               ;
+000000r 1               IBASIN	= $0324		; Vector to Kernal CHRIN Routine [$0324-$0325] (Default at 61783 ($F157))
+000000r 1               TBUFFR	= $033c		; Tape Buffer [$033c-$03fb]
+000000r 1               CHRIN	= $f157		; Character In, returns character in register A
+000000r 1               CHKSUM	= $fe		; Checksum (8-bit) variable
+000000r 1               TBLX	= $d6		; Current cursor physical line number
+000000r 1               INSRT	= $d8		; Flag: Insert Mode (Any Number Greater Than 0 Is the Number of Inserts)
+000000r 1               CHROUT	= $ffd2		; Output character in register A
+000000r 1               LINPRT	= $bdcd		; Output ascii decimal of UInt in registers A/X
+000000r 1               
+000000r 1               ;
+000000r 1               ; Install: Check if already installed, then install new handler.
+000000r 1               ;
+000000r 1               Install:
+000000r 1  AD 24 03     		lda IBASIN
+000003r 1  C9 rr        		cmp #<Main
+000005r 1  D0 01        		bne Setup		; If ISBASIN != Main+1, then configure
+000007r 1  60           		rts
+000008r 1               ;
+000008r 1               ; Setup: Install new handler and reset checksum variable
+000008r 1               ;
+000008r 1               Setup:
+000008r 1  8D rr rr     		sta Main+1		; Update Main JSR lsb
+00000Br 1               
+00000Br 1  AD 25 03     		lda IBASIN+1
+00000Er 1  8D rr rr     		sta Main+2		; Update Main JSR msb
+000011r 1               
+000011r 1  A9 rr        		lda #<Main
+000013r 1  8D 24 03     		sta IBASIN		; Set new handler lsb vector
+000016r 1  A9 rr        		lda #>Main
+000018r 1  8D 25 03     		sta IBASIN+1	; Set new handler msb vector
+00001Br 1               
+00001Br 1  A9 00        		lda #$00
+00001Dr 1  85 FE        		sta CHKSUM		; Reset checksum
+00001Fr 1  60           		rts
+000020r 1               
+000020r 1               ;
+000020r 1               ; Main: Main loop
+000020r 1               ;
+000020r 1               Main:
+000020r 1  20 57 F1     		jsr CHRIN	; Call default CHRIN
+000023r 1               
+000023r 1               		; Save registers
+000023r 1  85 FB        		sta $fb
+000025r 1  86 FC        		stx $fc
+000027r 1  84 FD        		sty $fd
+000029r 1  08           		php
+00002Ar 1               
+00002Ar 1               		; Checksum finished
+00002Ar 1  C9 0D        		cmp #$0d
+00002Cr 1  F0 11        		beq Show	; If Return, finished checksum
+00002Er 1               
+00002Er 1               		; Ignore spaces
+00002Er 1  C9 20        		cmp #$20
+000030r 1  F0 05        		beq Next	; If Space, skip it
+000032r 1               
+000032r 1               		; Perform checksum
+000032r 1  18           		clc
+000033r 1  65 FE        		adc CHKSUM	; 8-bit Checksum
+000035r 1  85 FE        		sta CHKSUM	; Store $fe = $fe + A (CHRIN)
+000037r 1               
+000037r 1               Next:
+000037r 1               		; Restore registers
+000037r 1  A5 FB        		lda $fb
+000039r 1  A6 FC        		ldx $fc
+00003Br 1  A4 FD        		ldy $fd
+00003Dr 1  28           		plp
+00003Er 1  60           		rts
+00003Fr 1               
+00003Fr 1               Show:
+00003Fr 1               		; Show checksum, cleanup for next line entry.
+00003Fr 1  A9 0D        		lda #$0d
+000041r 1  20 D2 FF     		jsr CHROUT
+000044r 1               
+000044r 1  A5 D6        		lda TBLX		; Read cursor line position
+000046r 1  8D FB 03     		sta TBUFFR+191
+000049r 1  CE FB 03     		dec TBUFFR+191	; Temporary value
+00004Cr 1               
+00004Cr 1  A9 00        		lda #$00
+00004Er 1  85 D8        		sta INSRT	; No inserts, does this handle the {RVS OFF}
+000050r 1               
+000050r 1  A9 13        		lda #$13	; {HOME}
+000052r 1  20 D2 FF     		jsr CHROUT
+000055r 1  A9 12        		lda #$12	; {RVS ON}
+000057r 1  20 D2 FF     		jsr CHROUT
+00005Ar 1  A9 3A        		lda #$3a	; ':'
+00005Cr 1  20 D2 FF     		jsr CHROUT
+00005Fr 1               
+00005Fr 1  A6 FE        		ldx CHKSUM	; Read current checksum value
+000061r 1  A9 00        		lda #$00
+000063r 1  85 FE        		sta CHKSUM	; Reset checksum value
+000065r 1               
+000065r 1               		; Another wedge? Warm Reset? Other?
+000065r 1  AC rr rr     		ldy Main+1
+000068r 1  C0 57        		cpy #<CHRIN
+00006Ar 1  D0 06        		bne BREAK	; If !=, another wedge has altered it
+00006Cr 1               
+00006Cr 1  20 CD BD     		jsr LINPRT	; Output checksum
+00006Fr 1  4C rr rr     		jmp Show2
+000072r 1               
+000072r 1               BREAK:
+000072r 1  20 CD DD     		jsr $ddcd	; Points to BRK, why not use the BRK, plus not a notable routine!
+000075r 1               
+000075r 1               Show2:
+000075r 1  A9 20        		lda #$20	; {SPACE}
+000077r 1  20 D2 FF     		jsr CHROUT
+00007Ar 1  20 D2 FF     		jsr CHROUT
+00007Dr 1               
+00007Dr 1  AD FB 03     		lda TBUFFR+191
+000080r 1  85 D6        		sta TBLX		; Update cursor line position
+000082r 1  4C rr rr     		jmp Next
+000082r 1               

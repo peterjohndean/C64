@@ -1,0 +1,241 @@
+ca65 V2.19 - Git 547d92358
+Main file   : pr-v3.s
+Current file: pr-v3.s
+
+000000r 1               ;
+000000r 1               ; Original Compute!s Gazette February 1986, Page 108, 116
+000000r 1               ;
+000000r 1               ; Modified Proofreader Version 3.01 (machine language only with single use installer)
+000000r 1               ;
+000000r 1               ; To methods of invoking the Proofreader (test on VICE macOS & C64U),
+000000r 1               ; 1. load"pr-v3.bin",8,1:sys 2049	-> for normal BASIC
+000000r 1               ; 2. £"pr-v3.bin"                   -> for JiffyDOS v6.x
+000000r 1               ;
+000000r 1               
+000000r 1               ;
+000000r 1               ; CC65
+000000r 1               ; cl65 -g -t c64 -C pr-v3.cfg -Ln pr-v3-vice.txt -m pr-v3-map.txt -l pr-v3-list.txt pr-v3.s -o pr-v3.bin
+000000r 1               ;
+000000r 1               	.segment "LOADADDR"
+000000r 1  01 08            .word $0801
+000002r 1               
+000002r 1                   .segment "CODE"
+000000r 1               
+000000r 1               ;
+000000r 1               ; Labels
+000000r 1               ;
+000000r 1               TXTTAB	= $2b		; Pointer to the Start of BASIC Program Text (Defaults $0801)
+000000r 1               INBIT	= $a7
+000000r 1               ;BITCI	= $a8
+000000r 1               ;LDTB1	= $d9		; Screen Line Link Table/Editor Temporary Storage ($00d9-$00f2)
+000000r 1               ;
+000000r 1               CHKSUM	= INBIT		; ZP Checksum int variable
+000000r 1               QFLAG	= $b0		; ZP Quote toggle flag
+000000r 1               CINDEX	= $b4		; ZP Character index
+000000r 1               ;
+000000r 1               LINNUM	= $14		; Integer Line Number Value ($0014-$0015)
+000000r 1               BUF		= $200		; BASIC Line Editor Input Buffer ($0200-$0258)
+000000r 1               ICRNCH	= $0304		; Vector to the Routine That Crunches the ASCII Text of Keywords into Tokens (Default at $A57C)
+000000r 1               CHROUT	= $ffd2		; Output character in register A
+000000r 1               NEW		= $a642		; When register A = 0 and routine is called, this performs NEW
+000000r 1               
+000000r 1               BLOCK_BEGIN:
+000000r 1               ;
+000000r 1               ; Install:
+000000r 1               ;
+000000r 1  4C rr rr     		jmp Install
+000003r 1               
+000003r 1               ;
+000003r 1               ; Main:
+000003r 1               ;
+000003r 1               Main:
+000003r 1               		; Include line number in checksum, prevent 2 lines entries that are the same, clever
+000003r 1  A5 14        		lda LINNUM
+000005r 1  85 A7        		sta CHKSUM		; lsb
+000007r 1  A5 15        		lda LINNUM+1
+000009r 1  85 A8        		sta CHKSUM+1	; msb
+00000Br 1               
+00000Br 1               		; 6526 CIA #2 Data Port A?
+00000Br 1               ;		lda #$00
+00000Br 1               ;		sta $ff00
+00000Br 1               
+00000Br 1               ;
+00000Br 1               ; Copy (32bytes, 31 down to 0)
+00000Br 1               ;          Base + Index
+00000Br 1               ; Copy from $c7 	+ $1f	- $00E6, $00E5, $00E4, ... down to $00C7
+00000Br 1               ;      to Preserve 	+ x
+00000Br 1               ;
+00000Br 1               
+00000Br 1               		; Preserve
+00000Br 1  A2 1F        		ldx #$1f		; Index (31 -> 00)
+00000Dr 1               ploop:
+00000Dr 1  B5 C7        		lda $c7,x
+00000Fr 1  9D rr rr     		sta Preserve,x	; why such a large block???
+000012r 1  CA           		dex
+000013r 1  10 F8        		bpl ploop
+000015r 1               
+000015r 1               		; Home, reverse characters on
+000015r 1  A9 13        		lda #$13		; {HOME}
+000017r 1  20 D2 FF     		jsr CHROUT
+00001Ar 1  A9 12        		lda #$12		; {RVS ON}
+00001Cr 1  20 D2 FF     		jsr CHROUT
+00001Fr 1               
+00001Fr 1               		; Initialise
+00001Fr 1  A0 00        		ldy #$00		; Y, Buffer index
+000021r 1  84 B4        		sty CINDEX		; Character index
+000023r 1  84 B0        		sty QFLAG		; $00 = outside quote, $ff = inside quote aka string ""
+000025r 1  88           		dey
+000026r 1               
+000026r 1               		; Outer Loop
+000026r 1               oloop:
+000026r 1  E6 B4        		inc CINDEX		; Character index
+000028r 1               
+000028r 1               		; Inner Loop
+000028r 1               iloop:
+000028r 1  C8           		iny
+000029r 1  B9 00 02     		lda BUF,y
+00002Cr 1  F0 2E        		beq display
+00002Er 1               
+00002Er 1  C9 22        		cmp #$22		; {"}
+000030r 1  D0 08        		bne noquote
+000032r 1  48           		pha
+000033r 1  A5 B0        		lda QFLAG
+000035r 1  49 FF        		eor #$ff		; Toggle quote flag
+000037r 1  85 B0        		sta QFLAG
+000039r 1  68           		pla
+00003Ar 1               
+00003Ar 1               noquote:
+00003Ar 1  48           		pha
+00003Br 1  C9 20        		cmp #$20		; {SPACE}
+00003Dr 1  D0 07        		bne nospace
+00003Fr 1  A5 B0        		lda QFLAG
+000041r 1  D0 03        		bne nospace
+000043r 1  68           		pla
+000044r 1  D0 E2        		bne iloop
+000046r 1               
+000046r 1               nospace:
+000046r 1  68           		pla
+000047r 1               
+000047r 1               		; Position-Weighted Checksum Loop
+000047r 1  A6 B4        		ldx CINDEX
+000049r 1               sloop:
+000049r 1  18           		clc
+00004Ar 1  A5 A7        		lda CHKSUM
+00004Cr 1  79 00 02     		adc BUF,y
+00004Fr 1  85 A7        		sta CHKSUM		; update checksum lsb
+000051r 1  A5 A8        		lda CHKSUM+1
+000053r 1  69 00        		adc #$00		; Add carry if set
+000055r 1  85 A8        		sta CHKSUM+1	; update checksum msb
+000057r 1  CA           		dex
+000058r 1  D0 EF        		bne sloop
+00005Ar 1  F0 CA        		beq oloop
+00005Cr 1               
+00005Cr 1               display:
+00005Cr 1               		;
+00005Cr 1               		; Reduce a 16-bit checksum into 8-bit checksum fingerprint
+00005Cr 1               		;
+00005Cr 1               reduce:
+00005Cr 1  A5 A7        		lda CHKSUM
+00005Er 1  45 A8        		eor CHKSUM+1
+000060r 1               
+000060r 1               output:
+000060r 1               		;
+000060r 1               		; Output 8-bit fingerprint
+000060r 1               		;
+000060r 1  48           		pha
+000061r 1  29 0F        		and #$0f		; Mask to get low nibble
+000063r 1  A8           		tay
+000064r 1  B9 rr rr     		lda Lookup,y	; Finger print lookup table
+000067r 1  20 D2 FF     		jsr CHROUT
+00006Ar 1               
+00006Ar 1  68           		pla
+00006Br 1  4A           		lsr				; Shift upper nibble into lower 4 bits
+00006Cr 1  4A           		lsr
+00006Dr 1  4A           		lsr
+00006Er 1  4A           		lsr
+00006Fr 1  A8           		tay
+000070r 1  B9 rr rr     		lda Lookup,y	; Finger print lookup table
+000073r 1  20 D2 FF     		jsr CHROUT
+000076r 1               
+000076r 1               		; Restore
+000076r 1  A2 1F        		ldx #$1f		; Index (31 -> 00)
+000078r 1               rloop:
+000078r 1  BD rr rr     		lda Preserve,x
+00007Br 1  95 C7        		sta $c7,x		; why such a large block???
+00007Dr 1  CA           		dex
+00007Er 1  10 F8        		bpl rloop
+000080r 1               
+000080r 1  A9 92        		lda #$92		; {RVS OFF}
+000082r 1  20 D2 FF     		jsr CHROUT
+000085r 1               
+000085r 1               exit:
+000085r 1  4C 64 EA     		jmp $ea64		; Original ICRNCH IRQ Vector
+000088r 1               
+000088r 1               		;
+000088r 1               		; Table encodes a checksum nibble into visually unambiguous
+000088r 1               		; PETSCII letters, deliberately avoiding characters that
+000088r 1               		; could be misread on a C64 display.
+000088r 1               		;
+000088r 1               Lookup:
+000088r 1  41 42 43 44  		.byte $41, $42, $43, $44
+00008Cr 1  45 46 47 48      	.byte $45, $46, $47, $48
+000090r 1  4A 4B 4D 50      	.byte $4a, $4b, $4d, $50
+000094r 1  51 52 53 58      	.byte $51, $52, $53, $58
+000098r 1               
+000098r 1               Preserve:
+000098r 1  00 00 00 00  		.res $1f, $00				; Save/Restore blocks expects size $1f (32 bytes)
+00009Cr 1  00 00 00 00  
+0000A0r 1  00 00 00 00  
+0000B7r 1               
+0000B7r 1               		;
+0000B7r 1               		; End of essential code for Proofreader
+0000B7r 1               		;
+0000B7r 1               BLOCK_END:
+0000B7r 1               
+0000B7r 1               ;
+0000B7r 1               ; BASIC Text
+0000B7r 1               ; Old: $0801 -> New: $0901
+0000B7r 1               ; Initialise: If not, basic command syntax errors will ok :(
+0000B7r 1               ; $0901: $00 $00	-> BASIC End of Program
+0000B7r 1               ;
+0000B7r 1               ; -------------------------------------------------------------------------
+0000B7r 1               ; Shifting to the $0901 memory area via the linker TEXTTAB segment
+0000B7r 1               ; -------------------------------------------------------------------------
+0000B7r 1                   	.segment "TEXTTAB"
+000000r 1               
+000000r 1               NEW_TXTTAB:
+000000r 1  00 00        		.res $02, $00
+000002r 1               
+000002r 1               ;
+000002r 1               ; Save memory, single use installer!
+000002r 1               ;
+000002r 1               Install:
+000002r 1               		;
+000002r 1               		; New ICRNCH handler
+000002r 1               		;
+000002r 1               istep1:
+000002r 1  78           		sei
+000003r 1  A9 rr        		lda #<Main
+000005r 1  8D 04 03     		sta ICRNCH		; Set new handler lsb vector
+000008r 1  A9 rr        		lda #>Main
+00000Ar 1  8D 05 03     		sta ICRNCH+1	; Set new handler msb vector
+00000Dr 1  58           		cli
+00000Er 1               
+00000Er 1               		;
+00000Er 1               		; Set new BASIC text vector (aka wedge Proofreader)
+00000Er 1               		;
+00000Er 1               istep2:
+00000Er 1  A9 rr        		lda #<NEW_TXTTAB
+000010r 1  85 2B        		sta TXTTAB			; lsb
+000012r 1  A9 rr        		lda #>NEW_TXTTAB
+000014r 1  85 2C        		sta TXTTAB+1		; msb
+000016r 1               
+000016r 1               istep3:
+000016r 1  A9 00        		lda #$0
+000018r 1  4C 42 A6     		jmp NEW			; Perform NEW, force system to adjust to the changes
+00001Br 1               
+00001Br 1               ; Replace the ACME !warn size check with ca65 .assert
+00001Br 1                   	.assert (BLOCK_END - BLOCK_BEGIN) <= 192, warning, "Wedge won't fit into Tape Buffer: > 192 bytes max."
+00001Br 1               
+00001Br 1               
+00001Br 1               

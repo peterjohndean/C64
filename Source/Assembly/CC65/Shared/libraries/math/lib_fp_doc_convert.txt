@@ -1,0 +1,72 @@
+; ============================================================
+; FILE    : lib_fp_convert.txt
+; PROJECT : Commodore 64 Floating Point Library (Rankin/Wozniak port)
+; AUTHOR  : Peter
+; TARGET  : Commodore 64 / 6510 CPU
+; TOOLS   : CC65 tools, VICE emulator, physical C64U
+; ============================================================
+; PURPOSE
+; -------
+; FP_CORE_PROC only ships two integer conversions: FP_FLOAT (16-bit
+; integer -> float) and FP_FIX (float -> 16-bit integer, truncated
+; toward -infinity, no overflow check). This file rounds that out
+; to 8, 16, and 24 bits in both directions, and swaps in the
+; Apple II ROM's more careful FIX algorithm (from wozfp3.txt) for
+; the "to integer" direction, which truncates toward zero (the
+; conventional ENTIER/INT() behaviour: +24.63 -> +24, -61.2 -> -61)
+; and explicitly zeroes the result for |value| < 1.0 instead of
+; looping needlessly.
+;
+; ROUTINE INVENTORY
+; -------------------
+;   FP_FROM_INT8_PROC   - A (signed 8-bit) -> FP1
+;   FP_FROM_INT16_PROC   - A (high byte), X (low byte) -> FP1
+;   FP_FROM_INT24_PROC   - A (bits 23-16), X (bits 15-8),
+;                            Y (bits 7-0) -> FP1
+;   FP_TO_INT8_PROC       - FP1 -> A (signed 8-bit), carry set on
+;                            overflow (value outside -128..127)
+;   FP_TO_INT16_PROC      - FP1 -> FP1_MANT (high), FP1_MANT+1 (low)
+;   FP_TO_INT24_PROC      - FP1 -> FP1_MANT (high) .. FP1_MANT+2 (low)
+;   FP_FROM_UINT8_PROC    - A (unsigned 8-bit) -> FP1
+;   FP_FROM_UINT16_PROC   - A (high byte), X (low byte), unsigned -> FP1
+;   FP_FROM_UINT24_PROC   - A/X/Y (MSB/mid/LSB), unsigned -> FP1
+;   FP_TO_UINT8_PROC      - FP1 -> A (unsigned 8-bit), carry set on
+;                            overflow (negative, or value >= 256)
+;   FP_TO_UINT16_PROC     - FP1 -> FP1_MANT/+1, unsigned, carry set
+;                            on overflow (negative input)
+;   FP_TO_UINT24_PROC     - FP1 -> FP1_MANT/+1/+2, unsigned, carry
+;                            set on overflow (negative input)
+;
+; WHY THE SEED EXPONENTS ARE $86 / $8E / $96
+; ---------------------------------------------
+; FP_FLOAT primes FP1_EXP to $8E before normalizing a 16-bit
+; integer. That constant isn't arbitrary: for a normalized float,
+; value = mantissa_int/2^22 * 2^(exponent-128) (mantissa_int being
+; the 24-bit two's complement integer sitting in FP1_MANT..+2, and
+; the division by 2^22 reflecting where this format's implied
+; binary point sits - verified directly against the +274 worked
+; example in wozfp3.txt: mantissa $448000/2^22 * 2^(0x88-128) =
+; 1.0703125 * 256 = 274). Working through what seed exponent makes
+; an N-bit raw integer normalize to ITS OWN value (rather than some
+; scaled version of it) gives seed = 126 + N:
+;
+;     N=8  (1 byte)  -> $86     N=16 (2 bytes) -> $8E (FP_FLOAT's
+;     N=24 (3 bytes) -> $96        constant, confirms the formula)
+;
+; FP_TO_INT8/16/24 use the same formula in reverse: shift right
+; (via FP_RTAR) until the exponent reaches that same target, at
+; which point the top N bits of the mantissa ARE the integer.
+;
+; OVERFLOW BEHAVIOUR
+; --------------------
+; FP_TO_INT8_PROC explicitly range-checks (see below) because an
+; out-of-range 8-bit request is common and cheap to detect after
+; the fact. FP_TO_INT16_PROC and FP_TO_INT24_PROC do NOT pre-check
+; - if the value's magnitude cannot be represented in the target
+; width, the shift-right loop pushes FP1_EXP up past $FF, which
+; FP_CORE_PROC.rtlog already detects (`beq ovfl`) and traps via
+; FP_CORE_PROC.ovfl (see library_fp.s). This can take many
+; iterations before it fires; know your value ranges rather than
+; relying on this as a fast overflow check.
+; ============================================================
+
