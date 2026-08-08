@@ -45,6 +45,36 @@ stub_end:
 
 .proc main
 ;    .org 2061
+    ; -----------------------------------------------------------------
+    ; [BUG FIX] Unconditional CLRCHN before doing anything else.
+    ;
+    ; WHY THIS IS NEEDED
+    ; -------------------
+    ; KERNAL_CLRCHN ($FFCC) resets the CURRENT input/output device
+    ; back to the defaults (keyboard in, screen out). It's cheap - if
+    ; the channels are already default, this is a harmless no-op - so
+    ; there's no downside to calling it defensively every time this
+    ; routine starts, regardless of which branch (screen or printer)
+    ; is about to run.
+    ;
+    ; The reason it matters here: if a PREVIOUS invocation took the
+    ; printer path and KERNAL_CHKOUT failed partway (device not
+    ; responding on the serial/IEEE bus), the output channel was left
+    ; pointed at the printer - see the chkout_failed fix below for the
+    ; other half of this bug. Without this line, a fresh SYS call
+    ; would inherit that dangling channel state and could itself hang
+    ; trying to talk to the printer through KERNAL_CHROUT (e.g. via
+    ; screen_only's call into FP_TESTS), even though the user asked
+    ; for screen output this time. Resetting channels unconditionally
+    ; at entry means every run starts from a known-good state, no
+    ; matter what the previous run left behind.
+    ;
+    ; Reference: C64 Programmer's Reference Guide, KERNAL CLRCHN
+    ; ($FFCC); also see the KERNAL_CLRCHN entry in
+    ; labels_rom_kernal.s.
+    ; -----------------------------------------------------------------
+    jsr KERNAL_CLRCHN
+
     ; 0. Output to Screen (default)/Printer
     lda MM_SAREG            ; peek(780), 0 = screen, 1 = printer
     cmp #1
@@ -94,11 +124,40 @@ open_failed:
     jmp msg_redirect
 
 chkout_failed:
-    ; CHKOUT failed after OPEN succeeded - close the now-useless file
-    ; before falling back, so it isn't left dangling.
+    ; -----------------------------------------------------------------
+    ; [BUG FIX] CLRCHN must come BEFORE anything that prints, and
+    ; before (or after - order relative to CLOSE doesn't matter here,
+    ; unlike the success path - see note below) closing the file.
+    ;
+    ; WHY THIS WAS THE ACTUAL HANG
+    ; -----------------------------
+    ; KERNAL_CHKOUT ($FFC9) doesn't just flip a flag - it performs a
+    ; real LISTEN + secondary-address handshake with the target device
+    ; over the serial/IEEE bus. When that handshake fails (which is
+    ; exactly the case we're in here - READST came back non-zero), the
+    ; KERNAL's CURRENT OUTPUT DEVICE has already been changed to
+    ; device 4, even though the device isn't actually able to receive
+    ; data. KERNAL_CLOSE only removes the logical file from the
+    ; LAT/FAT/SAT tables ($0259-$0276) - it does NOT touch the current
+    ; output device. So immediately after KERNAL_CLOSE below, CHROUT
+    ; (which BASIC_STROUT_MACRO uses internally) was STILL trying to
+    ; send characters to the unresponsive printer, over a bus that had
+    ; just failed to complete a handshake - which is what actually
+    ; hung, not the CLOSE or the file table.
+    ;
+    ; ORDER: CLRCHN then CLOSE, mirroring the success path (steps 6-7
+    ; above) - restore the channel to something known-good FIRST, then
+    ; do bus-touching cleanup (CLOSE also talks to the device to tell
+    ; it the file is done) with a sane output channel already in
+    ; place, then print. Printing before CLRCHN, in either order
+    ; relative to CLOSE, would still hang - it's the channel state,
+    ; not the close, that gates whether CHROUT can succeed.
+    ; -----------------------------------------------------------------
+    jsr KERNAL_CLRCHN       ; [BUG FIX] restore output to the screen
+                            ; BEFORE anything below tries to print
     lda #1
-    jsr KERNAL_CLOSE
-    BASIC_STROUT_MACRO msg_err_redirect
+    jsr KERNAL_CLOSE        ; close the now-useless logical file
+    BASIC_STROUT_MACRO msg_err_redirect   ; now safely reaches the screen
     jmp msg_redirect
 
 msg_redirect:

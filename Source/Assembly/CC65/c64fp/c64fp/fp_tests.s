@@ -31,6 +31,7 @@
 .import tr_ieee754
 .import tr_sin, tr_sin_full, tr_cos, tr_tan, tr_deg_rad
 .import tr_ascii16, tr_ascii24
+.import tr_basicfac
 
 .import OUTPUT_BYTETOHEX
 .import OUTPUT_BYTETODEC
@@ -73,6 +74,7 @@
         .word tr_int8, tr_int16, tr_int24
         .word tr_uint8, tr_uint16, tr_uint24
         .word tr_ieee754
+        .word tr_basicfac
         .word tr_ascii16, tr_ascii24
 
     ; Dynamically calculate the number of tests:

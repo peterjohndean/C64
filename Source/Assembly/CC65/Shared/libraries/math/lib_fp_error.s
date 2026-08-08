@@ -75,7 +75,13 @@
 ; with FP_ERROR_CODE (labels_fp.s, $FE) holding the code below.
 ; FP1/FP2 are left in whatever state the failing operation
 ; abandoned them in - not meaningful, don't use them without
-; reloading first.
+; reloading first. INTERRUPTS ARE ALWAYS RE-ENABLED (CLI) on this
+; path, unconditionally - the SP-smashing unwind above can discard a
+; pending PLP from any php/sei-protected critical section the trap
+; happened to occur inside of (see the [BUG FIX] comment at the CLI
+; itself for the full mechanism and why this is safe rather than a
+; hack), so the recovery label should never rely on interrupts still
+; being disabled from before the trap.
 ;
 ; ERROR CODES
 ; ------------
@@ -170,7 +176,52 @@ msg6: .asciiz "ieee754 nan"
     KERNAL_CHROUT_MACRO $0d
     ldx FP_ERROR_SP                     ; restore the stack depth recorded
     txs                                 ; by FP_ERROR_INIT_MACRO...
-    rts                                 ; ...and "return" there
+
+    ; -----------------------------------------------------------------
+    ; [BUG FIX] Force interrupts back on before "returning".
+    ;
+    ; WHY THIS IS NEEDED
+    ; -------------------
+    ; The txs above is not a normal stack pop - it's a raw stack-
+    ; pointer overwrite that discards EVERYTHING pushed above
+    ; FP_ERROR_SP's recorded depth, not just return addresses. If a
+    ; trap fires while execution happens to be inside a php/sei-
+    ; protected critical section elsewhere in this codebase (an SMC
+    ; patch window, for instance - see tp_fp1cmp.s/tp_strcmp.s for the
+    ; pattern), that section's pending plp is sitting somewhere in the
+    ; discarded region and is never reached - this unwind jumps
+    ; straight past it. The php-pushed status byte (with the I flag
+    ; set by that sei) is thrown away along with everything else, and
+    ; the sei is never undone by anything. Interrupts then stay
+    ; disabled for the remainder of the program's life (this isn't
+    ; scoped to a single .proc or a single SYS call), which is
+    ; invisible to anything that doesn't depend on the IRQ-driven
+    ; jiffy clock or keyboard buffer (e.g. screen output via CHROUT),
+    ; but silently hangs anything that does (e.g. the IEC/serial bus
+    ; handshake timing inside KERNAL_OPEN/KERNAL_CHKOUT) - possibly
+    ; several SYS calls later, far away from where the trap actually
+    ; happened, which is what made this bug so hard to pin down.
+    ;
+    ; WHY AN UNCONDITIONAL CLI IS SAFE HERE (not just a workaround)
+    ; -----------------------------------------------------------------
+    ; FP_ERROR_INIT_MACRO's contract already requires the recovery
+    ; label to be a point the caller considers "safe" to resume normal
+    ; execution from - by construction, that point is always OUTSIDE
+    ; any interrupt-disabled critical section (nothing sane arms a
+    ; trap recovery point while already inside a sei'd region, since
+    ; the recovery label needs to be reachable in a known-good state).
+    ; So forcing interrupts back ON here, rather than trying to thread
+    ; a matching plp/restore through a stack-pointer overwrite that
+    ; fundamentally can't guarantee one, is not just a workaround - it
+    ; correctly assumes interrupts are enabled at every legitimate
+    ; recovery point, and guarantees that regardless of what state was
+    ; discarded above. Cheap and unconditional, same reasoning as the
+    ; defensive KERNAL_CLRCHN calls in main.s - a trap should never
+    ; leave the system in a worse state than before it fired.
+    ; -----------------------------------------------------------------
+    cli
+
+    rts                                 ; "return" to the recovery label
 .endproc
 
 ; ------------------------------------------------------------

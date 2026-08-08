@@ -5,9 +5,13 @@ LABELS_ROM_BASIC_S = 1
 ; C64 BASIC 2.0 ROM
 ; A000–BFFF 40960–49151 – 8192 Bytes (or 8K RAM)
 ;------------------------------------------------
-BASIC_GOCR      := $aad7 ; Output cr/lf
-BASIC_STROUT    := $ab1e ; Output zero/null terminated string at Y/A
-BASIC_LINPRT    := $bdcd ; Output uint16 (Register A/X) as a number in ASCII/PETSCII
+BASIC_GOCR      := $aad7    ; Output cr/lf
+BASIC_STROUT    := $ab1e    ; Output zero/null terminated string at Y/A
+BASIC_GIVAYF	:= $b391    ; Convert int16 (Register A/Y) → FAC1
+BASIC_MOVMF     := $bba2    ; Unpack Memory (Y/A) → FAC1. Memory contains a 5-Byte C64 float
+BASIC_MOVFM     := $bbd4    ; Pack FAC1 → Memory (Y/X). Memory contains a 5-Byte C64 float
+BASIC_LINPRT    := $bdcd    ; Output uint16 (Register A/X) as a number in ASCII/PETSCII
+BASIC_FOUT      := $bddd    ; FAC1 → ASCII string at Y/A (ready for STROUT)
 .endif
 
 .if 0
@@ -176,7 +180,7 @@ baf9	47865	tenc	Constant 10 in Flpt			DATA
 bafe	47870	div10	Divide FAC#1 by 10
 bb07	47879	fdiv	Divide FAC#2 by Flpt at (AC/YR)
 bb0f	47887	fdivt	Divide FAC#2 by FAC#1
-bba2	48034	movfm	Load FAC#1 From Memory
+;bba2	48034	movfm	Load FAC#1 From Memory
 bbc7	48071	mov2f	Store FAC#1 in Memory
 bbfc	48124	movfa	Copy FAC#2 into FAC#1
 bc0c	48140	movaf	Copy FAC#1 into FAC#2
