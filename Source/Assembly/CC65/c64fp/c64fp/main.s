@@ -15,9 +15,21 @@
 
 ; ---------------------------------------------------------------------------
 ; Usage from BASIC:
-;   poke780,0:sys2061   ; 0 = screen output (default/safe if never set)
-;   poke780,1:sys2061   ; 1 = printer output
-;   run                 ; either poke first, then run or just run for default.
+;   sys2061             ; press 'p' at the prompt for printer output,
+;                       ; any other key (or just wait) defaults to screen
+;
+; The poke780 mechanism still exists underneath - MM_SAREG ($030C) is
+; still the single flag the dispatch logic below reads - but you no
+; longer need to set it yourself from BASIC first. See the PROMPT
+; FOR OUTPUT DESTINATION block in main below for exactly how this
+; writes to MM_SAREG on your behalf before falling into the existing,
+; unmodified screen_only/want_printer logic.
+;
+; The old two-step usage (poke780,<0|1> then sys2061) still works
+; too, if you'd rather script it from BASIC than answer the prompt -
+; MM_SAREG is written EVERY time main runs, but only ever with 0 or 1,
+; so nothing downstream can tell the difference between "the prompt
+; set it" and "BASIC poked it" - they're the same byte.
 ; ---------------------------------------------------------------------------
 
 ; ---------------------------------------------------------------------------
@@ -74,6 +86,90 @@ stub_end:
     ; labels_rom_kernal.s.
     ; -----------------------------------------------------------------
     jsr KERNAL_CLRCHN
+
+    ; -----------------------------------------------------------------
+    ; PROMPT FOR OUTPUT DESTINATION
+    ;
+    ; WHY A PROMPT INSTEAD OF JUST READING MM_SAREG DIRECTLY
+    ; -----------------------------------------------------------------
+    ; The dispatch logic immediately below this block (step "0.") has
+    ; not changed AT ALL - it still just reads MM_SAREG ($030C, "peek
+    ; 780") and branches on whether it's exactly 1. What changed is
+    ; WHO sets that byte: previously the user had to type
+    ; "poke780,1:sys2061" from BASIC themselves before running; now
+    ; this block asks the question directly on screen and WRITES
+    ; MM_SAREG itself, so the existing branch below sees exactly the
+    ; same byte it always did and needs no changes whatsoever - this
+    ; is precisely the "coexistence" approach used everywhere else in
+    ; this project (new behaviour added alongside proven code, rather
+    ; than modifying the proven code to accommodate it).
+    ;
+    ; WHY KERNAL_GETIN (NON-BLOCKING) IN A BUSY-WAIT LOOP, NOT
+    ; KERNAL_CHRIN
+    ; -----------------------------------------------------------------
+    ; KERNAL_GETIN ($FFE4) reads ONE character from the keyboard
+    ; buffer and returns immediately, with A=$00 if nothing has been
+    ; typed yet - it does not wait, and it does not require the user
+    ; to press RETURN afterward (unlike KERNAL_CHRIN, which is
+    ; designed for line-based input and blocks until a full line is
+    ; entered). Looping on GETIN until it returns something non-zero
+    ; is the standard C64 idiom for "wait for a single keypress" - the
+    ; exact same pattern this file's own screen_only/chkout_failed
+    ; paths already use for their own "press any key" wait, below.
+    ;
+    ; KNOWN LIMITATION: A LEFTOVER BUFFERED KEYSTROKE
+    ; -----------------------------------------------------------------
+    ; If the user's RETURN keypress that submitted the "sys2061"
+    ; command line is still sitting in the keyboard buffer when this
+    ; runs, GETIN could return that RETURN character immediately
+    ; instead of waiting for a fresh keypress. This is a pre-existing
+    ; characteristic of every GETIN-based wait elsewhere in this file
+    ; (see msg_redirect's own @wait_key loop below) - not something
+    ; unique to this new prompt - and is not defended against here
+    ; for the same reason: clearing the keyboard buffer defensively
+    ; would need its own justification (there's no KERNAL call to
+    ; "flush" it short of reading and discarding NDX/$C6 characters
+    ; one at a time) and hasn't been a problem in practice for the
+    ; existing prompts this file already has.
+    ; -----------------------------------------------------------------
+    BASIC_STROUT_MACRO msg_prompt_output
+
+@wait_choice:
+    jsr KERNAL_GETIN            ; non-blocking: A = key, or $00 if
+                                ; nothing has been typed yet
+    beq @wait_choice            ; $00: no key yet, keep waiting
+
+    ; PETSCII note: the C64's default character set returns 'P' (not
+    ; 'p') for an unshifted press of the P key - lowercase-looking
+    ; PETSCII codes are a SHIFTED input in the default mode, and mean
+    ; something else entirely in the alternate (lower-case) charset.
+    ; Checking both avoids depending on which charset mode the screen
+    ; happens to be in when this runs, at the cost of also accepting
+    ; a shifted 'p' - harmless, since either one clearly means
+    ; "printer" to a human typing at the prompt.
+    cmp #'p'
+    beq @choose_printer
+    cmp #'P'
+    beq @choose_printer
+
+    lda #0                       ; any other key: default to screen
+    jmp @store_choice
+
+@choose_printer:
+    lda #1
+
+@store_choice:
+    sta MM_SAREG                 ; poke780,<0 or 1> - identical effect
+                                 ; to the BASIC poke this prompt
+                                 ; replaces; everything below this
+                                 ; point is completely unmodified
+    KERNAL_CHROUT_MACRO $0d      ; newline, so the chosen key doesn't
+                                 ; sit awkwardly at the end of the
+                                 ; prompt line before FP_TESTS' own
+                                 ; screen-clear (screen_only path) or
+                                 ; the printer banner (want_printer
+                                 ; path) runs
+    ; -----------------------------------------------------------------
 
     ; 0. Output to Screen (default)/Printer
     lda MM_SAREG            ; peek(780), 0 = screen, 1 = printer
@@ -174,6 +270,7 @@ screen_only:
     rts
 
 dummy_name:         .byte 0
+msg_prompt_output:  .literal "PRESS 'P' FOR PRINTER", $0d, "ANY OTHER KEY FOR SCREEN", $0d, $0
 msg_err_open:       .literal "ERR: OPEN", $0d, $0
 msg_err_redirect:   .literal "ERR: REDIRECT", $0d, $0
 msg_default:        .literal "MSG: REDIRECT TO SCREEN", $0d, $0

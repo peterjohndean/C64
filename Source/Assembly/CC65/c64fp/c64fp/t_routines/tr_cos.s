@@ -31,21 +31,21 @@
     ;                               near 0 either sign)
     ; --------------------------------------------------------
     FP_ERROR_INIT_MACRO t00_recover
-    FP_LOAD1_MACRO rad0
+    FP_LOAD1_MACRO TestValue::rad_0
     jsr FP_COS                   ; FP1 = cos(0 deg) ~= 1.0
     FP_ERROR_CLEAR_MACRO
 t00_recover:
     TEST_CHECK_MACRO_V2 0, msg_t00, 7
 
     FP_ERROR_INIT_MACRO t01_recover
-    FP_LOAD1_MACRO rad45
+    FP_LOAD1_MACRO TestValue::rad_45
     jsr FP_COS                   ; FP1 = cos(45 deg) ~= 0.7071068
     FP_ERROR_CLEAR_MACRO
 t01_recover:
     TEST_CHECK_MACRO_V2 1, msg_t01, 7
 
     FP_ERROR_INIT_MACRO t02_recover
-    FP_LOAD1_MACRO rad90
+    FP_LOAD1_MACRO TestValue::rad_90
     jsr FP_COS                   ; FP1 = cos(90 deg) ~= 0.0 -
                                  ; phase-shifted argument lands
                                  ; exactly on pi, a quadrant boundary
@@ -54,14 +54,14 @@ t02_recover:
     TEST_CHECK_MACRO_V2 2, msg_t02, 7
 
     FP_ERROR_INIT_MACRO t03_recover
-    FP_LOAD1_MACRO rad180
+    FP_LOAD1_MACRO TestValue::rad_180
     jsr FP_COS                   ; FP1 = cos(180 deg) ~= -1.0
     FP_ERROR_CLEAR_MACRO
 t03_recover:
     TEST_CHECK_MACRO_V2 3, msg_t03, 7
 
     FP_ERROR_INIT_MACRO t04_recover
-    FP_LOAD1_MACRO rad270
+    FP_LOAD1_MACRO TestValue::rad_270
     jsr FP_COS                   ; FP1 = cos(270 deg) ~= 0.0 -
                                  ; phase-shifted argument lands
                                  ; exactly on 2*pi, the FP_FMOD
@@ -78,9 +78,4 @@ msg_t01:  .asciiz     "cos (45deg)"
 msg_t02:  .asciiz     "cos (90deg) boundary"
 msg_t03:  .asciiz     "cos (180deg)"
 msg_t04:  .asciiz     "cos (270deg) wrap"
-rad0:     .byte $00,$00,$00,$00   ; 0.0 (canonical zero)
-rad45:    .byte $7f,$64,$87,$ed   ; 0.7853981634 rad = 45 deg
-rad90:    .byte $80,$64,$87,$ed   ; 1.5707963268 rad = 90 deg
-rad180:   .byte $81,$64,$87,$ed   ; 3.1415926536 rad = 180 deg
-rad270:   .byte $82,$4b,$65,$f2   ; 4.7123889804 rad = 270 deg
 .endproc

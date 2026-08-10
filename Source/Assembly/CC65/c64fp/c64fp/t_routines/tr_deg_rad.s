@@ -45,7 +45,7 @@ t01_recover:
     TEST_CHECK_MACRO_V2 1, msg_t01, 7
 
     FP_ERROR_INIT_MACRO t02_recover
-    FP_LOAD1_MACRO pi_const
+    FP_LOAD1_MACRO TestValue::val_pi
     jsr FP_RAD_TO_DEG            ; FP1 = pi radians in degrees ~= 180.0
     FP_ERROR_CLEAR_MACRO
 t02_recover:
@@ -70,5 +70,4 @@ msg_t01:    .asciiz     "deg->rad (90deg)"
 ;msg_t02:  .asciiz     "rad_to_deg (pi)"
 msg_t02:    .literal    "RAD->DEG (", 126, ")", $0
 msg_t03:    .asciiz     "deg->rad->deg (45deg)"
-pi_const:   .byte $81,$64,$87,$ed   ; 3.1415926536 - same bytes already verified in lib_fp_sin_full.s
 .endproc

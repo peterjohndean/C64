@@ -45,7 +45,7 @@
     ; downstream. Same pattern as this library's T32-T36.
     ; --------------------------------------------------------
     FP_ERROR_INIT_MACRO t00_recover
-    FP_LOAD1_MACRO rad30        ; FP1 = 0.5235987755... (30 degrees,
+    FP_LOAD1_MACRO TestValue::rad_30        ; FP1 = 0.5235987755... (30 degrees,
                                 ; already in FP_SIN's documented
                                 ; [-pi/2, pi/2] scope)
     jsr FP_SIN                  ; FP1 = sin(30 deg) ~= 0.5
@@ -86,21 +86,21 @@ t00_recover:
     ;                                ~3.5e-6 error here specifically
     ; --------------------------------------------------------
     FP_ERROR_INIT_MACRO t01_recover
-    FP_LOAD1_MACRO rad45
+    FP_LOAD1_MACRO TestValue::rad_45
     jsr FP_SIN                  ; FP1 = sin(45 deg) ~= 0.70710678
     FP_ERROR_CLEAR_MACRO
 t01_recover:
     TEST_CHECK_MACRO_V2 1, msg_t01, 7
 
     FP_ERROR_INIT_MACRO t02_recover
-    FP_LOAD1_MACRO rad60
+    FP_LOAD1_MACRO TestValue::rad_60
     jsr FP_SIN                  ; FP1 = sin(60 deg) ~= 0.86602540
     FP_ERROR_CLEAR_MACRO
 t02_recover:
     TEST_CHECK_MACRO_V2 2, msg_t02, 7
 
     FP_ERROR_INIT_MACRO t03_recover
-    FP_LOAD1_MACRO rad90
+    FP_LOAD1_MACRO TestValue::rad_90
     jsr FP_SIN                  ; FP1 = sin(90 deg) ~= 1.0 - the
                                 ; documented scope boundary itself
     FP_ERROR_CLEAR_MACRO
@@ -114,8 +114,4 @@ msg_t00:    .asciiz     "sin (30deg)"
 msg_t01:    .asciiz     "sin (45deg)"
 msg_t02:    .asciiz     "sin (60deg)"
 msg_t03:    .asciiz     "sin (90deg) - scope boundary"
-rad30:      .byte $7f,$43,$05,$49   ; 0.5235987755982988 rad = 30 deg
-rad45:      .byte $7f,$64,$87,$ed   ; 0.7853981633974483 rad = 45 deg
-rad60:      .byte $80,$43,$05,$49   ; 1.0471975511965976 rad = 60 deg
-rad90:      .byte $80,$64,$87,$ed   ; 1.5707963267948966 rad = 90 deg
 .endproc

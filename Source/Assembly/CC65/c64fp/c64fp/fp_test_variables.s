@@ -5,6 +5,12 @@
     .export val_0_5, val_0_1, val_0
     .export val_neg5, val_neg42, val_neg60
     .export val_pi, val_2pi
+    ;
+    .export rad_neg30
+    .export rad_0, rad_30, rad_45, rad_60, rad_90
+    .export rad_120, rad_180, rad_200, rad_270
+    .export rad_300, rad_400
+    ;
     .export ieee754_pi, ieee754_2pi
     .export ieee754_0_1
     .export ieee754_neg5
@@ -25,6 +31,20 @@
 
     val_2pi:        .byte $82,$64,$87,$ed   ; 2pi
     val_pi:         .byte $81,$64,$87,$ed   ; pi
+
+;    rad_0:          .byte $00,$00,$00,$00   ; 0.0 (canonical zero)
+    rad_0           := val_0
+    rad_30:         .byte $7f,$43,$05,$49   ; 0.5235987755982988 rad = 30 deg
+    rad_45:         .byte $7f,$64,$87,$ed   ; 0.7853981634 rad = 45 deg
+    rad_60:         .byte $80,$43,$05,$49   ; 1.0471975511965976 rad = 60 deg
+    rad_90:         .byte $80,$64,$87,$ed   ; 1.5707963268 rad = 90 deg
+    rad_120:        .byte $81,$43,$05,$49   ; 2.0943951024 rad = 120 deg
+    rad_180:        .byte $81,$64,$87,$ed   ; 3.1415926536 rad = 180 deg
+    rad_200:        .byte $81,$6f,$b3,$79   ; 3.4906585040 rad = 200 deg
+    rad_270:        .byte $82,$4b,$65,$f2   ; 4.7123889804 rad = 270 deg
+    rad_300:        .byte $82,$53,$c6,$9b   ; 5.2359877560 rad = 300 deg
+    rad_400:        .byte $82,$6f,$b3,$79   ; 6.9813170080 rad = 400 deg
+    rad_neg30:      .byte $7f,$bc,$fa,$b7   ; -0.5235987756 rad = -30 deg
 
     ; ieee754 values
     ieee754_2pi:    .byte $40,$c9,$0f,$db   ; 2pi

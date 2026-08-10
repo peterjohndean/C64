@@ -39,7 +39,7 @@
     ;                                 why that's expected here
     ; --------------------------------------------------------
     FP_ERROR_INIT_MACRO t00_recover
-    FP_LOAD1_MACRO rad0
+    FP_LOAD1_MACRO TestValue::rad_0
     jsr FP_TAN                   ; FP1 = tan(0 deg) ~= 0.0
     FP_ERROR_CLEAR_MACRO
 t00_recover:
@@ -47,28 +47,28 @@ t00_recover:
     TEST_FP1CMP_MACRO 0, msg_t00, TestValue::val_0
 
     FP_ERROR_INIT_MACRO t01_recover
-    FP_LOAD1_MACRO rad30
+    FP_LOAD1_MACRO TestValue::rad_30
     jsr FP_TAN                   ; FP1 = tan(30 deg) ~= 0.5773503
     FP_ERROR_CLEAR_MACRO
 t01_recover:
     TEST_CHECK_MACRO_V2 1, msg_t01, 7
 
     FP_ERROR_INIT_MACRO t02_recover
-    FP_LOAD1_MACRO rad45
+    FP_LOAD1_MACRO TestValue::rad_45
     jsr FP_TAN                   ; FP1 = tan(45 deg) ~= 1.0
     FP_ERROR_CLEAR_MACRO
 t02_recover:
     TEST_CHECK_MACRO_V2 2, msg_t02, 7
 
     FP_ERROR_INIT_MACRO t03_recover
-    FP_LOAD1_MACRO rad60
+    FP_LOAD1_MACRO TestValue::rad_60
     jsr FP_TAN                   ; FP1 = tan(60 deg) ~= 1.7320508
     FP_ERROR_CLEAR_MACRO
 t03_recover:
     TEST_CHECK_MACRO_V2 3, msg_t03, 7
 
     FP_ERROR_INIT_MACRO t04_recover
-    FP_LOAD1_MACRO rad90
+    FP_LOAD1_MACRO TestValue::rad_90
     jsr FP_TAN                   ; FP1 = tan(90 deg) - the
                                  ; asymptote itself; see the big
                                  ; comment above for what to expect
@@ -90,9 +90,4 @@ msg_t01:  .asciiz     "tan (30deg)"
 msg_t02:  .asciiz     "tan (45deg)"
 msg_t03:  .asciiz     "tan (60deg)"
 msg_t04:  .asciiz     "tan (90deg) asymptote"
-rad0:     .byte $00,$00,$00,$00   ; 0.0 (canonical zero)
-rad30:    .byte $7f,$43,$05,$49   ; 0.5235987756 rad = 30 deg
-rad45:    .byte $7f,$64,$87,$ed   ; 0.7853981634 rad = 45 deg
-rad60:    .byte $80,$43,$05,$49   ; 1.0471975512 rad = 60 deg
-rad90:    .byte $80,$64,$87,$ed   ; 1.5707963268 rad = 90 deg
 .endproc

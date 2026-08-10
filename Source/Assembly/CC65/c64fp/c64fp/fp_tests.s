@@ -36,6 +36,8 @@
 .import tr_ieee754
 .import tr_sin, tr_sin_full, tr_cos, tr_tan, tr_deg_rad
 .import tr_ascii16, tr_ascii24
+.import tr_ascii_sci    ; scientific-notation FP<->ASCII round trip -
+                        ; see lib_fp_to_ascii_sci.s/lib_fp_from_ascii_sci.s
 .import tr_basicfac
 .import tr_trap_irq     ; [REGRESSION TEST] see test_vectors below -
                         ; MUST be the last entry in that table, not
@@ -84,6 +86,7 @@
         .word tr_ieee754
         .word tr_basicfac
         .word tr_ascii16, tr_ascii24
+        .word tr_ascii_sci
         ;
         ; -----------------------------------------------------------
         ; [REGRESSION TEST] tr_trap_irq - deliberately provokes a trap

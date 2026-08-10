@@ -148,10 +148,10 @@
     php
     sei
 
-    FP_LOAD1_MACRO zero_const   ; FP1 = 0.0 - FP_FDIV's DIVISOR
-    FP_LOAD2_MACRO one_const    ; FP2 = 1.0 - the dividend (value
-                                ; doesn't matter - only the zero
-                                ; divisor triggers the trap)
+    FP_LOAD1_MACRO TestValue::val_0 ; FP1 = 0.0 - FP_FDIV's DIVISOR
+    FP_LOAD2_MACRO TestValue::val_1 ; FP2 = 1.0 - the dividend (value
+                                    ; doesn't matter - only the zero
+                                    ; divisor triggers the trap)
     jsr FP_FDIV                 ; traps: divisor is exactly 0.0 -
                                 ; see the file header. Unwinds via
                                 ; OUR guard above straight to
@@ -204,7 +204,7 @@
     ; meaningless "message") and THEN added a third, fully redundant
     ; `jsr TEST_WAIT` with nothing after it. Once that extra call
     ; returned, execution fell straight off the end of this .proc and
-    ; began executing zero_const/one_const/the message strings as if
+    ; began executing TestValue::val_0/TestValue::val_1/the message strings as if
     ; they were 6502 instructions - that's what actually crashed,
     ; not the trap-and-recover mechanism itself (which was already
     ; working correctly, per the PASS result seen before the crash).
@@ -223,15 +223,6 @@
     TEST_PASSED_MACRO_V2 0, msg_t00
     rts
 
-zero_const: .byte $00,$00,$00,$00   ; 0.0 (canonical zero - exponent
-                                    ; byte 0 marks canonical zero
-                                    ; regardless of mantissa content;
-                                    ; see labels_fp.s / the "exponent
-                                    ; 0 = canonical zero" note reused
-                                    ; throughout this library, e.g.
-                                    ; lib_fp_compare.s)
-one_const:  .byte $80,$40,$00,$00   ; 1.0 (same bytes used for 1.0
-                                    ; elsewhere in this library, e.g.
-                                    ; lib_fp_floor.s's one_const)
+.segment "RODATA"
 msg_t00:    .asciiz "trap (/0, irq in php/sei)" ; "trap in php/sei: irq enabled after"
 .endproc
