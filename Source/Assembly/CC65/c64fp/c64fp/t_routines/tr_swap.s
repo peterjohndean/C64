@@ -6,7 +6,10 @@
 .import FP_SWAP
 .import TEST_FP1CMP
 
+.segment "CODE"
 .proc tr_swap
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T18: FP_SWAP round trip - swapping twice must restore FP1.
     ;          (FP_SWAP itself already existed - FP_CORE_PROC.swap,
     ;          aliased in lib_fp.s - this just gives it a direct
@@ -20,5 +23,6 @@
     rts
 
 .segment "RODATA"
+msg_header: .asciiz "fp swap fp1/fp2"
 msg_t00:   .asciiz "swap (round trip)"
 .endproc

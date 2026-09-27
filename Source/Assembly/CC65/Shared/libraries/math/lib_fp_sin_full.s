@@ -3,6 +3,10 @@
 .export FP_SIN_FULL
 .import FP_SIN, FP_FMOD, FP_FADD, FP_FSUB, FP_NEGATE, FP_COMPARE
 
+.scope LIBFP_CONSTANTS
+    .import half_pi_const, pi_const, three_half_pi_const, two_pi_const
+.endscope
+
 .segment "CODE"
 ; ============================================================
 ; FILE    : lib_fp_sin_full.s
@@ -95,6 +99,25 @@
 ; simply so the choice looks deliberate rather than accidental if
 ; you go looking for it later.
 ;
+; KNOWN PRECISION LIMITATION - FP_FMOD(2*pi, 2*pi)
+; ------------------------------------------------
+; sin(2*pi) returns ~9.5e-7 (bytes $6B,$7F,$FF,$FE), not canonical
+; zero. Root cause is the FP_FMUL LSB loss documented in lib_fp.s's
+; header section "FP_FMUL LSB LOSS ON FULL-MANTISSA MULTIPLIES".
+; FP_FMOD(x, x) decomposes to x - FP_FMUL(1.0, x), and FP_FMUL(1.0, x)
+; loses the LSB of x's mantissa when x has a full mantissa. Every
+; other primitive in that chain has been verified exact:
+;   - FP_FDIV(A, A) == 1.0 exactly (tr_fdiv.s T02-T05)
+;   - FP_FSUB(A, A) == 0 exactly (tr_fsub.s T02-T04)
+;   - FP_FMUL(1.0, A) loses 1 ulp on full mantissas (tr_fmul.s T55-T57)
+; FP_FMOD's own algorithm is correct - it is a victim, not a culprit.
+; This routine's range-reduction logic is likewise not at fault.
+; cos(3*pi/2) inherits the identical value because it reduces to
+; sin(2*pi) via the phase-shift identity. See tr_fmod.s's T50-T57
+; for the residue characterization and tr_sin_full.s T05 / tr_cos.s
+; T04, which pin the observed bytes explicitly so a future change to
+; FP_FMUL's LSB behaviour fails loudly here too.
+; 
 ; ERROR HANDLING
 ; ----------------
 ; Like FP_TO_ASCII24_PROC and friends, this proc installs NO
@@ -112,12 +135,12 @@
 ; ============================================================
 .proc FP_SIN_FULL_PROC
     ; --- Step 1: fold x into [0, 2*pi) -----------------------
-    FP_LOAD2_MACRO twopi_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::two_pi_const
     jsr FP_FMOD                 ; FP1 = x mod 2*pi, sign matches x
                                 ; (range: open interval (-2pi,2pi))
     lda FP1_MANT
     bpl @in_range                ; already >= 0: nothing more to do
-    FP_LOAD2_MACRO twopi_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::two_pi_const
     jsr FP_FADD                  ; negative: += 2*pi once, now in
                                 ; [0, 2*pi) - one add is always
                                 ; enough since FP_FMOD's own result
@@ -125,13 +148,13 @@
 @in_range:
 
     ; --- Step 2: which quadrant, and reduce accordingly ------
-    FP_COMPARE_TO_MACRO halfpi_const
+    FP_COMPARE_TO_MACRO LIBFP_CONSTANTS::half_pi_const
     bmi @quadrant1
     beq @quadrant1
-    FP_COMPARE_TO_MACRO pi_const
+    FP_COMPARE_TO_MACRO LIBFP_CONSTANTS::pi_const
     bmi @quadrant2
     beq @quadrant2
-    FP_COMPARE_TO_MACRO threehalfpi_const
+    FP_COMPARE_TO_MACRO LIBFP_CONSTANTS::three_half_pi_const
     bmi @quadrant3
     beq @quadrant3
     ; falls through: r >= 3*pi/2, and Step 1 guarantees r < 2*pi,
@@ -139,7 +162,7 @@
 
 @quadrant4:
     ; theta = 2*pi - r ; sin(r) = -sin(theta)
-    FP_LOAD2_MACRO twopi_const   ; FP1 still holds r (comparisons
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::two_pi_const   ; FP1 still holds r (comparisons
     jsr FP_FSUB                  ; above don't disturb FP1 - see
                                  ; lib_fp_compare.s); FP1 = 2pi - r
     jsr FP_SIN                   ; FP1 = sin(theta), theta in
@@ -155,7 +178,7 @@
 
 @quadrant2:
     ; theta = pi - r ; sin(r) = +sin(theta)
-    FP_LOAD2_MACRO pi_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::pi_const
     jsr FP_FSUB                  ; FP1 = pi - r
     jsr FP_SIN
     rts
@@ -166,7 +189,7 @@
     ; the operands have to be swapped relative to quadrant 2 above:
     ; move r into FP2 first, THEN load pi into FP1.
     FP_COPY1TO2_MACRO            ; FP2 = r
-    FP_LOAD1_MACRO pi_const      ; FP1 = pi
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::pi_const      ; FP1 = pi
     jsr FP_FSUB                  ; FP1 = FP2-FP1 = r - pi
     jsr FP_SIN
     jsr FP_NEGATE                ; FP1 = -sin(theta) = sin(r)
@@ -176,12 +199,12 @@
 ;     convention - see FP_LOG_PROC/FP_EXP_PROC for the precedent).
 ;     Byte values independently derived and cross-checked, same
 ;     verified method as lib_fp_sin.s's own Taylor coefficients -
-;     halfpi_const in particular was checked to match the rad90
+;     LIBFP_CONSTANTS::half_pi_const in particular was checked to match the rad90
 ;     constant already proven correct by tr_sin.s's T03. ---
-halfpi_const:      .byte $80,$64,$87,$ed   ; pi/2 = 1.5707963268
-pi_const:          .byte $81,$64,$87,$ed   ; pi   = 3.1415926536
-threehalfpi_const: .byte $82,$4b,$65,$f2   ; 3pi/2= 4.7123889804
-twopi_const:       .byte $82,$64,$87,$ed   ; 2pi  = 6.2831853072
+;half_pi_const:      .byte $80,$64,$87,$ed   ; pi/2 = 1.5707963268
+;pi_const:          .byte $81,$64,$87,$ed   ; pi   = 3.1415926536
+;three_half_pi_const: .byte $82,$4b,$65,$f2   ; 3pi/2= 4.7123889804
+;two_pi_const:       .byte $82,$64,$87,$ed   ; 2pi  = 6.2831853072
 .endproc
 
 ; ------------------------------------------------------------

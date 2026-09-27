@@ -10,14 +10,14 @@
 
 .segment "CODE"
 ; ============================================================
-; PROCEDURE : FP_MOD_PROC
+; PROCEDURE : FP_FMOD_PROC
 ; Purpose : FP1 = FP1 mod FP2 (remainder after division).
 ; Entry   : FP1 = A (dividend), FP2 = B (divisor)
 ; Exit    : FP1 = A - B*trunc(A/B)
 ; Destroys: A, X, Y; FP2
 ; Traps   : if B is exactly 0.0, traps via FP_FDIV's own division-
-;           by-zero detection (error code 1 - see library_fp.s and
-;           library_fp_error.s) - no separate check needed here
+;           by-zero detection (error code 1 - see lib_fp.s and
+;           lib_fp_error.s) - no separate check needed here
 ; Sign convention
 ; -----------------
 ; This is "C-style" fmod: the result has the SAME SIGN AS THE

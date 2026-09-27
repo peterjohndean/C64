@@ -15,31 +15,51 @@
 ; -------
 ; Compares FP1 against FP2 without destroying either.
 ;
-; WHY THIS IS BUILT ON TOP OF FP_FSUB, NOT A FRESH COMPARISON
+; HOW COMPARISON WORKS: FAST-PATH SIGN/EXPONENT LOGIC, WITH FP_FSUB
+; AS A NARROW FALLBACK, NOT THE PRIMARY MECHANISM
 ; ------------------------------------------------------------
-; Comparing two floats in this format directly (byte by byte)
-; is NOT as simple as an unsigned compare: the mantissa is 2's
-; complement, so a negative number's raw bytes look "larger" than
-; a positive number's, and for two numbers of the same sign, a
-; larger exponent means a larger MAGNITUDE - which means a larger
-; VALUE if both are positive, but a SMALLER (more negative) value
-; if both are negative. Getting all of that right from scratch is
-; exactly the kind of subtle sign-logic that has caused real bugs
-; elsewhere in this port (see the errata fix and the FSUB/FDIV
-; register-clobbering bugs in earlier revisions of this library).
-; FP_FADD/FP_FSUB already get this correct - proven by the test
-; suite - so FP_COMPARE_PROC computes FP2-FP1 via the real FSUB and
-; reads the sign of the (canonically normalized) result, rather
-; than re-implementing comparison logic that could reintroduce the
-; same class of bug. The cost is a full FSUB's worth of cycles
-; instead of a handful of byte compares - a fair trade for
-; correctness given how easy this specific kind of bug is to get
-; wrong and how hard it is to notice (it only shows up for specific
-; sign/magnitude combinations, not universally).
+; An earlier version of this routine always computed FP2-FP1 via
+; the already-proven FP_FSUB and read the sign of the result -
+; deliberately avoiding hand-rolled sign/magnitude comparison
+; logic, which is easy to get wrong for this format (2's
+; complement mantissa means a negative number's raw bytes look
+; "larger" than a positive one's; equal-sign comparisons need the
+; exponent AND the sign of the mantissa read together).
+;
+; The current version instead resolves most cases directly,
+; without ever calling FP_FSUB:
+;   1. Canonical zero (exponent 0) on either or both operands is
+;      handled by direct comparison.
+;   2. Operands with different signs are resolved immediately -
+;      positive is always greater than negative.
+;   3. Same-sign operands whose exponents differ by 25 or more are
+;      resolved by exponent/sign alone: with a 24-bit mantissa,
+;      a difference this large means the smaller-magnitude operand
+;      cannot affect an FSUB's outcome, so the winner is decided by
+;      which one has the larger exponent (for positive operands) or
+;      smaller exponent (for negative ones, since magnitude and
+;      value move in opposite directions when both are negative).
+; FP_FSUB is only actually called (@do_fsub) for same-sign operands
+; whose exponents are close enough (diff < 25) that the comparison
+; genuinely needs a real subtraction to resolve. This still avoids
+; reimplementing sign/magnitude logic for the one case that's hard
+; to get right by inspection - it just no longer does so for every
+; case, only the one where a real subtraction is unavoidable.
+;
+; WHY 25, NOT 24: with a 24-bit (3-byte) mantissa, an exponent gap
+; of exactly 24 already shifts the smaller operand's every mantissa
+; bit past the end during alignment, but FP_FADD/FP_FSUB's own
+; alignment shift register extends one byte further via FP_EXT (see
+; labels_fp.s's FP_EXT note), giving a small amount of guard-bit
+; headroom. 25 is used as a one-bit-of-margin cutoff above the bare
+; 24-bit threshold, rather than cutting it exactly at the
+; theoretical edge - not independently re-derived bit-for-bit here,
+; and worth confirming against FP_FSUB's actual alignment-shift
+; width if this threshold is ever changed.
 ;
 ; DEPENDENCIES
 ; ------------
-; Requires labels_fp.s and library_fp.s to be included before this
+; Requires labels_fp.s and lib_fp.s to be included before this
 ; file (uses FP_FSUB and the FP1/FP2 zero page layout).
 ;
 ; ROUTINE INVENTORY
@@ -61,7 +81,11 @@
 ; Destroys: A, X, Y; FP1 and FP2 are used as scratch internally
 ;           (via FP_FSUB) but are restored to their original values
 ;           before this returns - neither is visibly altered
-; Cycles  : dominated by one FP_FSUB call, plus ~50 cycles of
+; Cycles  : varies by path - canonical-zero, opposite-sign, and
+;           large-exponent-difference cases resolve in well under
+;           50 cycles with no FP_FSUB call at all; same-sign,
+;           close-exponent cases fall through to @do_fsub and are
+;           dominated by one FP_FSUB call plus ~50 cycles of
 ;           backup/restore overhead
 ; Example : #FP_COMPARE_TO_MACRO some_constant
 ;           bmi too_small
@@ -78,6 +102,85 @@
     dex
     bpl @backup_loop
 
+    ; --- canonical-zero check (exp=0 means zero, mant ignored) ---
+    lda FP1_EXP
+    ora FP2_EXP
+    beq @both_zero
+
+    lda FP1_EXP
+    bne @fp1_nonzero
+    ; FP1 = 0, FP2 != 0  =>  FP1 < FP2
+    lda #$FF
+    jmp @set_result
+
+@fp1_nonzero:
+    lda FP2_EXP
+    bne @both_nonzero
+    ; FP2 = 0, FP1 != 0  =>  FP1 > FP2
+    lda #1
+    jmp @set_result
+
+@both_nonzero:
+    ; --- SIGN CHECK FIRST (avoids FSUB overflow on opposite signs) ---
+    lda FP1_MANT
+    eor FP2_MANT
+    bpl @same_sign          ; bit7 clear in XOR => same sign
+
+    ; signs differ: positive > negative
+    lda FP1_MANT
+    bmi @fp1_is_neg
+    lda #1                  ; FP1 + , FP2 -  =>  FP1 > FP2
+    jmp @set_result
+@fp1_is_neg:
+    lda #$FF                ; FP1 - , FP2 +  =>  FP1 < FP2
+    jmp @set_result
+
+@same_sign:
+    ; --- exponent-difference check ---
+    lda FP1_EXP
+    sec
+    sbc FP2_EXP
+    bcs @fp1_exp_ge
+
+    ; FP2_EXP > FP1_EXP
+    eor #$FF
+    clc
+    adc #1                  ; A = FP2_EXP - FP1_EXP
+    cmp #25
+    bcc @do_fsub            ; diff < 25: safe to FSUB
+    ; diff >= 25: FP2 magnitude dominates
+    lda FP1_MANT
+    bmi @neg_fp1_smaller
+    lda #$FF                ; both + , FP1 < FP2
+    jmp @set_result
+@neg_fp1_smaller:
+    lda #1                  ; both - , FP1 > FP2
+    jmp @set_result
+
+@fp1_exp_ge:
+    cmp #25
+    bcc @do_fsub            ; diff < 25: safe to FSUB
+    ; diff >= 25: FP1 magnitude dominates
+    lda FP1_MANT
+    bmi @neg_fp1_larger
+    lda #1                  ; both + , FP1 > FP2
+    jmp @set_result
+@neg_fp1_larger:
+    lda #$FF                ; both - , FP1 < FP2
+    jmp @set_result
+
+@both_zero:
+    lda #0
+    ; fall through
+
+@set_result:
+    ; A = $00 (equal), $01 (FP1>FP2), $FF (FP1<FP2)
+    ; LDA already set N/Z appropriately; CMP #0 is a belt-and-braces
+    ; confirmation in case any path loads A differently.
+    cmp #0
+    rts
+
+@do_fsub:
     jsr FP_FSUB         ; FP1 = FP2 - FP1 (destroys both -
                         ; restored below before returning)
 

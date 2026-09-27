@@ -7,7 +7,10 @@
 .import FP_FROM_UINT24, FP_TO_UINT24
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_uint24
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T24: FP_FROM_UINT24 / FP_TO_UINT24 round trip (10,000,000)
     ; 10,000,000 > 8,388,608 (2^23) - the 24-bit analogue of T23.
     ; 10,000,000 = $98,$96,$80
@@ -46,7 +49,8 @@ t25_done:
     rts
 
 .segment "RODATA"
-msg_t00:        .asciiz     "uint24 (10m) round trip"
-msg_t01:        .asciiz     "uint24 (-1) rejects negative"
+msg_header: .asciiz "conversion: uint24"
+msg_t00:    .asciiz "10m roundtrip"
+msg_t01:    .asciiz "-1 rejects negative"
 .endproc
 

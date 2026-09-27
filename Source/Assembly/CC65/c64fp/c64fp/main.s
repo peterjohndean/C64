@@ -12,6 +12,9 @@
 .include "macros_rom_basic.s"
 
 .import FP_TESTS
+;.import DIAG_SCALE_DUMP
+;.import DIAG_EXP_DIGIT_PARSE
+;.import DIAG_FULL_PARSE
 
 ; ---------------------------------------------------------------------------
 ; Usage from BASIC:
@@ -202,6 +205,9 @@ want_printer:
 
     ; 5. All output goes to the printer
     jsr FP_TESTS
+;    jsr DIAG_SCALE_DUMP
+;    jsr DIAG_EXP_DIGIT_PARSE
+;    jsr DIAG_FULL_PARSE
     KERNAL_CHROUT_MACRO $0d     ; newline
     KERNAL_CHROUT_MACRO $0c     ; form feed
 
@@ -267,9 +273,15 @@ msg_redirect:
 
 screen_only:
     jsr FP_TESTS
+;    jsr DIAG_SCALE_DUMP
+;    jsr DIAG_EXP_DIGIT_PARSE
+;    jsr DIAG_FULL_PARSE
     rts
 
+.segment "DATA"
 dummy_name:         .byte 0
+
+.segment "RODATA"
 msg_prompt_output:  .literal "PRESS 'P' FOR PRINTER", $0d, "ANY OTHER KEY FOR SCREEN", $0d, $0
 msg_err_open:       .literal "ERR: OPEN", $0d, $0
 msg_err_redirect:   .literal "ERR: REDIRECT", $0d, $0

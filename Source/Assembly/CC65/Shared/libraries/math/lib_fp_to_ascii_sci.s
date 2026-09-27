@@ -14,6 +14,10 @@
                         ; lib_fp_ceil.s/lib_fp_floor.s/lib_fp_to_uint16.s
                         ; for the same pattern)
 
+.scope LIBFP_CONSTANTS
+    .import one_const, ten_const
+.endscope
+
 FP_TO_ASCII_SCI = FP_TO_ASCII_SCI_PROC
 
 .segment "CODE"
@@ -169,8 +173,8 @@ FP_TO_ASCII_SCI = FP_TO_ASCII_SCI_PROC
 ; "truncate rather than round" convention), not a new inconsistency
 ; introduced here.
 ;
-; WORKED EXAMPLE (hand-derived, not yet hardware-confirmed - see
-; VERIFICATION STATUS below)
+; WORKED EXAMPLE (hand-derived; covered by the tr_ascii_sci.s
+; regression group)
 ; -----------------------------------------------------------------
 ; Formatting -0.0625 with 2 fractional digits:
 ;   1. Sign is negative: emit '-', negate to work with +0.0625.
@@ -191,6 +195,19 @@ FP_TO_ASCII_SCI = FP_TO_ASCII_SCI_PROC
 ;   normalize loop (only plausible for a value at the extreme edge
 ;   of this format's own representable range) propagates to
 ;   whatever guard the CALLER armed.
+; - [FIXED, formerly a real bug] The @norm_high loop used to call
+;   FP_COMPARE_TO_MACRO unconditionally on every pass, which trapped
+;   whenever the value being formatted had raw exponent $FF (e.g.
+;   formatting ~1.9e38 - tr_exp_boundary_ff.s's T08 originally
+;   reproduced this). Root cause was in FP_FSUB itself, not this
+;   file - see lib_fp.s's "EXPONENT $FF BOUNDARY" note. Fixed here by
+;   special-casing exponent $FF to skip the (redundant, and unsafe)
+;   compare and go straight to the divide branch - see the comment at
+;   @norm_high below. FP_FSUB itself was deliberately left unmodified
+;   (see lib_fp.s's own note on why that .block isn't safely editable
+;   in isolation); this is a caller-side workaround, not a library
+;   fix, and any OTHER caller of FP_FSUB/FP_COMPARE_TO_MACRO with a
+;   $FF-exponent FP1 operand still needs its own equivalent guard.
 ; - The output buffer must be sized for worst case: 1 (sign) +
 ;   1 (leading digit) + 1 ('.') + frac_count + 1 ('E') + 1 (exponent
 ;   sign) + 2 (exponent digits) + 1 (null) = frac_count + 8 bytes.
@@ -199,11 +216,11 @@ FP_TO_ASCII_SCI = FP_TO_ASCII_SCI_PROC
 ;
 ; VERIFICATION STATUS
 ; -----------------------
-; Not yet run on VICE or physical hardware - per this project's
-; usual workflow (see lib_fp_sin.s's own header for the precedent),
-; the WORKED EXAMPLE above is a hand-derivation, a first pass, not
-; a substitute for an actual monitor register dump. Treat this as
-; ready for T-series testing (see tr_ascii_sci.s), not yet proven.
+; Covered by tr_ascii_sci.s for zero, fixed positive inputs,
+; negative scientific round trips, configurable fractional digit
+; counts, and the raw-PETSCII E marker path. The worked example
+; above remains explanatory; the test group is the executable
+; contract for current behavior.
 ;
 ; Entry   : A = output buffer address low byte
 ;           Y = output buffer address high byte
@@ -244,23 +261,50 @@ FP_TO_ASCII_SCI = FP_TO_ASCII_SCI_PROC
     ;     ALGORITHM note for why this is a self-correcting loop
     ;     rather than a single FP_LOG10-based estimate ---
 @norm_high:
-    FP_COMPARE_TO_MACRO ten_const
+    ; [BUG WORKAROUND - $FF EXPONENT BOUNDARY, CONFIRMED] FP_FSUB (and
+    ; therefore FP_COMPARE_TO_MACRO, which is built on it) is confirmed
+    ; unsafe whenever the value already sitting in FP1 has raw exponent
+    ; $FF - see lib_fp.s's own "EXPONENT $FF BOUNDARY" note near its
+    ; ALIGNMENT TRAMPOLINE explanation for the full root-cause trace,
+    ; and tr_exp_boundary_ff.s (T02 vs T03) for the hardware/VICE
+    ; confirmation: FSUB traps with FP1=$FF-value but NOT with the same
+    ; value as FP2, so this can't be worked around by just swapping the
+    ; FP_COMPARE_TO_MACRO operands - the unsafe operand is specifically
+    ; whichever one FP_COMPARE_TO_MACRO puts into FP1 (the running
+    ; magnitude being normalized, always FP1 here by construction).
+    ; Fortunately the compare is provably REDUNDANT at this exponent:
+    ; $FF means magnitude >= 2^126, trivially >= 10.0, so there is
+    ; nothing to decide - skip straight to the divide branch below,
+    ; which never touches FP_FSUB's fcompl path and is confirmed safe
+    ; at this exponent (see tr_exp_boundary_ff.s T05, FDIV). Dividing
+    ; by 10 drops the exponent by roughly 3-4 (log2(10)~=3.32), so by
+    ; the time this loop re-enters @norm_high, FP1_EXP is virtually
+    ; certain to be back under $FF and the ordinary compare path
+    ; resumes - this is a one-iteration detour, not a parallel
+    ; algorithm, keeping the "self-correcting loop" shape the rest of
+    ; this routine already relies on (see THE ALGORITHM in the file
+    ; header).
+    lda FP1_EXP
+    cmp #$ff
+    beq @norm_high_divide
+    FP_COMPARE_TO_MACRO LIBFP_CONSTANTS::ten_const
     bmi @norm_low             ; magnitude < 10.0: shrink-phase done
     ; magnitude >= 10.0 (equal counts too - [1,10) is a half-open
     ; interval, so exactly 10.0 still needs to become 1.0): divide
     ; by 10 and bump the exponent, then re-check
+@norm_high_divide:
     FP_COPY1TO2_MACRO
-    FP_LOAD1_MACRO ten_const
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::ten_const
     jsr FP_FDIV               ; FP1 = FP2/FP1 = magnitude/10
     inc exponent
     jmp @norm_high
 @norm_low:
-    FP_COMPARE_TO_MACRO one_const
+    FP_COMPARE_TO_MACRO LIBFP_CONSTANTS::one_const
     bpl @norm_done             ; magnitude >= 1.0 (bpl catches both
                                ; "greater" and "equal" - FP_COMPARE
                                ; returns a non-negative A for either):
                                ; grow-phase done
-    FP_LOAD2_MACRO ten_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const
     jsr FP_FMUL                 ; FP1 = magnitude*10
     dec exponent
     jmp @norm_low
@@ -302,7 +346,7 @@ FP_TO_ASCII_SCI = FP_TO_ASCII_SCI_PROC
     jsr FP_FSUB                    ; FP1 = FP2-FP1 = fractional remainder
 
 @sci_frac_loop:
-    FP_LOAD2_MACRO ten_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const
     jsr FP_FMUL                    ; FP1 = remainder*10 (always < 10.0 -
                                    ; remainder itself was always < 1.0)
     FP_STORE1_MACRO mant_backup    ; reuse mant_backup as this loop's
@@ -457,10 +501,6 @@ FP_TO_ASCII_SCI = FP_TO_ASCII_SCI_PROC
     sta (FP_STRPTR),y
     rts
 
-.segment "RODATA"
-ten_const:      .byte $83,$50,$00,$00   ; 10.0 - own copy, same bytes
-                                        ; used throughout this library
-one_const:      .byte $80,$40,$00,$00   ; 1.0
 .segment "BSS"
 mant_backup:    .res 4,0
 digit_val:      .byte 0

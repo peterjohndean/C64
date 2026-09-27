@@ -3,6 +3,10 @@
 .export FP_COS
 .import FP_SIN_FULL, FP_FADD
 
+.scope LIBFP_CONSTANTS
+    .import half_pi_const
+.endscope
+
 .segment "CODE"
 ; ============================================================
 ; FILE    : lib_fp_cos.s
@@ -71,7 +75,7 @@
 ; Destroys: A, X, Y; FP2; whatever FP_SIN_FULL_PROC itself destroys
 ; ============================================================
 .proc FP_COS_PROC
-    FP_LOAD2_MACRO halfpi_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::half_pi_const
     jsr FP_FADD                  ; FP1 = x + pi/2
     jsr FP_SIN_FULL              ; FP1 = sin(x + pi/2) = cos(x)
     rts
@@ -82,7 +86,7 @@
 ;     lib_fp_sin_full.s's halfpi_const exactly, which was itself
 ;     already checked against the hardware-proven rad90 in
 ;     tr_sin.s's T03. ---
-halfpi_const: .byte $80,$64,$87,$ed   ; pi/2 = 1.5707963268
+;halfpi_const: .byte $80,$64,$87,$ed   ; pi/2 = 1.5707963268
 .endproc
 
 ; ------------------------------------------------------------

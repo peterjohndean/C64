@@ -7,7 +7,10 @@
 .import FP_FROM_UINT16, FP_TO_UINT16
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_uint16
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T22: FP_FROM_UINT16 / FP_TO_UINT16 round trip (50000) -----
     ; 50000 > 32767, so its raw 16-bit bit pattern has bit 15 set -
     ; exactly the case that would be misread as negative without the
@@ -43,7 +46,8 @@ t23_done:
     rts
 
 .segment "RODATA"
-msg_t00:        .asciiz     "uint16 (50k) round trip"
-msg_t01:        .asciiz     "uint16 (-5) rejects negative"
+msg_header: .asciiz "conversion: uint16"
+msg_t00:        .asciiz     "50k roundtrip"
+msg_t01:        .asciiz     "-5 rejects negative"
 .endproc
 

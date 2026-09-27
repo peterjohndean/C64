@@ -16,28 +16,33 @@
 .scope TestData
     .import id_group
     .import test_title
-    .import test_pass, test_fail    ; [REGRESSION TEST] needed by the
-                                    ; unexpected_trap IRQ check below -
-                                    ; same pass/fail strings tp_fp1cmp.s
-                                    ; and tp_strcmp.s already use, reused
-                                    ; here rather than duplicating them
+    
+    ; [REGRESSION TEST] needed by the unexpected_trap IRQ check below -
+    ; same pass/fail strings tp_fp1cmp.s and tp_strcmp.s already use, reused
+    ; here rather than duplicating them
+    .import test_pass, test_fail
 .endscope
 
 ;
 ; Test routines
 ;
 .import tr_fadd, tr_fsub, tr_fmul, tr_fdiv, tr_fmod, tr_log, tr_exp
-.import tr_fp_precision
+.import tr_exp_boundary_all
 .import tr_swap, tr_clearfac
+.import tr_fp_fix
 .import tr_trunc, tr_floor, tr_ceil
 .import tr_compare
 .import tr_int8, tr_int16, tr_int24
 .import tr_uint8, tr_uint16, tr_uint24
 .import tr_ieee754
-.import tr_sin, tr_sin_full, tr_cos, tr_tan, tr_deg_rad
+.import tr_trig_poison, tr_sin, tr_sin_full, tr_cos, tr_tan, tr_deg_rad
 .import tr_ascii16, tr_ascii24
-.import tr_ascii_sci    ; scientific-notation FP<->ASCII round trip -
-                        ; see lib_fp_to_ascii_sci.s/lib_fp_from_ascii_sci.s
+.import tr_ascii_sci        ; scientific-notation FP<->ASCII round trip -
+                            ; see lib_fp_to_ascii_sci.s/lib_fp_from_ascii_sci.s
+.import tr_ascii_sci_rev2
+.import tr_ascii_sci_v2     ; significant-digits + decimal-exponent parser
+                            ; replacement - see lib_fp_from_ascii_sci_v2.s
+.import tr_ascii_sci_v3
 .import tr_basicfac
 .import tr_trap_irq     ; [REGRESSION TEST] see test_vectors below -
                         ; MUST be the last entry in that table, not
@@ -48,8 +53,6 @@
 .import FP_CLEANUP_FAC1FAC2
 .import TEST_WAIT
 
-;.macpack longbranch
-
 .scope TestRegistry
     .export ntests
     .segment "RODATA"
@@ -58,13 +61,16 @@
         ; Mathematics
         ;
         .word tr_fadd, tr_fsub
-        .word tr_fmul, tr_fp_precision
+        .word tr_fmul
         .word tr_fdiv, tr_fmod
+        .word tr_swap
         .word tr_log
         .word tr_exp
+        .word tr_exp_boundary_all
         ;
         ; Trigonometry
         ;
+        .word tr_trig_poison
         .word tr_sin, tr_sin_full
         .word tr_cos
         .word tr_tan
@@ -74,19 +80,26 @@
         ;
         .word tr_trunc, tr_floor, tr_ceil
         ;
-        .word tr_compare
+        ; Comparision
         ;
-        .word tr_swap
-        .word tr_clearfac
+        .word tr_compare
         ;
         ; Conversions
         ;
-        .word tr_int8, tr_int16, tr_int24
+        .word tr_int8, tr_fp_fix, tr_int16, tr_int24
         .word tr_uint8, tr_uint16, tr_uint24
         .word tr_ieee754
         .word tr_basicfac
         .word tr_ascii16, tr_ascii24
         .word tr_ascii_sci
+        .word tr_ascii_sci_rev2
+        .word tr_ascii_sci_v2
+        .word tr_ascii_sci_v3
+        ;
+        ; C64 BASIC Re-entry
+        ;
+        .word tr_clearfac
+
         ;
         ; -----------------------------------------------------------
         ; [REGRESSION TEST] tr_trap_irq - deliberately provokes a trap
@@ -112,7 +125,7 @@
 
 .segment "CODE"
 .proc FP_TESTS
-    ;
+
     KERNAL_CHROUT_MACRO PETSCII_CLEAR ; screen clear/home
     BASIC_STROUT_MACRO TestData::test_title
     lda TestRegistry::ntests
@@ -227,6 +240,6 @@ unexpected_trap:
     rts
     
 .segment "RODATA"
-msg_unexpected: .asciiz     "unexpected error: "
-msg_irq_check:  .asciiz     " irq enabled after trap"
+msg_unexpected: .asciiz "unexpected error: "
+msg_irq_check:  .asciiz "irq enabled after trap"
 .endproc

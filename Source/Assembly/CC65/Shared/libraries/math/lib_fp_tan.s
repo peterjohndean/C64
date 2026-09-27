@@ -57,25 +57,30 @@
 ;
 ; SCOPE - THE PART THAT'S EASY TO MISS
 ; -----------------------------------------
-; Because cos(x) is itself computed via range-reduced Taylor
-; approximation (FP_COS_PROC -> FP_SIN_FULL_PROC), it essentially
-; NEVER lands on exact canonical zero at a true asymptote - it lands
-; on some tiny nonzero value instead (confirmed on real hardware:
-; this project's own cos(90 degrees) test measured approximately
-; 9.5e-7, not 0.0). That means calling FP_TAN_PROC AT an asymptote
-; (x = 90 degrees, 270 degrees, etc.) will typically NOT trap at
-; all - it will silently return some large-but-finite quotient
-; (roughly sin(x)/9.5e-7-ish, so on the order of a million) rather
-; than erroring, UNLESS that quotient happens to be big enough to
-; overflow the format's own exponent range, or the rounding
-; happens to land cos(x) on exact 0.0 (rare, but see lib_fp_cos.s's
-; own T04 test - it happened once already, for 270 degrees, purely
-; because the angle arithmetic happened to align exactly). This
-; mirrors FP_SIN_PROC's own SCOPE note: precision degrades smoothly
-; near the edges of what's well-defined, it doesn't fail loudly
-; every time - test T04 below deliberately calls this AT 90 degrees
-; specifically to see (and document) which of those outcomes
-; actually happens on real hardware, rather than assuming one.
+; [UPDATED] Prior to the FP_FSUB stale-carry fix (see lib_fp.s's
+; EXPONENT $FF BOUNDARY note), cos(x) computed via range-reduced
+; Taylor approximation (FP_COS_PROC -> FP_SIN_FULL_PROC) essentially
+; never landed on exact canonical zero at a true asymptote - this
+; project's own cos(90 degrees) test used to measure approximately
+; 9.5e-7, not 0.0. That fix incidentally improved precision inside
+; FP_COMPARE/FP_FMOD's internal FP_FSUB calls (both used throughout
+; FP_SIN_FULL_PROC's quadrant reduction), and cos(90 degrees) now
+; measures EXACTLY 0.0, confirmed on both VICE and real hardware
+; (not assumed - part of the same full regression run that verified
+; the fsub fix itself). Practical consequence: calling FP_TAN_PROC AT
+; an exact asymptote (x = 90 degrees) now reliably TRAPS as
+; division-by-zero (FP_FDIV's own explicit FP1_EXP==0 check - see
+; lib_fp.s), rather than silently returning some large-but-finite
+; quotient the way it used to (confirmed: T04 below now hits
+; "trapped error: division by zero"). This is the SAME "rounding
+; happens to land cos(x) on exact 0.0" case lib_fp_cos.s's own T04
+; test already documented as possible (previously observed only at
+; 270 degrees, purely by coincidence of that angle's arithmetic) - it
+; now also holds at 90 degrees, reliably, as a result of the
+; precision fix rather than by chance. This note records the CURRENT
+; confirmed value at 90 degrees specifically; it is not a claim that
+; every possible asymptote angle now traps - FP_TAN_PROC's general
+; SCOPE (precision-dependent behaviour near asymptotes) still holds.
 ;
 ; ERROR HANDLING
 ; ----------------

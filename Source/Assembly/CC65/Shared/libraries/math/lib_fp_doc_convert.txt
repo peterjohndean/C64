@@ -1,5 +1,5 @@
 ; ============================================================
-; FILE    : lib_fp_convert.txt
+; FILE    : lib_fp_doc_convert.txt
 ; PROJECT : Commodore 64 Floating Point Library (Rankin/Wozniak port)
 ; AUTHOR  : Peter
 ; TARGET  : Commodore 64 / 6510 CPU
@@ -65,8 +65,7 @@
 ; - if the value's magnitude cannot be represented in the target
 ; width, the shift-right loop pushes FP1_EXP up past $FF, which
 ; FP_CORE_PROC.rtlog already detects (`beq ovfl`) and traps via
-; FP_CORE_PROC.ovfl (see library_fp.s). This can take many
+; FP_CORE_PROC.ovfl (see lib_fp.s). This can take many
 ; iterations before it fires; know your value ranges rather than
 ; relying on this as a fast overflow check.
 ; ============================================================
-

@@ -7,7 +7,10 @@
 .import TEST_FP1CMP, TEST_FAILED
 .import OUTPUT_BYTETOHEX
 
+.segment "CODE"
 .proc tr_fadd
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T00: FADD  12 + (-5) = 7 ---
     FP_LOAD1_MACRO TestValue::val_12
     FP_LOAD2_MACRO TestValue::val_neg5
@@ -75,8 +78,9 @@ t35_done:
     rts
 
 .segment "RODATA"
-msg_t00:        .asciiz     "fadd (7)  ";(12 + -5   =  7)"
-msg_t01:        .asciiz     "fadd (12) ";(12 +  0   = 12)"
-msg_t02:        .asciiz     "fadd (0.5)";(1b +  0.5 = 1b)"
-msg_t03:        .asciiz     "fadd (non-trap)"
+msg_header:     .asciiz "mathematics: addition"
+msg_t00:        .asciiz "12 + -5   =  7"
+msg_t01:        .asciiz "12 +  0   = 12"
+msg_t02:        .asciiz "1b +  0.5 = 1b"
+msg_t03:        .asciiz "non-trap"
 .endproc

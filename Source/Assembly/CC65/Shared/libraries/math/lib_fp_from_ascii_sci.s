@@ -4,6 +4,10 @@
 .import FP_FADD, FP_FMUL, FP_FDIV
 .import FP_NEGATE, FP_NORM, FP_FLOAT
 
+.scope LIBFP_CONSTANTS
+    .import ten_const
+.endscope
+
 FP_FROM_ASCII_SCI = FP_FROM_ASCII_SCI_PROC
 
 .segment "CODE"
@@ -108,10 +112,11 @@ FP_FROM_ASCII_SCI = FP_FROM_ASCII_SCI_PROC
 ;
 ; VERIFICATION STATUS
 ; -----------------------
-; Not yet run on VICE or physical hardware - the WORKED EXAMPLE
-; above is a hand-derivation. Treat this as ready for T-series
-; testing (see tr_ascii_sci.s), not yet proven, same status as its
-; companion file lib_fp_to_ascii_sci.s.
+; Covered by tr_ascii_sci.s, including ordinary decimal input, both
+; E and e exponent markers, positive/negative exponents, overflow
+; propagation, underflow-to-zero, and the no-mantissa-digits carry
+; contract. The worked example above remains a hand derivation; use
+; the test group as the executable contract.
 ;
 ; Entry   : A = string address low byte, Y = string address high byte
 ; Exit    : FP1 = parsed value. Carry clear if the MANTISSA contained
@@ -210,7 +215,7 @@ FP_FROM_ASCII_SCI = FP_FROM_ASCII_SCI_PROC
 @divide_loop:
     pha
     FP_COPY1TO2_MACRO
-    FP_LOAD1_MACRO ten_const
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::ten_const
     jsr FP_FDIV
     pla
     sec
@@ -325,16 +330,16 @@ FP_FROM_ASCII_SCI = FP_FROM_ASCII_SCI_PROC
     bne @scale_divide_loop
 
 @scale_multiply_loop:
-    FP_LOAD2_MACRO ten_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const
     jsr FP_FMUL                     ; FP1 = FP1 * 10.0
     dec scale_count
     bne @scale_multiply_loop
     jmp @no_scale
 
 @scale_divide_loop:
-    FP_COPY1TO2_MACRO                ; FP2 = running value
-    FP_LOAD1_MACRO ten_const         ; FP1 = 10.0 (divisor)
-    jsr FP_FDIV                      ; FP1 = FP2/FP1 = running/10
+    FP_COPY1TO2_MACRO                           ; FP2 = running value
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::ten_const   ; FP1 = 10.0 (divisor)
+    jsr FP_FDIV                                 ; FP1 = FP2/FP1 = running/10
     dec scale_count
     bne @scale_divide_loop
 
@@ -352,10 +357,10 @@ FP_FROM_ASCII_SCI = FP_FROM_ASCII_SCI_PROC
 ; reused here for both mantissa passes.
 @accumulate_digit:
     sta digit_tmp
-    FP_LOAD2_MACRO ten_const         ; FP2 = 10.0
-    jsr FP_FMUL                      ; FP1 = total * 10
-    FP_STORE1_MACRO accum            ; stash total*10 - building the
-                                     ; digit float needs FP1
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const   ; FP2 = 10.0
+    jsr FP_FMUL                                 ; FP1 = total * 10
+    FP_STORE1_MACRO accum                       ; stash total*10 - building the
+                                                ; digit float needs FP1
     lda digit_tmp
     sta FP1_MANT+1                   ; digit as a 16-bit integer
     lda #0
@@ -380,6 +385,4 @@ exp_value:        .byte 0            ; parsed exponent MAGNITUDE, plain
 exp_digit_tmp:    .byte 0
 exp_tmp2:         .byte 0
 scale_count:      .byte 0
-ten_const:        .byte $83,$50,$00,$00   ; 10.0 - same bytes used
-                                          ; throughout this library
 .endproc

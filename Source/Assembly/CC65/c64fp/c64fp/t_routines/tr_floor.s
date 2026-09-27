@@ -9,7 +9,10 @@
 .import FP_FROM_INT8
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_floor
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T42: FP_FLOOR_PROC, positive fractional (42.25 -> 42.0) ---
     lda #<str_test00
     ldy #>str_test00
@@ -61,10 +64,10 @@ t44_done:
     rts
 
 .segment "RODATA"
-msg_t00:    .asciiz "floor ( 42.25 ->  42.0)"
-msg_t01:    .asciiz "floor (-42.25 -> -43.0)"
-msg_t02:    .asciiz "floor ( -5.0  ->  -5.0)"
-;
+msg_header: .asciiz "rounding: floor"
+msg_t00:    .asciiz " 42.25 ->  42.0"
+msg_t01:    .asciiz "-42.25 -> -43.0"
+msg_t02:    .asciiz " -5.0  ->  -5.0"
 str_test00: .asciiz "42.25"
 str_test01: .asciiz "-42.25"
 .endproc

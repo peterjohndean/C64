@@ -28,9 +28,9 @@
 ;   FP_COPY1TO2_MACRO             - FP1 -> FP2, directly, no memory
 ;   FP_COPY2TO1_MACRO             - FP2 -> FP1, directly, no memory
 ;   FP_ERROR_INIT_MACRO recovery_label - arm a trap recovery point
-;                                    (see library_fp_error.s)
+;                                    (see lib_fp_error.s)
 ;   FP_COMPARE_TO_MACRO addr      - compare FP1 against a memory
-;                                    constant (see library_fp_compare.s)
+;                                    constant (see lib_fp_compare.s)
 ;
 ; INDEXED VARIANTS: Y IS NOT MULTIPLIED FOR YOU
 ; -------------------------------------------------
@@ -225,7 +225,8 @@
 ; MACRO: FP_COPY1TO2_MACRO / FP_COPY2TO1_MACRO
 ; Purpose : Copy directly between FP1 and FP2, register-to-
 ;           register, with no memory intermediary. Added while
-;           auditing library_fp_ascii.s for missed macro usage -
+;           auditing lib_fp_from_ascii.s/lib_fp_to_ascii.s for
+;           missed macro usage -
 ;           several spots there (e.g. building a second operand
 ;           for FP_FADD/FP_FSUB straight out of FP1) needed
 ;           exactly this and there was no macro for it yet, only
@@ -259,14 +260,14 @@
 ; MACRO: FP_ERROR_INIT_MACRO
 ; Purpose : Arm a recovery point: if any FP operation between this
 ;           macro and the given label traps, execution resumes AT
-;           that label instead of anywhere inside library_fp.s.
-;           See library_fp_error.s's file header for the full
+;           that label instead of anywhere inside lib_fp.s.
+;           See lib_fp_error.s's file header for the full
 ;           setjmp/longjmp-style contract.
 ; Params  : recovery_label - a label YOU define, anywhere in your
 ;           own code (typically right after the risky call(s), or
 ;           at a dedicated error-handling block) - this is where
 ;           control lands if something traps. Forward references
-;           are fine (64TASS resolves this over its normal passes).
+;           are fine (ca65 resolves this over its normal passes).
 ; Destroys: A
 ; Cycles  : ~15 cycles
 ; Notes   : This pushes a return address that MUST be consumed -
@@ -338,7 +339,7 @@
 ; Purpose : Compare FP1 against a compile-time-known 4-byte float
 ;           constant held in memory, without needing to load it
 ;           into FP2 yourself first. Thin wrapper: loads FP2, then
-;           calls FP_COMPARE_PROC (library_fp_compare.s).
+;           calls FP_COMPARE_PROC (lib_fp_compare.s).
 ; Params  : addr - label of the 4-byte float to compare FP1 against
 ; Returns : A = 0 (FP1==addr), A = 1 (FP1>addr), A = $FF (FP1<addr),
 ;           N/Z flags set to match (safe for beq/bmi/bpl)
@@ -356,4 +357,20 @@
 	.endif
     FP_LOAD2_MACRO addr
     jsr FP_COMPARE
+.endmacro
+
+
+.macro FP_NORM_STATE_NORMAL_MACRO
+    lda #FP_NORM_STATE_NORMAL
+    .ifdef fp_norm_boundary_state
+        sta fp_norm_boundary_state
+    .else
+        sta FP_NORM_BOUNDARY_STATE
+    .endif
+.endmacro
+
+
+.macro FP_MUL_EXTRA_CLEAR_MACRO
+    lda #0
+    sta fp_mul_extra
 .endmacro

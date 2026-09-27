@@ -6,7 +6,10 @@
 .import FP_CLEANUP_FAC1FAC2
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_clearfac
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T19: FP_CLEANUP_FAC1FAC2 zeroes the full $61-$70 workspace ---
     FP_LOAD1_MACRO TestValue::val_12
     FP_LOAD2_MACRO TestValue::val_neg5
@@ -26,5 +29,6 @@ t19_done:
     rts
 
 .segment "RODATA"
+msg_header: .asciiz "c64 basic fac1 & fac2 cleanup"
 msg_t00:    .asciiz "cleanup fac1/fac2"
 .endproc

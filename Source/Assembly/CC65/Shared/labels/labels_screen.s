@@ -4,8 +4,10 @@ LABELS_ROM_SCREEN_S = 1
 ; PETSCII Control Codes
 PETSCII_RETURN          = $0d
 PETSCII_INSTDEL         = $14   ; Backspace/Delete
+PETSCII_BACK            = $5f   ; Back key (C64 Left Arrow at top left)
 PETSCII_CLEAR           = $93   ; Clear screen + home
 PETSCII_HOME            = $13
+PETSCII_SPACE           = $20
 PETSCII_RVSON           = $12   ; RVS on
 PETSCII_RVSOFF          = $92   ; RVS off
 PETSCII_CURSOR_DOWN     = $11
@@ -30,6 +32,14 @@ PETSCII_LIGHT_GRAY      = $9b   ; 155 → colour 15
 PETSCII_PURPLE          = $9c   ; 156 → colour 4
 PETSCII_CYAN            = $9f   ; 159 → colour 3
 PETSCII_YELLOW          = $9e   ; 158 → colour 7
+
+; PETSCII Special Characters
+PETSCII_CORNER_TL       = $b0
+PETSCII_CORNER_TR       = $ae
+PETSCII_CORNER_BL       = $ad
+PETSCII_CORNER_BR       = $bd
+PETSCII_LINE_HORIZONTAL = $60   ; $c0 same as $60
+PETSCII_LINE_VERTICAL   = $7d   ; $dd same as $7d
 
 ;
 SCREEN_RAM_BASE     := $0400    ; Screen RAM start: 1000 bytes (40x25 character grid)

@@ -4,6 +4,10 @@
 .import FP_FADD, FP_FMUL, FP_FDIV
 .import FP_NEGATE, FP_NORM, FP_FLOAT
 
+.scope LIBFP_CONSTANTS
+    .import ten_const
+.endscope
+
 FP_FROM_ASCII = FP_FROM_ASCII_PROC
 
 .segment "CODE"
@@ -69,7 +73,7 @@ FP_FROM_ASCII = FP_FROM_ASCII_PROC
     ; [BUG FIX] Y must be reloaded from scan_pos on EVERY pass through this
     ; loop, not just carried forward via iny. accumulate_digit below calls
     ; FP_FMUL/FP_FADD (and, via the fractional path, FP_FDIV) - all three
-    ; are documented in library_fp.s as destroying Y (FMUL/FDIV use it as
+    ; are documented in lib_fp.s as destroying Y (FMUL/FDIV use it as
     ; their 24-bit iteration counter). The original version kept the
     ; string-scan position live in Y across that call, so after the very
     ; first digit, Y no longer pointed anywhere near the string - it held
@@ -109,7 +113,7 @@ FP_FROM_ASCII = FP_FROM_ASCII_PROC
 @divide_loop:
     pha
     FP_COPY1TO2_MACRO               ; FP2 = running total
-    FP_LOAD1_MACRO ten_const        ; FP1 = 10.0
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::ten_const        ; FP1 = 10.0
     jsr FP_FDIV                     ; FP1 = FP2 / FP1 = total / 10
     pla
     sec
@@ -131,7 +135,7 @@ FP_FROM_ASCII = FP_FROM_ASCII_PROC
 ; --- accumulate_digit: FP1 = FP1*10 + A  (A = digit value 0-9) ---
 @accumulate_digit:
     sta digit_tmp
-    FP_LOAD2_MACRO ten_const        ; FP2 = 10.0
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const        ; FP2 = 10.0
     jsr FP_FMUL                     ; FP1 = total * 10
     FP_STORE1_MACRO accum           ; stash total*10 - building the
                                     ; digit float needs FP1
@@ -145,8 +149,8 @@ FP_FROM_ASCII = FP_FROM_ASCII_PROC
     jsr FP_FADD                     ; FP1 = total*10 + digit
     rts
 
-.segment "RODATA"
-ten_const:      .byte $83,$50,$00,$00   ; 10.0 - see library_fp_convert.s's
+;.segment "RODATA"
+;ten_const:      .byte $83,$50,$00,$00   ; 10.0 - see lib_fp_doc_convert.txt's
                                         ; header for how these bytes are
                                         ; derived (mantissa_int/2^22 *
                                         ; 2^(exp-128))

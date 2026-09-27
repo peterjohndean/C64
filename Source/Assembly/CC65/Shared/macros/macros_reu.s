@@ -83,7 +83,9 @@
 ;
 ; Synchronisation:
 ;   REU_WAIT_EOB_MACRO       - inline busy-wait for transfer completion
-;   REU_WAIT_EOB_PROC        - subroutine version (JSR, saves code size)
+;   REU_WAIT_EOB_PROC        - subroutine helper in lib_reu_detection.s
+;                              (JSR, saves code size when available in
+;                              the same assembly/linkage unit)
 ;
 ; Utility:
 ;   REU_SET_LENGTH_MACRO     - set transfer length registers only
@@ -98,7 +100,8 @@
 ;      → the macro programs the REU registers and fires DMA
 ;
 ;   2. Wait for completion (if issuing sequential transfers):
-;      jsr REU_WAIT_EOB_PROC    ; or expand REU_WAIT_EOB_MACRO
+;      jsr REU_WAIT_EOB_PROC    ; if lib_reu_detection.s supplies it,
+;                               ; or expand REU_WAIT_EOB_MACRO
 ;
 ;   3. Proceed with next operation.
 ;

@@ -109,3 +109,22 @@
     jsr TEST_CHECK
 .endmacro
 
+; ============================================================
+; MACRO: TEST_ROUTINE_HEADER_MACRO
+; Purpose: To prepare setup information for the intended for test header.
+; Parameters:
+; - test_header:    vector to match the test result.
+; Returns:          outputs test header.
+; ============================================================
+.macro TEST_ROUTINE_HEADER_MACRO test_msg
+    .if .paramcount <> 1
+		.error  "Too few parameters for macro TEST_ROUTINE_HEADER_MACRO"
+	.endif
+    ;
+    lda #<test_msg
+    sta TestData::ptr_testmsg
+    lda #>test_msg
+    sta TestData::ptr_testmsg+1
+    jsr TEST_ROUTINE_HEADER
+    ;
+.endmacro

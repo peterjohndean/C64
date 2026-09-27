@@ -3,6 +3,11 @@
 .export FP_DEG_TO_RAD, FP_RAD_TO_DEG
 .import FP_FMUL
 
+.scope LIBFP_CONSTANTS
+    .import deg_to_rad_const, rad_to_deg_const
+.endscope
+
+
 .segment "CODE"
 ; ============================================================
 ; FILE    : lib_fp_deg_rad.s
@@ -90,11 +95,12 @@
 ;                                ; any of this library's trig calls
 ; ============================================================
 .proc FP_DEG_TO_RAD_PROC
-    FP_LOAD2_MACRO deg_to_rad_const
+;    FP_LOAD2_MACRO deg_to_rad_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::deg_to_rad_const
     jsr FP_FMUL                  ; FP1 = degrees * (pi/180) = radians
     rts
 
-deg_to_rad_const: .byte $7a,$47,$7d,$1b   ; pi/180 = 0.0174532925
+;deg_to_rad_const: .byte $7a,$47,$7d,$1b   ; pi/180 = 0.0174532925
 .endproc
 
 ; ============================================================
@@ -109,11 +115,12 @@ deg_to_rad_const: .byte $7a,$47,$7d,$1b   ; pi/180 = 0.0174532925
 ; Destroys: A, X, Y; FP2
 ; ============================================================
 .proc FP_RAD_TO_DEG_PROC
-    FP_LOAD2_MACRO rad_to_deg_const
+;    FP_LOAD2_MACRO rad_to_deg_const
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::rad_to_deg_const
     jsr FP_FMUL                  ; FP1 = radians * (180/pi) = degrees
     rts
 
-rad_to_deg_const: .byte $85,$72,$97,$70   ; 180/pi = 57.2957795
+;rad_to_deg_const: .byte $85,$72,$97,$70   ; 180/pi = 57.2957795
 .endproc
 
 ; ------------------------------------------------------------

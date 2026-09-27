@@ -7,6 +7,10 @@
 .import FP_TO_INT16
 .import FP_FROM_INT8, FP_TO_INT8
 
+.scope LIBFP_CONSTANTS
+    .import ten_const
+.endscope
+
 FP_TO_ASCII = FP_TO_ASCII_PROC
 
 .segment "CODE"
@@ -87,7 +91,7 @@ FP_TO_ASCII = FP_TO_ASCII_PROC
     FP_LOAD2_MACRO backup           ; FP2 = original absolute value
     jsr FP_FSUB                     ; FP1 = FP2-FP1 = fractional part
 @frac_loop:
-    FP_LOAD2_MACRO ten_const        ; FP2 = 10.0
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const        ; FP2 = 10.0
     jsr FP_FMUL                     ; FP1 = fraction * 10
     FP_STORE1_MACRO backup
     jsr FP_TO_INT8                  ; A = digit 0-9 (fraction*10 is
@@ -164,7 +168,7 @@ FP_TO_ASCII = FP_TO_ASCII_PROC
 .segment "RODATA"
 pow10_hi:       .byte >10000,>1000,>100,>10,>1
 pow10_lo:       .byte <10000,<1000,<100,<10,<1
-ten_const:      .byte $83,$50,$00,$00   ; 10.0 - own copy, kept separate from
+;ten_const:      .byte $83,$50,$00,$00   ; 10.0 - own copy, kept separate from
                                         ; FP_FROM_ASCII_PROC's (matches this
                                         ; file's per-proc scratch convention)
 .segment "BSS"

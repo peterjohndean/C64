@@ -271,7 +271,7 @@
 ;
 ; DEPENDENCIES
 ; ------------
-; Requires labels_fp.s, library_fp_error.s, library_fp.s (for
+; Requires labels_fp.s, lib_fp_error.s, lib_fp.s (for
 ; FP_NEGATE) before this file.
 ;
 ; ROUTINE INVENTORY

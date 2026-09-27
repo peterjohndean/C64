@@ -7,6 +7,10 @@
 .import FP_TO_INT24
 .import FP_FROM_INT8, FP_TO_INT8
 
+.scope LIBFP_CONSTANTS
+    .import ten_const
+.endscope
+
 FP_TO_ASCII24 = FP_TO_ASCII24_PROC
 
 .segment "CODE"
@@ -261,7 +265,7 @@ FP_TO_ASCII24 = FP_TO_ASCII24_PROC
                                 ; entirely from shifts and FP_NORM - no
                                 ; FP_FSUB call anywhere in this path
 @frac_loop:
-    FP_LOAD2_MACRO ten_const   ; FP2 = 10.0
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const   ; FP2 = 10.0
     jsr FP_FMUL                 ; FP1 = fraction * 10
     FP_STORE1_MACRO backup
     jsr FP_TO_INT8              ; A = digit 0-9
@@ -346,7 +350,7 @@ pow10_hi:       .byte ^10000000,^1000000,^100000,^10000,^1000,^100,^10,^1
 pow10_mid:      .byte >10000000,>1000000,>100000,>10000,>1000,>100,>10,>1
 pow10_lo:       .byte <10000000,<1000000,<100000,<10000,<1000,<100,<10,<1
 backup:         .res 4,0
-ten_const:      .byte $83,$50,$00,$00   ; 10.0 - own copy, same rationale
+;ten_const:      .byte $83,$50,$00,$00   ; 10.0 - own copy, same rationale
                                         ; as FP_TO_ASCII_PROC's
 frac_count:     .byte 0
 frac_bits:      .byte 0         ; how many low mantissa bits are

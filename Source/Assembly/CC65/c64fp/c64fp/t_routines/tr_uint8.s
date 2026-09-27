@@ -7,7 +7,10 @@
 .import FP_FROM_UINT16
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_uint8
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T20: FP_FROM_UINT8 / FP_TO_UINT8 round trip (200) --------
     ; 200 doesn't fit in a SIGNED 8-bit value (max 127) - this is
     ; exactly the case the unsigned routines exist for.
@@ -38,7 +41,8 @@ t21_done:
     rts
 
 .segment "RODATA"
-msg_t00:        .asciiz     "uint8 (200) round trip"
-msg_t01:        .asciiz     "uint8 (300>200) overflow"
+msg_header: .asciiz "conversion: uint8"
+msg_t00:        .asciiz     "200 roundtrip"
+msg_t01:        .asciiz     "300 overflow"
 .endproc
 

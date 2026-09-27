@@ -7,7 +7,10 @@
 .import FP_FROM_INT16
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_int8
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T08: FP_FROM_INT8 / FP_TO_INT8 round trip, negative ---
     lda #<(-100)
     jsr FP_FROM_INT8
@@ -37,7 +40,8 @@ t10_done:
     rts
 
 .segment "RODATA"
-msg_t00:    .asciiz "int8 (-100) round trip"
-msg_t01:    .asciiz "int8 (200>max) overflow"
+msg_header: .asciiz "conversion: int8"
+msg_t00:    .asciiz "-100    roundtrip"
+msg_t01:    .asciiz "200>max overflow"
 .endproc
 

@@ -81,6 +81,7 @@
 ; real ROM path).
 ; ============================================================
 .proc tr_basicfac
+    TEST_ROUTINE_HEADER_MACRO msg_header
 
     ; --- T00: FP_TO_BASIC_PROC(1.0) == $81,$00,$00,$00,$00 ---
     ; hand check: Eb = Ew+1 = $80+1 = $81. Woz mantissa $400000
@@ -328,10 +329,13 @@
                               ; flags, so this is safe to test with
                               ; a plain BEQ/BNE at the call site
 
+.segment "BSS"
 work_buf: .res 5,0            ; FP_TO_BASIC_PROC's scratch output
                               ; target for every T00-T03 test above
 
 .segment "RODATA"
+msg_header:     .asciiz "conversion: c64 basic fp"
+
 ; --- expected BASIC-format byte patterns, each hand-derived in
 ;     lib_fp_basic.s's own WORKED EXAMPLE section or this file's
 ;     per-test comments above before being trusted here ---

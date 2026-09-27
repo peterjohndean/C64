@@ -8,7 +8,10 @@
 .import TEST_CHECK, TEST_FP1CMP
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_exp
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T16: EXP(0) - expect ~1.0 ($80,$40,$xx,$xx) ---
     FP_LOAD1_MACRO TestValue::val_0
     jsr FP_EXP
@@ -37,6 +40,7 @@ t33_done:
     rts
 
 .segment "RODATA"
-msg_t00:        .asciiz     "exp (0) -> 1.0"
-msg_t01:        .asciiz     "exp (trap overflow)"
+msg_header:     .asciiz "fp exponent"
+msg_t00:        .asciiz "exp (0) -> 1.0"
+msg_t01:        .asciiz "exp (trap overflow)"
 .endproc

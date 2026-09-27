@@ -7,7 +7,10 @@
 .import FP_FROM_ASCII24, FP_TO_ASCII24
 .import TEST_STRCMP
 
+.segment "CODE"
 .proc tr_ascii24
+    TEST_ROUTINE_HEADER_MACRO msg_header
+    
     ; --- T56: FP_TO_ASCII24_PROC, integer-only, at the exact max
     ;          value FP_TO_INT24 can represent (8,388,607) - the
     ;          mirror image of T53's overflow trap at 8,388,608, and
@@ -201,6 +204,7 @@
     rts
 
 .segment "RODATA"
+msg_header:     .asciiz "conversion: ascii 24"
 msg_t00:        .asciiz "ascii24 to"
 msg_t04:        .asciiz "ascii24 from"
 ;

@@ -82,7 +82,7 @@ need_adjust:    .byte 0
 ; checked once after it - reasonable-looking, but wrong: FP_TO_INT16's
 ; internal loop calls FP_RTAR whenever the value needs shifting to reach
 ; the target exponent, and FP_RTAR's own shift loop (rtlog1, in
-; library_fp.s) uses X as an index, ending at 0 regardless of what it
+; lib_fp.s) uses X as an index, ending at 0 regardless of what it
 ; held on entry. For a value whose remainder happens to already sit at
 ; the target exponent (no shift needed - true for T23's specific test
 ; value, 50000), FP_RTAR is never called and X survives untouched,

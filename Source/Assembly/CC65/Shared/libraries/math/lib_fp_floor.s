@@ -7,6 +7,10 @@
 .import FP_COMPARE
 .import FP_TRUNC
 
+.scope LIBFP_CONSTANTS
+    .import one_const
+.endscope
+
 .segment "CODE"
 
 ; ============================================================
@@ -35,15 +39,15 @@
     beq @done                       ; original was already a whole
                                     ; number: no adjustment needed
     FP_COPY1TO2_MACRO               ; FP2 = trunc(x)
-    FP_LOAD1_MACRO one_const        ; FP1 = 1.0
-    jsr FP_FSUB                     ; FP1 = FP2 - FP1 = trunc(x) - 1.0
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::one_const   ; FP1 = 1.0
+    jsr FP_FSUB                                 ; FP1 = FP2 - FP1 = trunc(x) - 1.0
 
 @done:
     rts
 
 orig_sign:      .byte 0
 orig_backup:    .res 4,0
-one_const:      .byte $80,$40,$00,$00   ; 1.0
+;one_const:      .byte $80,$40,$00,$00   ; 1.0
 .endproc
 
 ; ------------------------------------------------------------

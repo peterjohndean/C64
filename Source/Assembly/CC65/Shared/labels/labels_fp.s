@@ -33,6 +33,58 @@
 ;     SEEEEEEE  SM.MMMMMM  MMMMMMMM  MMMMMMMM
 ;        n         n+1       n+2       n+3
 ;
+; For the Woz/Rankin 4-byte floating-point format (originally written by Steve Wozniak
+; and refined with Roy Rankin for Apple Integer/Floating Point BASIC), the numerical range
+; is determined by its excess-128 exponent and its normalized 2's complement mantissa.
+;
+; 1. Exponent Range
+;   ⚬	The exponent byte uses excess-128 bias, where $80 = 2⁰, $81 = 2¹, and $7F = 2⁻¹.
+;   ⚬	An 8-bit unsigned exponent byte ranges from $00 to $FF (0 to 255 in decimal).
+;   ⚬	Subtracting the 128 bias gives an exponent range from -128 to +127
+;       (2⁻¹²⁸ to 2¹²⁷ scale factors).
+; 2. Mantissa Range
+;   ⚬	The mantissa is 3 bytes (24 bits total), formatted in 2's complement and normalized
+;       to the range ‭[1.0, 2.0)‬‭‬ (strictly less than 2.0).
+;   ⚬	The binary point sits between bits 6 and 5 of the most significant mantissa byte.
+;   ⚬	Because it is normalized, the magnitude of the mantissa (‭M) satisfies:
+;
+;‭                          1.0 ≤ |M| < 2.0
+;
+; 3. Calculating the Total Value Range
+; Combining the extreme values of the exponent and the normalized mantissa:
+;   ⚬	Maximum Positive Number:
+;       Approaches 2.0 × 2¹²⁷ = 2¹²⁸ ≈ 3.40 × 10³⁸
+;   ⚬	Minimum Positive Normalized Number:
+;       Equals 1.0 × 2⁻¹²⁸ = 2⁻¹²⁸ ≈ 2.94 × 10⁻³⁹
+;   ⚬	Zero:
+;       Typically represented by an exponent byte of $00 (along with zeroed mantissa bytes).
+;       Thus, the absolute numeric range spans from roughly ‭-3.40 × 10³⁸ to +3.40 × 10³⁸
+;       (excluding underflow to zero), matching the magnitude scale of standard IEEE
+;        32-bit single-precision floats, but packed into 4 bytes with a
+;       2's complement signed mantissa
+;
+; EXPONENT $FF - FULLY VALID AND SAFE (see HISTORY below)
+; -----------------------------------------------------------
+; Raw exponent $FF is a legitimately reachable value (nothing in
+; FP_CORE_PROC's overflow check excludes it) - confirmed on hardware,
+; e.g. FP1=$FF,$47,$78,$43 for ~1.9e38. It is now safe as an operand
+; to ANY routine in this library, including as FP_FSUB's FIRST
+; operand (FP1) and as either operand to FP_COMPARE - see lib_fp.s's
+; own "EXPONENT $FF BOUNDARY" note (near the ALIGNMENT TRAMPOLINE
+; explanation) for the fix and its root cause, and
+; tr_exp_boundary_ff.s for the full regression coverage (T00-T10,
+; every FADD/FSUB/FMUL/FDIV/FP_COMPARE/FP_TO_ASCII_SCI/FP_TO_IEEE754/
+; FP_TO_BASIC combination against a real hardware-confirmed $FF-
+; exponent value, all passing).
+;
+; HISTORY: this note formerly warned that $FE, not $FF, was the
+; practical safe ceiling for any value that might end up as FSUB's
+; FP1 operand, due to a stale-carry bug in `fsub`'s own alignment
+; trampoline (see lib_fp.s's own HISTORY note in its "EXPONENT $FF
+; BOUNDARY" section for the full mechanism and fix). That bug is now
+; fixed; the caveat no longer applies, and $FF is this format's true,
+; unconditional ceiling exponent for any operand in any routine.
+;
 ; WHY REUSE THE BASIC FAC1/FAC2 ZERO PAGE FOOTPRINT?
 ; ----------------------------------------------------
 ; Per project convention, this port deliberately places the two
@@ -99,7 +151,7 @@
 ; works because zero-page,X indexed addressing wraps modulo 256,
 ; so FP_EXT must sit in zero page, immediately after FP1_MANT, with
 ; no gap. Do not move FP_EXT without re-deriving that offset - see
-; the RTLOG1 comments in library_fp.s for the full derivation.
+; the RTLOG1 comments in lib_fp.s for the full derivation.
 ;
 ; SCRATCH FOR LOG/LOG10/EXP (Z, T, SEXP, INT)
 ; ----------------------------------------------
@@ -118,42 +170,50 @@
 ; routines are linked.
 ; ============================================================
 .ifndef LABELS_FP_S
-LABELS_FP_S = 1
-FP_SIGN     = $02   ; mul/div running sign flag (SIGN)
+    LABELS_FP_S = 1
 
-FP_STRPTR   = $FB   ; string pointer (2 bytes, $FB-$FC), used only by
-                     ; FP_FROM_ASCII_PROC/FP_TO_ASCII_PROC in
-                     ; lib_fp_from_ascii.s/lib_fp_to_ascii.s for
-                     ; (FP_STRPTR),y indirect
-                     ; addressing - indirect-indexed addressing REQUIRES
-                     ; its pointer to live in zero page, unlike everything
-                     ; else in this library. $FB-$FE is a commonly-cited
-                     ; genuinely free block ("FB-FE are not used, you
-                     ; should be good even with BASIC running" - per
-                     ; community consensus; also where this project's own
-                     ; REU library stages its aliasing-detection bytes).
-                     ; That REU use is transient (inside single subroutine
-                     ; calls, never held across a JSR out to other code),
-                     ; and so is this one, so the two don't collide in
-                     ; practice - but don't call FP_FROM_ASCII_PROC or
-                     ; FP_TO_ASCII_PROC from the middle of an in-flight
-                     ; REU_ALIASING_DETECT_PROC/REU_DETECT_SIZE_PROC call
-                     ; (or vice versa); they aren't reentrant with respect
-                     ; to this shared block.
+    ;
+    ; LIB_FP dependant
+    ;
+    FP_NORM_STATE_NORMAL  = 0
+    FP_NORM_STATE_CEILING = 1   ; true combined exponent == +127
+    FP_NORM_STATE_FLOOR   = 2   ; true combined exponent == -129
 
-FP_ERROR_SP   = $FD  ; saved stack pointer for FP_ERROR_PROC's recovery
-                      ; unwind (see library_fp_error.s) - part of the same
-                      ; commonly-free $FB-$FE block as FP_STRPTR above, and
-                      ; subject to the same transient-use caveat
-FP_ERROR_CODE = $FE  ; last trapped error code (see library_fp_error.s
-                      ; for the code list) - readable after a trapped
-                      ; operation returns control via FP_ERROR_PROC's
-                      ; unwind, so the caller can find out what happened
+    .ifdef BUILD_MODE_HYBRID
+        .segment "ZEROPAGE"
+        FP_SIGN:        .res 1
+        FP_STRPTR:      .res 2
+        FP_ERROR_SP:    .res 1
+        FP_ERROR_CODE:  .res 1
 
-FP1_EXP     = $61   ; FP1 exponent               (X1)  - FAC1 exponent byte
-FP1_MANT    = $62   ; FP1 mantissa, 3 bytes       (M1)  - FAC1 mantissa bytes 1-3
-FP_EXT      = $65   ; FADD/FSUB shift extension   (E)   - FAC1 mantissa byte 4 + sign + 2 spare bytes
+        ; Ensure correct order, procedures require it.
+        FP1_EXP:        .res 1  ; FP1 exponent
+        FP1_MANT:       .res 3  ; FP1 mantissa, 3 bytes
+        FP_EXT:         .res 4  ; FADD/FSUB shift extension, SWAP, etc
+        FP2_EXP:        .res 1  ; FP2 exponent
+        FP2_MANT:       .res 3  ; FP2 mantissa, 3 bytes
+    .else
+        FP_SIGN     = $02   ; mul/div running sign flag (SIGN)
+        FP_STRPTR   = $FB   ; string pointer (2 bytes, $FB-$FC), used only by FP_FROM_ASCII_PROC/FP_TO_ASCII_PROC in
+                            ; lib_fp_from_ascii.s/lib_fp_to_ascii.s for (FP_STRPTR),y indirect
+                            ; addressing - indirect-indexed addressing REQUIRES its pointer to live in zero page, unlike everything
+                            ; else in this library. $FB-$FE is a commonly-cited genuinely free block ("FB-FE are not used, you
+                            ; should be good even with BASIC running" - per community consensus; also where this project's own
+                            ; REU library stages its aliasing-detection bytes).
+                            ; That REU use is transient (inside single subroutine calls, never held across a JSR out to other code),
+                            ; and so is this one, so the two don't collide in practice - but don't call FP_FROM_ASCII_PROC or
+                            ; FP_TO_ASCII_PROC from the middle of an in-flight REU_ALIASING_DETECT_PROC/REU_DETECT_SIZE_PROC call
+                            ; (or vice versa); they aren't reentrant with respect to this shared block.
+                            
+        FP_ERROR_SP   = $FD ; saved stack pointer for FP_ERROR_PROC's recovery unwind (see lib_fp_error.s) - part of the same
+                            ; commonly-free $FB-$FE block as FP_STRPTR above, and subject to the same transient-use caveat
+        FP_ERROR_CODE = $FE ; last trapped error code (see lib_fp_error.s for the code list) - readable after a trapped
+                            ; operation returns control via FP_ERROR_PROC's unwind, so the caller can find out what happened
 
-FP2_EXP     = $69   ; FP2 exponent                (X2)  - FAC2 exponent byte
-FP2_MANT    = $6A   ; FP2 mantissa, 3 bytes       (M2)  - FAC2 mantissa bytes 1-3
+        FP1_EXP     = $61   ; FP1 exponent                (X1)  - FAC1 exponent byte
+        FP1_MANT    = $62   ; FP1 mantissa, 3 bytes       (M1)  - FAC1 mantissa bytes 1-3
+        FP_EXT      = $65   ; FADD/FSUB shift extension   (E)   - FAC1 mantissa byte 4 + sign + 2 spare bytes
+        FP2_EXP     = $69   ; FP2 exponent                (X2)  - FAC2 exponent byte
+        FP2_MANT    = $6A   ; FP2 mantissa, 3 bytes       (M2)  - FAC2 mantissa bytes 1-3
+    .endif
 .endif

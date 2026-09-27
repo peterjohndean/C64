@@ -9,7 +9,10 @@
 .import FP_FROM_UINT16
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_int16
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T06: FLOAT/FIX round trip, positive (+) ---
     lda #$00
     sta FP1_MANT
@@ -77,7 +80,8 @@ t52_done:
     rts
 
 .segment "RODATA"
-msg_t00:    .asciiz     "int16 (123) round trip"
-msg_t01:    .asciiz     "int16 (-61) round trip"
-msg_t02:    .asciiz     "int16 (32768>max) overflow"
+msg_header: .asciiz "conversion: int16"
+msg_t00:    .asciiz     "123 roundtrip"
+msg_t01:    .asciiz     "-61 roundtrip"
+msg_t02:    .asciiz     "32,768>max overflow"
 .endproc

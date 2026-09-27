@@ -13,7 +13,6 @@
                                     ; anymore (see the [BUG FIX] note
                                     ; at local_recovery below for why)
 
-.segment "CODE"
 ; ============================================================
 ; FILE    : tr_trap_irq.s
 ; PROJECT : Commodore 64 Floating Point Library (Rankin/Wozniak port)
@@ -122,7 +121,10 @@
 ;           test_vectors
 ; Destroys: A, X, Y; FP1, FP2; whatever FP_FDIV itself destroys
 ; ============================================================
+.segment "CODE"
 .proc tr_trap_irq
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; -----------------------------------------------------------------
     ; No separate "announcing" print here (an earlier draft had one,
     ; now removed) - TEST_PASSED_MACRO_V2/TEST_FAILED_MACRO_V2 below
@@ -224,5 +226,6 @@
     rts
 
 .segment "RODATA"
+msg_header: .asciiz "special irq trap"
 msg_t00:    .asciiz "trap (/0, irq in php/sei)" ; "trap in php/sei: irq enabled after"
 .endproc

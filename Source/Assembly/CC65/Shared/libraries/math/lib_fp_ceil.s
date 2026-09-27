@@ -7,6 +7,10 @@
 .import FP_COMPARE
 .import FP_TRUNC
 
+.scope LIBFP_CONSTANTS
+    .import neg_one_const
+.endscope
+
 .segment "CODE"
 ; ============================================================
 ; PROCEDURE : FP_CEIL_PROC
@@ -27,8 +31,8 @@
     FP_COMPARE_TO_MACRO orig_backup
     beq @done                       ; original was already whole
     FP_COPY1TO2_MACRO               ; FP2 = trunc(x)
-    FP_LOAD1_MACRO neg_one_const    ; FP1 = -1.0
-    jsr FP_FSUB                     ; FP1 = FP2 - FP1
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::neg_one_const   ; FP1 = -1.0
+    jsr FP_FSUB                                     ; FP1 = FP2 - FP1
                                     ; = trunc(x) - (-1.0)
                                     ; = trunc(x) + 1.0
 @done:
@@ -36,14 +40,14 @@
 
 orig_sign:      .byte 0
 orig_backup:    .res 4,0
-neg_one_const:  .byte $7f,$80,$00,$00
+;neg_one_const:  .byte $7f,$80,$00,$00
 ; -1.0 (NOTE: NOT the naive 2's
 ; complement of +1.0's bytes ($80,$C0,$00,$00) - that pattern isn't
 ; normalized. 1.0's mantissa sits exactly at the positive boundary
 ; (an exact power of 2), and negating a boundary mantissa needs an
 ; extra renormalization step (shift left, decrement exponent) to
 ; become valid again - the same class of edge case documented at
-; length in library_fp_ieee754.s. Verified against the real NORM
+; length in lib_fp_ieee754.s. Verified against the real NORM
 ; algorithm, not just computed by hand.
 .endproc
 

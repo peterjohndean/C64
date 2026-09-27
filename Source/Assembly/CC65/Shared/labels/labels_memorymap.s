@@ -15,7 +15,13 @@ MM_R6510    := $0001    ; MOS 6510 On-chip 8-bit Input/Output Register.
                         ;     O = ON, 1 = OFF
                         ; 6-7	Undefined
 
+MM_TEMP     := $0002    ; Unused. Free for user programs.
+
+MM_MEMUSS   := $00c3    ; Pointer (00c3-00c4): Type 3 Tape LOAD/General use.
+
 MM_TBLX     := $00d6    ; Current Screen Line number of Cursor.
+
+MM_FREKZP   := $00fb    ; Free (00fb-00fe) Zero Page space for User Programs.
 
 MM_COLOR    := $0286    ; Current Foreground Color for Text
 

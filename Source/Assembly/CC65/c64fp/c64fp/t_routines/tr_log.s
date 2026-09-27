@@ -7,7 +7,10 @@
 .import FP_TO_ASCII
 .import TEST_CHECK, TEST_FP1CMP, TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_log
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T13: LOG(0.5) - THE ERRATA TEST ---
     ; ln(0.5) = -0.6931472. This is the exact scenario Rankin's
     ; errata fixes: argument < 1.0, so FP_LOG_PROC's internal
@@ -73,9 +76,10 @@ t50_done:
     rts
 
 .segment "RODATA"
-msg_t00:        .asciiz     "log (0.5) -> -0.6931472"
-msg_t01:        .asciiz     "log (0)   ->  0.0"
-msg_t02:        .asciiz     "log (100) ->  2.0"
-msg_t03:        .asciiz     "log (trap -5)"
-msg_t04:        .asciiz     "log (trap  0)"
+msg_header: .asciiz "mathematics: natural logarithm (ln)"
+msg_t00:    .asciiz "ln (0.5) -> -0.6931472"
+msg_t01:    .asciiz "ln (0)   ->  0.0"
+msg_t02:    .asciiz "ln (100) ->  2.0"
+msg_t03:    .asciiz "ln (trap -5)"
+msg_t04:    .asciiz "ln (trap  0)"
 .endproc

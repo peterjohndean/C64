@@ -1,6 +1,7 @@
 .include "macros_fp.s"
 .include "macros_rom_basic.s"
 .include "macros_rom_kernal.s"
+.include "lib_fp_error.h"
 
 .export FP_ERROR
 
@@ -15,7 +16,7 @@
 ; ============================================================
 ; PURPOSE
 ; -------
-; Replaces the three bare BRK traps in library_fp.s (FP_CORE_PROC's
+; Replaces the three bare BRK traps in lib_fp.s (FP_CORE_PROC's
 ; overflow trap, FP_LOG_PROC's domain-error trap, FP_EXP_PROC's
 ; overflow trap) with a handler that prints a description of what
 ; went wrong and then unwinds cleanly, instead of halting via BRK
@@ -23,7 +24,7 @@
 ;
 ; MUST INCLUDE BEFORE lib_fp.s
 ; ------------------------------------
-; library_fp.s's trap sites JMP directly to FP_ERROR_PROC by name -
+; lib_fp.s's trap sites JMP directly to FP_ERROR_PROC by name -
 ; include this file before it.
 ;
 ; THE CONTRACT: CALL FP_ERROR_INIT_MACRO WITH A RECOVERY LABEL
@@ -90,7 +91,7 @@
 ;                               large to represent)
 ;   1  division by zero      - FP_FDIV's divisor (FP1 on entry) was
 ;                               exactly 0.0, checked explicitly at
-;                               FDIV's entry (see library_fp.s) so
+;                               FDIV's entry (see lib_fp.s) so
 ;                               this is reported distinctly rather
 ;                               than falling through to the generic
 ;                               overflow trap it would otherwise
@@ -110,7 +111,7 @@
 ; the same "looks negative" branch as a genuine magnitude overflow
 ; would - both routed to the same trap before this file existed.
 ; The explicit FP1_EXP=0 check added at FDIV's entry (see
-; library_fp.s) catches the exact-zero case up front and reports it
+; lib_fp.s) catches the exact-zero case up front and reports it
 ; as code 1 before any of that arithmetic runs. A divisor that is
 ; merely VERY SMALL (not exactly zero) but still produces an
 ; unrepresentably large quotient will still come through as code 0
@@ -119,11 +120,11 @@
 
 .scope FP_MSG
 msg0: .asciiz "trapped error: "
-msg1: .asciiz "division by zero"
+msg1: .asciiz "div by zero"
 msg2: .asciiz "overflow"
-msg3: .asciiz "log domain error"
+msg3: .asciiz "log domain"
 msg4: .asciiz "exp overflow"
-msg5: .asciiz "ieee754 infinity"
+msg5: .asciiz "ieee754 inf"
 msg6: .asciiz "ieee754 nan"
 .endscope
 
@@ -144,17 +145,17 @@ msg6: .asciiz "ieee754 nan"
 .proc FP_ERROR_PROC
     sta FP_ERROR_CODE
     pha
-    BASIC_STROUT_MACRO FP_MSG::msg0     ; "trapped error: "
+    BASIC_STROUT_MACRO FP_MSG::msg0         ; "trapped error: "
     pla
-    cmp #1
+    cmp #FP_ERROR_CODE_DIVISION_BY_ZERO
     beq @div_zero
-    cmp #2
+    cmp #FP_ERROR_CODE_LOG_DOMAIN_ERROR
     beq @log_domain
-    cmp #3
+    cmp #FP_ERROR_CODE_EXPONENT_OVERFLOW
     beq @exp_ovfl
-    cmp #4
+    cmp #FP_ERROR_CODE_IEEE754_INF
     beq @ieee_inf
-    cmp #5
+    cmp #FP_ERROR_CODE_IEEE754_NAN
     beq @ieee_nan
     BASIC_STROUT_MACRO FP_MSG::msg2     ; default (code 0): "overflow"
     jmp @done

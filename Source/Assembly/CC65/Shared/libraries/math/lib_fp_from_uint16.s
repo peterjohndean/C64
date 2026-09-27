@@ -47,7 +47,7 @@ thirty_two_k:   .byte $8f,$40,$00,$00   ; 32768.0 = 2^15
 .endproc
 
 ; ------------------------------------------------------------
-; Short public aliases, matching library_fp.s's FP_FADD-style
+; Short public aliases, matching lib_fp.s's FP_FADD-style
 ; naming (no _PROC suffix) so the whole library presents one
 ; consistent calling convention. The _PROC names above still work
 ; too - these are just the preferred names for call sites.

@@ -1,7 +1,10 @@
 .include "macros_reu.s"
 .macpack longbranch
 
-; Export the routines so they can be seen
+; Export the public detection routines. REU_WAIT_EOB_PROC below is
+; an internal helper for this file's probes; use REU_WAIT_EOB_MACRO
+; directly from other separately assembled modules unless you choose
+; to export the helper as part of a wider REU API later.
 .export REU_ALIASING_DETECT
 .export REU_DETECT_SIZE
 
@@ -12,8 +15,8 @@ REU_DETECT_SIZE		= REU_DETECT_SIZE_PROC
 ; ============================================================
 ; PROCEDURE: REU_WAIT_EOB_PROC
 ; Purpose : Subroutine version of REU_WAIT_EOB_MACRO. Can be
-;           called with JSR for code size optimization when
-;           wait is needed in multiple places.
+;           called with JSR inside this module for code size
+;           optimization when wait is needed in multiple places.
 ; Params  : None
 ; Returns : None (A register contains final status byte)
 ; Destroys: Accumulator (A register)
@@ -35,7 +38,9 @@ REU_DETECT_SIZE		= REU_DETECT_SIZE_PROC
 ; Cycles  : Variable wait time + 12 cycles (JSR/RTS overhead)
 ; Example : REU_FROM_C64 $000000, $C000, 1000
 ;           jsr REU_WAIT_EOB_PROC
-;           ; transfer complete, safe to continue
+;           ; transfer complete, safe to continue. From other
+;           ; separately assembled modules, prefer
+;           ; REU_WAIT_EOB_MACRO unless this helper is exported.
 ; ============================================================
 .proc REU_WAIT_EOB_PROC
     REU_WAIT_EOB_MACRO	; expand the macro inline

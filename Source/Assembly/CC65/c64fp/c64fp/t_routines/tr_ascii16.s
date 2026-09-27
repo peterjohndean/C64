@@ -6,7 +6,10 @@
 .import FP_FROM_ASCII, FP_TO_ASCII
 .import TEST_FP1CMP, TEST_STRCMP, TEST_FAILED
 
+.segment "CODE"
 .proc tr_ascii16
+    TEST_ROUTINE_HEADER_MACRO msg_header
+    
     ; --- T11: ASCII round trip, "-42" (integer only) ------------
     ; Deliberately integer-only: FP_FROM_ASCII_PROC's fractional
     ; path divides by 10.0 once per fractional digit, and division
@@ -119,6 +122,7 @@ t55_done:
     rts
 
 .segment "RODATA"
+msg_header:     .asciiz "conversion: ascii 16"
 msg_t00:        .asciiz "ascii from"
 ;
 str_test00:     .asciiz "-42"

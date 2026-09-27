@@ -163,16 +163,16 @@
 ; bare BRK, on the assumption the caller had installed a BRK
 ; handler (this predates any notion of a portable error-return
 ; convention). This port replaces all three with calls into
-; FP_ERROR (library_fp_error.s), which prints what went wrong
+; FP_ERROR (lib_fp_error.s), which prints what went wrong
 ; and unwinds to a recovery point the caller establishes up front
-; with FP_ERROR_INIT_MACRO (macros_fp.s) - see library_fp_error.s's
+; with FP_ERROR_INIT_MACRO (macros_fp.s) - see lib_fp_error.s's
 ; header for the full setjmp/longjmp-style contract, the error code
 ; list, and why a single shared recovery point (rather than trying
 ; to unwind exactly one call level) is the right model here. The
 ; three trap sites are:
 ;   FP_CORE_PROC's fdiv/rtlog/ovchk - overflow in FADD/FSUB/FMUL/
 ;     FDIV/FIX, or division by zero (detected distinctly - see
-;     library_fp_error.s)
+;     lib_fp_error.s)
 ;   FP_LOG_PROC's error_trap - LOG/LOG10 argument <= 0 (no real log)
 ;   FP_EXP_PROC's ovflw_trap - EXP argument too large, e^x overflows
 ; There is no trap for underflow - results that underflow are

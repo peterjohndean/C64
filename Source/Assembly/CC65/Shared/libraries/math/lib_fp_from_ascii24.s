@@ -4,6 +4,10 @@
 .import FP_FADD, FP_FMUL, FP_FDIV
 .import FP_NEGATE, FP_NORM, FP_FLOAT
 
+.scope LIBFP_CONSTANTS
+    .import ten_const
+.endscope
+
 FP_FROM_ASCII24 = FP_FROM_ASCII24_PROC
 
 .segment "CODE"
@@ -230,7 +234,7 @@ FP_FROM_ASCII24 = FP_FROM_ASCII24_PROC
 @divide_loop:
     pha
     FP_COPY1TO2_MACRO                ; FP2 = running fraction total
-    FP_LOAD1_MACRO ten_const         ; FP1 = 10.0
+    FP_LOAD1_MACRO LIBFP_CONSTANTS::ten_const         ; FP1 = 10.0
     jsr FP_FDIV                      ; FP1 = FP2 / FP1 = total / 10
     pla
     sec
@@ -275,7 +279,7 @@ FP_FROM_ASCII24 = FP_FROM_ASCII24_PROC
 ; before pass 2 ever begins.
 @accumulate_digit:
     sta digit_tmp
-    FP_LOAD2_MACRO ten_const         ; FP2 = 10.0
+    FP_LOAD2_MACRO LIBFP_CONSTANTS::ten_const         ; FP2 = 10.0
     jsr FP_FMUL                      ; FP1 = total * 10
     FP_STORE1_MACRO accum            ; stash total*10 - building the
                                     ; digit float needs FP1
@@ -297,8 +301,8 @@ point_seen:     .byte 0
 frac_digits:    .byte 0
 saw_digit:      .byte 0
 scan_pos:       .byte 0
-ten_const:      .byte $83,$50,$00,$00   ; 10.0 - same constant bytes
+;ten_const:      .byte $83,$50,$00,$00   ; 10.0 - same constant bytes
                                         ; FP_FROM_ASCII_PROC uses; see
-                                        ; library_fp_convert.s's header for
+                                        ; lib_fp_doc_convert.txt's header for
                                         ; how they're derived
 .endproc

@@ -1,15 +1,16 @@
 .include "labels_screen.s"
 
 .scope TestValue
-    .export val_1billion, val_100, val_12, val_7, val_1
-    .export val_0_5, val_0_1, val_0
-    .export val_neg5, val_neg42, val_neg60
+    .export val_1billion, val_100, val_12, val_10, val_7, val_1_5, val_1
+    .export val_0_5, val_one_third, val_0_1, val_0
+    .export val_neg1, val_neg5, val_neg42, val_neg60
     .export val_pi, val_2pi
+    .export val_min_pos, val_min_neg, val_max_pos, val_nczero
     ;
-    .export rad_neg30
+    .export rad_neg30, rad_neg90
     .export rad_0, rad_30, rad_45, rad_60, rad_90
     .export rad_120, rad_180, rad_200, rad_270
-    .export rad_300, rad_400
+    .export rad_300, rad_360, rad_400
     ;
     .export ieee754_pi, ieee754_2pi
     .export ieee754_0_1
@@ -20,17 +21,26 @@
     val_1billion:   .byte $9d,$77,$35,$94   ; 1,000,000,000.0
     val_100:        .byte $86,$64,$00,$00   ; 100.0
     val_12:         .byte $83,$60,$00,$00   ; 12
+    val_10:         .byte $83,$50,$00,$00   ; 10.0 = 1.25 * 2^3
     val_7:          .byte $82,$70,$00,$00   ; 7
+    val_1_5:        .byte $80,$60,$00,$00   ; 1.5
     val_1:          .byte $80,$40,$00,$00   ; 1.0
     val_0_5:        .byte $7f,$40,$00,$00   ; 0.5
+    val_one_third:  .byte $7f,$55,$55,$55   ; 1/3, full mantissa
     val_0_1:        .byte $7c,$66,$66,$66   ; ~0.1 (not exactly representable)
-    val_0:          .byte $00,$00,$00,$00   ; 0
+    val_0:          .byte $00,$00,$00,$00   ; canonical zero (0)
+    val_neg1:       .byte $7f,$80,$00,$00   ; -1.0
     val_neg5:       .byte $82,$b0,$00,$00   ; -5
     val_neg42:      .byte $85,$ac,$00,$00   ; -42
     val_neg60:      .byte $85,$88,$00,$00   ; -60
 
     val_2pi:        .byte $82,$64,$87,$ed   ; 2pi
     val_pi:         .byte $81,$64,$87,$ed   ; pi
+
+    val_min_pos:    .byte $01,$40,$00,$00   ; +2^-127
+    val_min_neg:    .byte $01,$c0,$00,$00   ; -2^-127 (2's comp, same exp)
+    val_max_pos:    .byte $ff,$7f,$ff,$fe   ; +max
+    val_nczero:     .byte $00,$80,$00,$00   ; non-canonical zero
 
 ;    rad_0:          .byte $00,$00,$00,$00   ; 0.0 (canonical zero)
     rad_0           := val_0
@@ -43,8 +53,10 @@
     rad_200:        .byte $81,$6f,$b3,$79   ; 3.4906585040 rad = 200 deg
     rad_270:        .byte $82,$4b,$65,$f2   ; 4.7123889804 rad = 270 deg
     rad_300:        .byte $82,$53,$c6,$9b   ; 5.2359877560 rad = 300 deg
+    rad_360:        .byte $82,$64,$87,$ed   ; 6.2831853072 (2π) rad ≅ 360 deg
     rad_400:        .byte $82,$6f,$b3,$79   ; 6.9813170080 rad = 400 deg
     rad_neg30:      .byte $7f,$bc,$fa,$b7   ; -0.5235987756 rad = -30 deg
+    rad_neg90:      .byte $80,$9B,$78,$13   ; -1.5707963268 rad (-π/2) ≅ -90 deg
 
     ; ieee754 values
     ieee754_2pi:    .byte $40,$c9,$0f,$db   ; 2pi

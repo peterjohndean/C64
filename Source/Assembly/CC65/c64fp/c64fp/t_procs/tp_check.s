@@ -24,8 +24,9 @@
     .import fac_snapshot
 .endscope
 
-.segment "CODE"
 TEST_CHECK = TEST_CHECK_PROC
+
+.segment "CODE"
 .proc TEST_CHECK_PROC
     SHOW_CURRENT_TEST_MACRO
 

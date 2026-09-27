@@ -9,7 +9,10 @@
 .import FP_FROM_INT8
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_trunc
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T40: FP_TRUNC_PROC, positive fractional (42.25 -> 42.0) ---
     lda #<str_test00
     ldy #>str_test00
@@ -44,9 +47,9 @@ t41_done:
     rts
 
 .segment "RODATA"
-msg_t00:    .asciiz "trunc ( 42.25 ->  42.0)"
-msg_t01:    .asciiz "trunc (-42.25 -> -42.0)"
-;
+msg_header: .asciiz "rounding: truncate"
+msg_t00:    .asciiz " 42.25 ->  42.0"
+msg_t01:    .asciiz "-42.25 -> -42.0"
 str_test00: .asciiz "42.25"
 str_test01: .asciiz "-42.25"
 .endproc

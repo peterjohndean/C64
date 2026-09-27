@@ -18,7 +18,7 @@
 ; -------
 ; FP_TRUNC_PROC (round toward zero), FP_FLOOR_PROC (round toward
 ; -infinity), FP_CEIL_PROC (round toward +infinity), and
-; FP_MOD_PROC (remainder). All four are built entirely out of
+; FP_FMOD_PROC (remainder). All four are built entirely out of
 ; already-tested primitives (FP_TO_INT24_PROC/FP_FROM_INT24_PROC,
 ; FP_FADD/FP_FSUB/FP_FMUL/FP_FDIV, FP_COMPARE_PROC) rather than any
 ; new low-level bit manipulation - deliberately, given how many
@@ -46,7 +46,7 @@
 ; -------------------------------
 ; A value has zero representable fractional bits once its exponent
 ; reaches 150 ($96) - the same threshold FP_TO_INT24_PROC/
-; FP_FROM_UINT24_PROC already use (see library_fp_convert.s's
+; FP_FROM_UINT24_PROC already use (see lib_fp_doc_convert.txt's
 ; header for the derivation: at exponent E, the mantissa's least
 ; significant bit represents 2^(E-150), which is >= 1 - i.e. purely
 ; integer - once E >= 150). Below that threshold, FP_TO_INT24_PROC
@@ -56,8 +56,8 @@
 ;
 ; DEPENDENCIES
 ; ------------
-; Requires labels_fp.s, library_fp_error.s, library_fp.s,
-; library_fp_convert.s, library_fp_compare.s, macros_fp.s before
+; Requires labels_fp.s, lib_fp_error.s, lib_fp.s,
+; the integer conversion helpers, lib_fp_compare.s, macros_fp.s before
 ; this file.
 ;
 ; ROUTINE INVENTORY
@@ -65,7 +65,7 @@
 ;   FP_TRUNC_PROC - FP1 = FP1 truncated toward zero
 ;   FP_FLOOR_PROC - FP1 = FP1 truncated toward -infinity
 ;   FP_CEIL_PROC  - FP1 = FP1 truncated toward +infinity
-;   FP_MOD_PROC   - FP1 = FP1 mod FP2 (see FP_MOD_PROC's own header
+;   FP_FMOD_PROC  - FP1 = FP1 mod FP2 (see FP_FMOD_PROC's own header
 ;                   for the sign convention)
 ; ============================================================
 

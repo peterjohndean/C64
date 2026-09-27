@@ -9,7 +9,10 @@
 .import TEST_FP1CMP
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_ieee754
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T36: FP_TO_IEEE754_PROC / FP_FROM_IEEE754_PROC round trip ---
     FP_LOAD1_MACRO TestValue::val_12
     jsr FP_TO_IEEE754
@@ -111,16 +114,24 @@ t51_done:
     FP_LOAD1_MACRO TestValue::ieee754_2pi
     jsr FP_FROM_IEEE754
     TEST_FP1CMP_MACRO 8, msg_t08, TestValue::val_2pi
+
+    ; --- FP_TO_IEEE754 with a non-canonical Woz zero (exp=0,
+    ;     mant!=0) - must produce canonical IEEE zero, not Inf/NaN ---
+    FP_LOAD1_MACRO TestValue::val_nczero    ; $00,$80,$00,$00
+    jsr FP_TO_IEEE754
+    TEST_FP1CMP_MACRO 9, msg_t09, TestValue::val_0
     rts
 
 .segment "RODATA"
-msg_t00:    .asciiz "ieee754 (12)  "        ;round trip"
-msg_t01:    .asciiz "ieee754 (edge)"        ;round trip (edge)"
-msg_t02:    .asciiz "ieee754 (0)   "        ;round trip (0)"
-msg_t03:    .asciiz "ieee754 (trap +inf)"
-msg_t04:    .asciiz "ieee754 (trap nan)"
-msg_t05:    .asciiz "ieee754->fp (pi) "
-msg_t06:    .asciiz "ieee754->fp (-5) "
-msg_t07:    .asciiz "ieee754->fp (0.1)"
-msg_t08:    .asciiz "ieee754->fp (2pi)"
+msg_header: .asciiz "conversion: ieee754 single"
+msg_t00:    .asciiz "12 roundtrip"
+msg_t01:    .asciiz "-1 roundtrip (edge)"
+msg_t02:    .asciiz " 0 roundtrip"
+msg_t03:    .asciiz "trap +inf"
+msg_t04:    .asciiz "trap  nan"
+msg_t05:    .asciiz "pi  -> fp"
+msg_t06:    .asciiz "-5  -> fp"
+msg_t07:    .asciiz "0.1 -> fp"
+msg_t08:    .asciiz "2pi -> fp"
+msg_t09:    .asciiz "non-canonical 0"
 .endproc

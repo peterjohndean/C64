@@ -1,8 +1,11 @@
 .include "labels_fp.s"
+.include "macros_fp.s"
+.include "lib_fp_error.h"
 
 .export FP_TO_INT24
 
-.import FP_RTAR
+.import FP_RTAR, FP_ERROR
+.import FP_NORM_BOUNDARY_STATE
 
 .segment "CODE"
 ; ============================================================
@@ -17,13 +20,28 @@
 ; Destroys: A; FP1 (in place)
 ; ============================================================
 .proc FP_TO_INT24_PROC
+;@fix_conv:
+;    lda FP1_EXP
+;    bpl @fix_underflow      ; |value| < 1.0: result 0
+;    cmp #$96                ; already at 24-bit integer scale?
+;    beq @fix_round
+;    jsr FP_RTAR
+;    jmp @fix_conv
 @fix_conv:
     lda FP1_EXP
-    bpl @fix_underflow      ; |value| < 1.0: result 0
-    cmp #$96                ; already at 24-bit integer scale?
-    beq @fix_round
-    jsr FP_RTAR
+    bpl @fix_underflow
+    cmp #$96
+    bcs @at_or_above       ; A >= $96
+    jsr FP_RTAR            ; A < $96: shift and retry
     jmp @fix_conv
+@at_or_above:
+    beq @fix_round         ; A == $96: done
+    jmp @overflow          ; A > $96: doesn't fit
+
+@overflow:
+    FP_NORM_STATE_NORMAL_MACRO
+    lda #FP_ERROR_CODE_GENERIC_OVERFLOW
+    jmp FP_ERROR
 
 @fix_round:
     bit FP1_MANT            ; result negative?
@@ -52,7 +70,7 @@
 
 
 ; ------------------------------------------------------------
-; Short public aliases, matching library_fp.s's FP_FADD-style
+; Short public aliases, matching lib_fp.s's FP_FADD-style
 ; naming (no _PROC suffix) so the whole library presents one
 ; consistent calling convention. The _PROC names above still work
 ; too - these are just the preferred names for call sites.

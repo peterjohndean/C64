@@ -14,10 +14,11 @@
 ; PURPOSE
 ; -------
 ; sin(x) for FP1, via a truncated Taylor series evaluated with
-; Horner's method. This is the FIRST STEP toward a full SIN/COS/TAN
-; implementation - see the SCOPE note below for exactly what this
-; version does and doesn't handle yet, and NEXT STEPS for the plan
-; to remove that limitation.
+; Horner's method. This is the bounded core used by the wider trig
+; family - see the SCOPE note below for exactly what this routine
+; does and doesn't handle, and see lib_fp_sin_full.s/lib_fp_cos.s/
+; lib_fp_tan.s for wrappers that compose it into full-period
+; sin/cos/tan behavior.
 ;
 ; WHY TAYLOR SERIES, AND WHY HORNER'S METHOD TO EVALUATE IT
 ; -------------------------------------------------------------
@@ -92,29 +93,22 @@
 ; further you push it, which is exactly why the scope boundary has
 ; to be documented rather than discovered by surprise.
 ;
-; NOT YET VERIFIED ON VICE OR HARDWARE
-; -----------------------------------------
-; Per this project's usual workflow, static/derived correctness
-; (the coefficient bytes were independently re-derived and cross-
-; checked against this library's own known constants - see the
-; conversation this was built in) is a first pass, not a
-; substitute for a VICE monitor register dump and, eventually, a
-; C64U run. Treat this as ready for T-series testing, not yet as
-; proven.
+; VERIFICATION STATUS
+; -----------------------
+; Covered by tr_sin.s at 30, 45, 60, and 90 degrees, including the
+; documented pi/2 scope boundary. lib_fp_doc_trig.txt records the
+; measured VICE/C64U results and error budget for those tests.
 ;
-; NEXT STEPS (not yet implemented, in order)
-; -----------------------------------------------
-;   1. Range reduction: fold an arbitrary x down into [-pi/2,pi/2]
-;      using FP_FMOD_PROC (already in this library, lib_fp_fmod.s)
-;      against 2*pi, then quadrant-fold using symmetry
-;      (sin(x)=sin(pi-x), sign flips per quadrant) so this same
-;      5-term core can serve any input, not just |x|<=pi/2.
-;   2. FP_COS_PROC: either its own small polynomial, or reuse this
-;      same reduced-range core via cos(x) = sin(x + pi/2).
-;   3. FP_TAN_PROC: FP_FDIV(sin(x), cos(x)) once both exist, with
-;      a domain check for cos(x) near zero (matching this
-;      library's existing FP_ERROR convention rather than dividing
-;      by an unchecked near-zero value).
+; COMPANION ROUTINES
+; ---------------------
+;   FP_SIN_FULL_PROC  - folds arbitrary x into this routine's
+;                       [-pi/2,pi/2] scope via FP_FMOD plus
+;                       quadrant symmetry.
+;   FP_COS_PROC       - computes cos(x) as sin(x + pi/2) through
+;                       FP_SIN_FULL_PROC.
+;   FP_TAN_PROC       - computes tan(x) as sin(x)/cos(x), relying
+;                       on FP_FDIV's normal zero/overflow traps
+;                       rather than adding a separate epsilon check.
 ;
 ; Entry   : FP1 = x, in radians, |x| <= pi/2 (see SCOPE above)
 ; Exit    : FP1 = sin(x)

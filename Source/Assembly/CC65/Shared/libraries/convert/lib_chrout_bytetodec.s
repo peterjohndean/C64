@@ -110,8 +110,6 @@
 @value:    .res 1
 @pad_char: .res 1
 @sig_flag: .res 1
-.segment "CODE"         
-
 .endproc
 
 OUTPUT_BYTETODEC = OUTPUT_BYTETODEC_PROC

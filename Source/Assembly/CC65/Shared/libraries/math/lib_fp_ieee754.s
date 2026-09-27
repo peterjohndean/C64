@@ -49,14 +49,16 @@
 ; ---------------------
 ; This is a data-interchange convenience, not a certified
 ; converter - IEEE-754 has corners this doesn't attempt:
-;   - Subnormal IEEE values (exponent field 0, nonzero mantissa) -
-;     these represent magnitudes far below anything this format's
-;     exponent range needs to distinguish for practical purposes;
-;     FP_FROM_IEEE754_PROC treats them as (signed) zero rather than
-;     attempt a lossy reconstruction nobody asked for.
+;   - Subnormal IEEE values (exponent field 0, nonzero mantissa):
+;     FP_TO_IEEE754_PROC emits Woz exp byte $01 as an IEEE subnormal
+;     by copying the Woz mantissa magnitude directly into the IEEE
+;     fraction field. FP_FROM_IEEE754_PROC reconstructs IEEE
+;     subnormals with F >= 2^22 back to Woz exp byte $01; subnormals
+;     with F < 2^22 are below Woz's floor and silently underflow to
+;     Woz zero (documented choice).
 ;   - IEEE Infinity and NaN (exponent field all 1s) have no Woz
 ;     representation at all. FP_FROM_IEEE754_PROC traps via
-;     FP_ERROR (error code 4 - see library_fp_error.s) rather
+;     FP_ERROR (error code 4 - see lib_fp_error.s) rather
 ;     than silently invent a finite value or corrupt FP1.
 ;   - Values at the very edge of either format's exponent range may
 ;     not round-trip exactly (Woz's usable range is roughly
@@ -83,15 +85,14 @@
 ; produces a bit pattern that isn't itself normalized and needs an
 ; extra shift-and-decrement-exponent step to become valid again -
 ; discovered and verified against the real NORM algorithm while
-; building this file (see the conversation this was built in for
-; the full derivation). FP_NEGATE (library_fp.s, backed by
+; building this file. FP_NEGATE (lib_fp.s, backed by
 ; FP_CORE_PROC's already-tested fcompl/norm logic) already handles
 ; this correctly, so both conversions call it instead of
 ; re-implementing 2's complement negation from scratch here.
 ;
 ; DEPENDENCIES
 ; ------------
-; Requires labels_fp.s, library_fp_error.s, library_fp.s (for
+; Requires labels_fp.s, lib_fp_error.s, lib_fp.s (for
 ; FP_NEGATE) before this file.
 ;
 ; ROUTINE INVENTORY
@@ -110,15 +111,41 @@
 ;           big-endian (see file header)
 ; Destroys: A, X; FP2 is untouched
 ; ============================================================
+;.proc FP_TO_IEEE754_PROC
+;    lda FP1_EXP
+;    bne @nonzero
+;    lda FP1_MANT
+;    ora FP1_MANT+1
+;    ora FP1_MANT+2
+;    beq @done               ; canonical Woz zero -> already the
+;                            ; correct all-zero IEEE representation
+;@nonzero:
 .proc FP_TO_IEEE754_PROC
     lda FP1_EXP
     bne @nonzero
-    lda FP1_MANT
-    ora FP1_MANT+1
-    ora FP1_MANT+2
-    beq @done               ; canonical Woz zero -> already the
-                            ; correct all-zero IEEE representation
+    ; [BUG FIX] Any Woz value with exponent 0 is "zero" for this
+    ; library's own purposes (see FP_COMPARE, FP_FDIV's zero check,
+    ; and FP_TO_BASIC_PROC's own equivalent handling - the latter
+    ; already routes any exp=0 to its zero path regardless of
+    ; mantissa). The previous version only treated the CANONICAL
+    ; zero (exp=0, mant=0) as zero and fell through to the real-
+    ; value path for a non-canonical exp=0 subnormal, where the
+    ; exponent arithmetic below (0 - 1 -> $FF, lsr) produced an
+    ; IEEE Inf/NaN from input every other routine here treats as
+    ; zero. Zero FP1 unconditionally and return - matches
+    ; FP_TO_BASIC's behaviour for this same class of input.
+    lda #0
+    sta FP1_EXP
+    sta FP1_MANT
+    sta FP1_MANT+1
+    sta FP1_MANT+2
+    rts
+    
 @nonzero:
+    lda FP1_EXP
+    cmp #1
+    beq @woz_subnormal
+
     lda #0
     sta ieee_sign
     lda FP1_MANT
@@ -182,6 +209,44 @@
 @done:
     rts
 
+@woz_subnormal:
+    ; sign = M1 & $80
+    lda FP1_MANT
+    and #$80
+    sta FP1_EXP          ; byte0 = sign (00 or 80)
+
+    ; copy mantissa to temp
+    lda FP1_MANT
+    sta shifted
+    lda FP1_MANT+1
+    sta shifted+1
+    lda FP1_MANT+2
+    sta shifted+2
+
+    ; if negative, 2's complement to get |M|
+    lda FP1_EXP
+    beq @abs_done
+    sec
+    lda #$00
+    sbc shifted+2
+    sta shifted+2
+    lda #$00
+    sbc shifted+1
+    sta shifted+1
+    lda #$00
+    sbc shifted
+    sta shifted
+@abs_done:
+    ; fraction = |M| 23-bit, MSB first
+    lda shifted
+    and #$7F
+    sta FP1_MANT
+    lda shifted+1
+    sta FP1_MANT+1
+    lda shifted+2
+    sta FP1_MANT+2
+    rts
+
 ieee_sign:      .byte 0
 ieee_exp_hi7:   .byte 0
 exp_lsb_flag:   .byte 0
@@ -218,8 +283,38 @@ shifted:        .res 3,0
 
     lda ieee_exp
     bne @exp_nonzero
-    ; exponent field is 0: true zero, or a subnormal we don't
-    ; reconstruct (see the file header) - both become Woz zero
+    ; exponent field is 0: zero or subnormal
+    lda FP1_MANT
+    and #$7f
+    ora FP1_MANT+1
+    ora FP1_MANT+2
+    beq @ieee_zero
+    lda FP1_MANT
+    and #$40
+    beq @ieee_underflow
+    ; representable subnormal
+    lda #$01
+    sta FP1_EXP
+    lda FP1_MANT
+    and #$7f
+    sta FP1_MANT
+    lda ieee_sign
+    beq @subnormal_done
+    sec
+    lda #$00
+    sbc FP1_MANT+2
+    sta FP1_MANT+2
+    lda #$00
+    sbc FP1_MANT+1
+    sta FP1_MANT+1
+    lda #$00
+    sbc FP1_MANT
+    sta FP1_MANT
+@subnormal_done:
+    rts
+    
+@ieee_zero:
+@ieee_underflow:
     lda #0
     sta FP1_EXP
     sta FP1_MANT

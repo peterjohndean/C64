@@ -7,7 +7,10 @@
 .import FP_FROM_UINT24
 .import TEST_PASSED, TEST_FAILED
 
+.segment "CODE"
 .proc tr_int24
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T09: FP_FROM_INT24 / FP_TO_INT24 round trip ---
     ; 1,048,575 = $0FFFFF (largest 24-bit value with all mantissa
     ; bits set except the sign - exercises all 3 bytes)
@@ -57,6 +60,7 @@ t53_done:
     rts
 
 .segment "RODATA"
-msg_t00:    .asciiz     "int24 (1,048,575) round trip"
-msg_t01:    .asciiz     "int24 (8388608>max) overflow"
+msg_header: .asciiz "conversion: int24"
+msg_t00:    .asciiz "1,048,575 roundtrip"
+msg_t01:    .asciiz "8,388,608>max overflow"
 .endproc

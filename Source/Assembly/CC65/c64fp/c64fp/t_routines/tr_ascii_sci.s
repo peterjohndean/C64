@@ -5,7 +5,7 @@
 
 .import FP_FROM_ASCII
 .import FP_FROM_ASCII_SCI, FP_TO_ASCII_SCI
-.import TEST_STRCMP, TEST_PASSED, TEST_FAILED
+.import TEST_FP1CMP, TEST_STRCMP, TEST_PASSED, TEST_FAILED
 
 ; ============================================================
 ; FILE    : tr_ascii_sci.s
@@ -37,6 +37,23 @@
 ; correct either the test or the routine if reality differs -
 ; exactly the same caution tr_ascii16.s's own T67-T70 header already
 ; asks for.
+;
+; T11 IS THE ONE EXCEPTION TO THE ABOVE, ON PURPOSE
+; -----------------------------------------------------------------
+; T11's expected bytes ($FF,$47,$78,$43) are NOT hand-derived - they
+; were read directly off real C64U hardware output during the
+; multi-session investigation that produced this test (see
+; tr_exp_boundary.s and the diag_scale_dump.s/diag_exp_digit_parse.s/
+; diag_full_parse.s diagnostics that traced this exact boundary,
+; culminating in a confirmed clean end-to-end parse of "1.9e+38").
+; It uses TEST_FP1CMP_MACRO's exact byte comparison rather than this
+; file's usual TEST_STRCMP_MACRO_V2 round-trip pattern specifically
+; BECAUSE the whole point of this test is pinning down the precise
+; exponent BYTE reached ($FF) - a string round-trip through
+; FP_TO_ASCII_SCI_PROC could plausibly re-render as "1.9E+38" from
+; more than one nearby mantissa bit pattern and would not, on its
+; own, confirm the exponent actually reached the format's true
+; ceiling rather than falling one step short of it.
 ;
 ; CHARMAP GOTCHA - HOW THE 'E'/'e' MARKER STRINGS ARE ACTUALLY BUILT
 ; -----------------------------------------------------------------
@@ -102,8 +119,17 @@
 ;        with no mantissa digits at all - must report carry set and
 ;        leave FP1 at 0.0, matching FP_FROM_ASCII24_PROC's own
 ;        documented contract for the same situation
+;   T11  FP_FROM_ASCII_SCI, BOUNDARY CASE: "1.9E+38" - lands exactly
+;        on exponent byte $FF, the top of this format's representable
+;        range (see tr_exp_boundary.s's own header for the full
+;        derivation of WHY $FF, not $FE, is the true ceiling). Unlike
+;        every other test in this file, the expected value here is
+;        NOT hand-derived - see VERIFICATION STATUS below.
 ; ============================================================
+.segment "CODE"
 .proc tr_ascii_sci
+    TEST_ROUTINE_HEADER_MACRO msg_header
+
     ; --- T00: FP_TO_ASCII_SCI_PROC, 150.0, 0 fractional digits ---
     ; 150 normalizes to 1.5 x 10^2; with 0 fractional digits
     ; requested, only the leading digit (truncated, per this
@@ -308,15 +334,46 @@ t10_fail:
     TEST_FAILED_MACRO_V2 10, msg_nodigits
 t10_done:
 
+    ; --- T11: BOUNDARY CASE - "1.9E+38" lands exactly on exponent
+    ;          byte $FF, this format's true ceiling (see this file's
+    ;          T11 header note and tr_exp_boundary.s for the full
+    ;          derivation of why $FF, not $FE, is correct). Guard
+    ;          ordering matches T08 exactly: FP_ERROR_INIT_MACRO is
+    ;          armed BEFORE loading A/Y with the string pointer, not
+    ;          after - FP_ERROR_INIT_MACRO's own header documents
+    ;          "Destroys: A", and arming it after A already holds the
+    ;          string's low byte would clobber that argument before
+    ;          FP_FROM_ASCII_SCI ever sees it (confirmed the hard way
+    ;          during this test's own development - see
+    ;          diag_full_parse.s's own [BUG FIX] note for the full
+    ;          story). This value should NOT trap - if it does, that
+    ;          is itself the failure, not a guard against a decoy
+    ;          input the way T08's overflow test is. ---
+    FP_ERROR_INIT_MACRO t11_trapped
+    lda #<str_t11_in
+    ldy #>str_t11_in
+    jsr FP_FROM_ASCII_SCI
+    FP_ERROR_CLEAR_MACRO
+    TEST_FP1CMP_MACRO 11, msg_boundary, str_t11_exp
+    jmp t11_done
+t11_trapped:
+    ; unexpectedly trapped - $FF should be cleanly reachable per
+    ; tr_exp_boundary.s's own T00/T01. FP_ERROR_CODE ($FE) is worth
+    ; reading in the VICE monitor at this point if this ever fires.
+    TEST_FAILED_MACRO_V2 11, msg_boundary
+t11_done:
+
     rts
 
 .segment "RODATA"
-msg_to:         .asciiz "asciisci to"
-msg_from:       .asciiz "asciisci from"
-msg_roundtrip:  .asciiz "asciisci roundtrip"
-msg_overflow:   .asciiz "asciisci overflow trap"
-msg_underflow:  .asciiz "asciisci underflow"
-msg_nodigits:   .asciiz "asciisci no digits"
+msg_header:     .asciiz "conversion: ascii scientific"
+msg_to:         .asciiz "fp->ascii"
+msg_from:       .asciiz "ascii->fp"
+msg_roundtrip:  .asciiz "roundtrip"
+msg_overflow:   .asciiz "ascii overflow trap"
+msg_underflow:  .asciiz "ascii underflow"
+msg_nodigits:   .asciiz "ascii no digits"
+msg_boundary:   .asciiz "ascii->fp (1.9e+38)"
 ;
 ; --- no letters in these - .asciiz's translation is harmless either
 ;     way (digits/punctuation are untouched by .charmap), so these
@@ -362,4 +419,12 @@ str_t09_in:     .literal "1E-100", $0       ; magnitude underflow
 str_t10_in:     .literal $0                 ; empty string - "no
                                             ; number" at all, just
                                             ; the null terminator
+;
+; --- T11: exponent boundary. Real PETSCII 'E' needed for the
+;     marker, same .literal convention as T00-T09's inputs above. ---
+str_t11_in:     .literal "1.9E+38", $0
+str_t11_exp:    .byte $ff,$47,$78,$48   ;$43       ; hardware-confirmed, NOT
+                                            ; hand-derived - see this
+                                            ; file's T11 VERIFICATION
+                                            ; STATUS note above
 .endproc
